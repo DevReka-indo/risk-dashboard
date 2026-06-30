@@ -10,6 +10,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -110,7 +111,7 @@ class UserController extends Controller
 
         $newRoles = $validated['roles'] ?? [];
 
-        if ($user->id === auth()->id() && !in_array('superadmin', $newRoles, true) && $user->hasRole('superadmin')) {
+        if ($user->id === Auth::id() && !in_array('superadmin', $newRoles, true) && $user->hasRole('superadmin')) {
             return redirect()
                 ->route('users.edit', $user)
                 ->with('error', 'Kamu tidak bisa melepas role superadmin dari akun sendiri.');
@@ -133,7 +134,7 @@ class UserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
-        if ($user->id === auth()->id()) {
+        if ($user->id === Auth::id()) {
             return redirect()
                 ->route('users.index')
                 ->with('error', 'Kamu tidak bisa menghapus akun sendiri.');

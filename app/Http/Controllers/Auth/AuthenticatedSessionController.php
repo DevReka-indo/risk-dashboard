@@ -42,6 +42,20 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        $ssoLogoutUrl = config('services.sso.logout_url');
+        $afterLogoutUrl = config('services.sso.after_logout_url', route('login'));
+
+        if ($ssoLogoutUrl) {
+            return redirect()->away(
+                $ssoLogoutUrl .
+                    '?' .
+                    http_build_query([
+                        'client_id' => config('services.sso.client_id'),
+                        'redirect_uri' => $afterLogoutUrl,
+                    ]),
+            );
+        }
+
+        return redirect()->route('login');
     }
 }

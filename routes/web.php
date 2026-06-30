@@ -6,6 +6,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Auth\SsoCallbackController;
+use App\Http\Controllers\Auth\SsoRedirectController;
+
+Route::middleware('guest')->group(function (): void {
+    Route::get('/sso/redirect', SsoRedirectController::class)->name('sso.redirect');
+});
+
+Route::get('/sso/callback', SsoCallbackController::class)->name('sso.callback');
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
