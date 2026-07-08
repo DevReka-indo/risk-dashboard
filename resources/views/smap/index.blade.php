@@ -1,7 +1,7 @@
 <x-admin-layout>
     <x-slot name="header">
         <h1 class="text-lg font-bold text-slate-900">
-            Risk SMAP Register
+            Risk SMAP 
         </h1>
         <p class="hidden text-sm text-slate-500 sm:block">
             Monitoring daftar risiko SMAP berdasarkan unit kerja, kategori, dan status.
@@ -52,7 +52,7 @@
                             class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
 
-                    <div class="lg:col-span-2">
+                    <div class="lg:col-span-3">
                         <label for="unit_id" class="block text-sm font-semibold text-slate-700">
                             Unit Kerja
                         </label>
@@ -70,7 +70,7 @@
                         </select>
                     </div>
 
-                    <div class="lg:col-span-2">
+                    <div class="lg:col-span-3">
                         <label for="category_id" class="block text-sm font-semibold text-slate-700">
                             Kategori
                         </label>
@@ -88,54 +88,20 @@
                         </select>
                     </div>
 
-                    <div class="lg:col-span-2">
-                        <label for="level_id" class="block text-sm font-semibold text-slate-700">
-                            Level Risiko
+                    <div class="lg:col-span-3">
+                        <label for="status" class="block text-sm font-semibold text-slate-700">
+                            Status
                         </label>
 
                         <select
-                            id="level_id"
-                            name="level_id"
+                            id="status"
+                            name="status"
                             class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Semua Level</option>
-                            @foreach ($levels as $level)
-                                <option value="{{ $level->id_level }}" @selected((string) $levelId === (string) $level->id_level)>
-                                    {{ $level->nama_level }}
-                                </option>
-                            @endforeach
+                            <option value="">Semua Status</option>
+                            <option value="1" @selected($status === '1')>Aktif</option>
+                            <option value="0" @selected($status === '0')>Tidak Aktif</option>
                         </select>
                     </div>
-
-                    <div class="lg:col-span-2">
-                        <label for="trend" class="block text-sm font-semibold text-slate-700">
-                            Trend
-                        </label>
-
-                        <select
-                            id="trend"
-                            name="trend"
-                            class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Semua</option>
-                            <option value="Naik" @selected($trend === 'Naik')>Naik</option>
-                            <option value="Turun" @selected($trend === 'Turun')>Turun</option>
-                            <option value="Stabil" @selected($trend === 'Stabil')>Stabil</option>
-                        </select>
-                    </div>
-
-                    <div class="lg:col-span-1">
-    <label for="status" class="block text-sm font-semibold text-slate-700">
-        Status
-    </label>
-
-    <select
-        id="status"
-        name="status"
-        class="mt-1 w-full rounded-2xl border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-        <option value="">Semua</option>
-        <option value="1" @selected($status === '1')>Aktif</option>
-        <option value="0" @selected($status === '0')>Tidak Aktif</option>
-    </select>
-</div>
 
                     <div class="flex flex-col gap-3 sm:flex-row lg:col-span-12 lg:justify-between">
                         <div class="flex flex-col gap-3 sm:flex-row">
@@ -181,17 +147,8 @@
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
                                     KATEGORI
                                 </th>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    LEVEL
-                                </th>
                                 <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    VALUE
-                                </th>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    INHERENT
-                                </th>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    TREND
+                                    PERIODE LATEST
                                 </th>
                                 <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
                                     STATUS
@@ -225,28 +182,8 @@
                                         {{ $risk->kategoriRisiko->nama_kategori ?? '-' }}
                                     </td>
 
-                                    <td class="whitespace-nowrap px-6 py-4">
-                                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $risk->getLevelColorClass() }}">
-                                            {{ $risk->levelRisiko->nama_level ?? '-' }}
-                                        </span>
-                                    </td>
-
-                                    <td class="whitespace-nowrap px-6 py-4 text-center">
-                                        <span class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
-                                            {{ $risk->value }}
-                                        </span>
-                                    </td>
-
-                                    <td class="whitespace-nowrap px-6 py-4 text-center">
-                                        <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                                            {{ $risk->inherent }}
-                                        </span>
-                                    </td>
-
-                                    <td class="whitespace-nowrap px-6 py-4 text-center">
-                                        <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold {{ $risk->getTrendColorClass() }}">
-                                            {{ $risk->getTrendIcon() }} {{ $risk->trend }}
-                                        </span>
+                                    <td class="whitespace-nowrap px-6 py-4 text-center text-sm font-medium text-slate-800">
+                                        {{ $risk->latestPeriode->period->period_name ?? 'N/A' }}
                                     </td>
 
                                     <td class="whitespace-nowrap px-6 py-4 text-center">
@@ -290,7 +227,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="px-6 py-12 text-center">
+                                    <td colspan="7" class="px-6 py-12 text-center">
                                         <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
                                             <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12V16.5ZM10.29 3.86 1.82 18a2.25 2.25 0 0 0 1.93 3.375h16.5A2.25 2.25 0 0 0 22.18 18L13.71 3.86a2.25 2.25 0 0 0-3.42 0Z" />

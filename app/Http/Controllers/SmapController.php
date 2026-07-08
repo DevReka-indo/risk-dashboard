@@ -6,6 +6,7 @@ use App\Models\KategoriRisiko;
 use App\Models\LevelRisiko;
 use App\Models\SmapMonitoring;
 use App\Models\TopUnitKerja;
+use App\Models\Period;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,7 +23,8 @@ class SmapController extends Controller
         $status = $request->string('status')->toString();
 
         $smapRisks = SmapMonitoring::query()
-            ->with(['unitKerja', 'kategoriRisiko', 'levelRisiko'])
+            ->whereNull('parent_id') // KUNCI: Hanya tampilkan risiko utama/induk di halaman depan
+            ->with(['unitKerja', 'kategoriRisiko', 'levelRisiko', 'latestPeriode.period']) // Eager loading periode terbaru
             ->when($search, function ($query) use ($search): void {
                 $query->where('risk_event_deta', 'like', "%{$search}%");
             })
@@ -75,16 +77,21 @@ class SmapController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'id_unit' => ['required', 'integer', 'exists:top_unit_kerja,id_unit'],
-            'id_kategori' => ['required', 'integer', 'exists:kategori_risiko,id_kategori'],
-            'id_level' => ['required', 'integer', 'exists:level_risiko,id_level'],
+            'id_unit'         => ['required', 'integer', 'exists:top_unit_kerja,id_unit'],
+            'id_kategori'     => ['required', 'integer', 'exists:kategori_risiko,id_kategori'],
             'risk_event_deta' => ['required', 'string'],
-            'value' => ['required', 'integer', 'min:1'],
-            'inherent' => ['required', 'integer', 'min:1'],
-            'trend' => ['required', 'in:Naik,Turun,Stabil'],
-            'status' => ['required', 'boolean'],
+            'status'          => ['required', 'boolean'],
+            'created_at'      => ['required', 'date'],
         ]);
 
+        $validated['parent_id']  = null;
+        $validated['id_period']  = null; // atau isi dengan ID periode aktif saat ini
+        $validated['id_level']   = 1;    // nilai default sementara (sesuaikan dengan ID di tabel level_risiko)
+        $validated['value']      = 0;
+        $validated['inherent']   = 0;
+        $validated['trend']      = 'Stabil';
+
+        // 3. Simpan data ke database
         SmapMonitoring::create($validated);
 
         return redirect()
@@ -97,7 +104,6 @@ class SmapController extends Controller
         $risk = SmapMonitoring::findOrFail($id);
         $units = TopUnitKerja::orderBy('nama_unit', 'asc')->get();
 
-        // HANYA mengambil kategori bertipe smap dan diurutkan secara alfabetis
         $categories = KategoriRisiko::query()
             ->where('type', 'smap')
             ->orderBy('nama_kategori', 'asc')
@@ -141,9 +147,87 @@ class SmapController extends Controller
 
     public function show(string $id): View
     {
-        // Mengambil data dengan eager loading agar semua nama relasi langsung terbaca di view detail
-        $risk = SmapMonitoring::with(['unitKerja', 'kategoriRisiko', 'levelRisiko'])->findOrFail($id);
+        // Muat detail beserta semua riwayat perkembangan periodenya
+        $risk = SmapMonitoring::with(['unitKerja', 'kategoriRisiko', 'levelRisiko', 'detailPeriode.period'])->findOrFail($id);
 
-        return view('smap.show', compact('risk'));
+        // Ambil semua master periode untuk pilihan dropdown select di form detail
+        $periods = Period::orderBy('year', 'desc')->orderBy('quarter', 'asc')->get();
+
+        return view('smap.show', compact('risk', 'periods'));
     }
+
+public function storeMonitoring(Request $request, $id)
+{
+    // 1. Validasi input dari form dengan penambahan validasi untuk value dan inherent
+    $request->validate([
+        'quarter'           => 'required|in:Q1,Q2,Q3,Q4',
+        'year'              => 'required|numeric|min:2020|max:2099',
+        'value'             => 'required|numeric|min:1|max:25',
+        'inherent'          => 'required|numeric',
+        'status_monitoring' => 'required|in:0,1',
+    ]);
+
+    // 2. Mapping format "Q1" dari form menjadi Angka "1" dan teks "TW1"
+    $quarterMapping = [
+        'Q1' => ['numeric' => '1', 'text' => 'TW1'],
+        'Q2' => ['numeric' => '2', 'text' => 'TW2'],
+        'Q3' => ['numeric' => '3', 'text' => 'TW3'],
+        'Q4' => ['numeric' => '4', 'text' => 'TW4'],
+    ];
+
+    $selectedQuarter = $quarterMapping[$request->quarter]['numeric'];
+    $quarterText     = $quarterMapping[$request->quarter]['text'];
+
+    // 3. Format nama periode sesuai database (Contoh: "TW1 2026")
+    $periodName = $quarterText . ' ' . $request->year;
+
+    // 4. Cari periode, jika tidak ada, buat baru
+    $period = Period::firstOrCreate(
+        ['period_name' => $periodName],
+        [
+            'year'    => $request->year,
+            'quarter' => $selectedQuarter,
+        ]
+    );
+
+    // 5. Dapatkan data risiko induk utama (Parent)
+    $parentRisk = SmapMonitoring::findOrFail($id);
+
+    // 6. Buat data log perkembangan baru (Child)
+    // PERBAIKAN: Mengambil data dari $request (input user) bukan dari $parentRisk
+    SmapMonitoring::create([
+        'parent_id'       => $parentRisk->id_smap,
+        'id_period'       => $period->id_period,
+        'id_unit'         => $parentRisk->id_unit,
+        'id_kategori'     => $parentRisk->id_kategori,
+        'id_level'        => $parentRisk->id_level,
+        'risk_event_deta' => $parentRisk->risk_event_deta,
+
+        // Data diambil dari input form agar tidak 0
+        'inherent'        => $request->inherent,
+        'trend'           => $request->calculated_trend,
+        'value'           => $request->value,
+
+        'status'          => $request->status_monitoring,
+    ]);
+
+    return redirect()->back()->with('success', "Berhasil merekam perkembangan risiko untuk periode {$periodName}!");
+}
+
+public function destroyMonitoring($id)
+{
+    $monitoring = SmapMonitoring::findOrFail($id);
+
+    $idSmap = $monitoring->parent_id;
+
+    $monitoring->delete();
+
+    if (!$idSmap) {
+        return redirect()->route('smap-risk.index')
+                         ->with('success', 'Riwayat berhasil dihapus.');
+    }
+
+    return redirect()->route('smap-risk.show', ['id' => $idSmap])
+                     ->with('success', 'Riwayat monitoring berhasil dihapus.');
+}
 }

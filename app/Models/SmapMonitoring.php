@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SmapMonitoring extends Model
 {
@@ -11,7 +13,10 @@ class SmapMonitoring extends Model
 
     protected $primaryKey = 'id_smap';
 
+    // Tambahkan parent_id dan id_period di sini agar bisa disimpan lewat Controller
     protected $fillable = [
+        'parent_id',
+        'id_period',
         'id_unit',
         'id_kategori',
         'id_level',
@@ -33,7 +38,6 @@ class SmapMonitoring extends Model
 
     public function getLevelColorClass(): string
     {
-        // strtolower digunakan agar pengecekan string tidak sensitif huruf besar/kecil (case-insensitive)
         return match (strtolower($this->levelRisiko?->nama_level ?? '')) {
             'high' => 'bg-rose-100 text-rose-700',
             'moderate to high' => 'bg-red-100 text-red-600',
@@ -64,6 +68,8 @@ class SmapMonitoring extends Model
         };
     }
 
+    // === RELASI MASTER DATA (BAWAAN KAMU) ===
+
     public function kategoriRisiko(): BelongsTo
     {
         return $this->belongsTo(KategoriRisiko::class, 'id_kategori', 'id_kategori');
@@ -77,5 +83,25 @@ class SmapMonitoring extends Model
     public function unitKerja(): BelongsTo
     {
         return $this->belongsTo(TopUnitKerja::class, 'id_unit', 'id_unit');
+    }
+
+    // === TAMBAHAN RELASI UNTUK MONITORING PERIODIK ===
+
+    // Menghubungkan baris monitoring ke master tabel periode
+    public function period(): BelongsTo
+    {
+        return $this->belongsTo(Period::class, 'id_period', 'id_period');
+    }
+
+    // Mengambil semua riwayat kuartal (anak) milik risiko ini (induk) untuk di halaman detail
+    public function detailPeriode(): HasMany
+    {
+        return $this->hasMany(SmapMonitoring::class, 'parent_id', 'id_smap')->latest('id_smap');
+    }
+
+    // SAKTI: Mengambil hanya 1 riwayat monitoring TERBARU untuk ditayangkan di halaman INDEX
+    public function latestPeriode(): HasOne
+    {
+        return $this->hasOne(SmapMonitoring::class, 'parent_id', 'id_smap')->latestOfMany('id_smap');
     }
 }

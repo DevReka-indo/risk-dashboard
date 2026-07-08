@@ -165,6 +165,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/risks/department/{id}', [DepartemenController::class, 'destroy'])
         ->middleware('permission:risk.delete')
         ->name('department-risk.destroy');
+    Route::put('/risks/department/{id}/update-period', [DepartemenController::class, 'updatePeriod'])
+        ->middleware('permission:risk.edit')
+        ->name('department-risk.update-period');
+    Route::delete('/risks/department/{id}/period/{pivotId}', [DepartemenController::class, 'destroyPeriod'])
+        ->middleware('permission:risk.delete')
+        ->name('department-risk.destroy-period');
 
     // Risk Register - SMAP Risk
     Route::get('/risks/smap', [SmapController::class, 'index'])
@@ -188,6 +194,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/risks/smap/{id}', [SmapController::class, 'destroy'])
         ->middleware('permission:risk.delete')
         ->name('smap-risk.destroy');
+    Route::post('/risks/smap/{id}/monitoring', [SmapController::class, 'storeMonitoring'])
+        ->middleware('permission:risk.create')
+        ->name('smap-risk.store-monitoring');
+    Route::delete('/risks/smap/monitoring/{id}', [SmapController::class, 'destroyMonitoring'])
+        ->middleware('permission:risk.delete')
+        ->name('smap-risk.destroy-monitoring');
 
     //Kategori
     Route::get('/kategori-risiko', [KategoriRisikoController::class, 'index'])
@@ -211,7 +223,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/kategori-risiko/{id}', [KategoriRisikoController::class, 'destroy'])
         ->middleware('permission:kategori-risiko.delete')
         ->name('kategori-risiko.destroy');
-        
+
+
     Route::get('/settings', function () {
         return 'Halaman Pengaturan';
     })
