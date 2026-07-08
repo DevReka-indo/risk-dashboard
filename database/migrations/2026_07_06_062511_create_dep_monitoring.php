@@ -8,15 +8,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('vdpt_monitoring', function (Blueprint $table) {
+        Schema::create('dep_monitoring', function (Blueprint $table) {
             $table->id('id_monitoring');
 
-            // Foreign Keys yang diarahkan ke top_unit_kerja sesuai gambar image_b680bb.png
+            // Foreign Key ke top_unit_kerja
             $table->foreignId('id_unit')->constrained('top_unit_kerja', 'id_unit')->onDelete('cascade');
 
-            // Foreign Keys Lainnya
-            $table->foreignId('id_category')->constrained('vds_categorie', 'id_category')->onDelete('cascade');
-            $table->foreignId('id_level')->constrained('vds_level', 'id_level')->onDelete('cascade');
+            // PERBAIKAN: Diarahkan ke top_kategori_risiko dan id_kategori
+            $table->foreignId('id_kategori')->constrained('top_kategori_risiko', 'id_kategori')->onDelete('cascade');
+
+            // PERBAIKAN: Diarahkan ke top_level_risiko dan id_level
+            $table->foreignId('id_level')->constrained('top_level_risiko', 'id_level')->onDelete('cascade');
 
             // Kolom Lainnya
             $table->text('risk_event_deta');
@@ -32,6 +34,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('vdpt_monitoring');
+        Schema::dropIfExists('dep_monitoring');
     }
 };

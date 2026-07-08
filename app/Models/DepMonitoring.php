@@ -5,11 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class VdptMonitoring extends Model
+class DepMonitoring extends Model
 {
-    protected $table = 'vdpt_monitoring';
+    protected $table = 'dep_monitoring';
 
     protected $primaryKey = 'id_monitoring';
+
+    protected $fillable = [
+        'id_unit',
+        'id_kategori',
+        'id_level',
+        'risk_event_deta',
+        'value',
+        'inherent',
+        'trend',
+        'status',
+        'type',
+    ];
 
     protected function casts(): array
     {
@@ -22,9 +34,10 @@ class VdptMonitoring extends Model
 
     public function getLevelColorClass(): string
     {
-        return match ($this->level?->level_name) {
+        // Menyesuaikan dengan relasi 'levelRisiko' dan properti 'nama_level'
+        return match ($this->levelRisiko?->nama_level) {
             'Low' => 'bg-emerald-100 text-emerald-700',
-            'Low To Moderate' => 'bg-yellow-100 text-yellow-700',
+            'Low to Moderate' => 'bg-yellow-100 text-yellow-700',
             'Moderate' => 'bg-orange-100 text-orange-700',
             'Moderate to High' => 'bg-red-100 text-red-600',
             'High' => 'bg-rose-100 text-rose-700',
@@ -45,37 +58,25 @@ class VdptMonitoring extends Model
     public function getTrendColorClass(): string
     {
         return match ($this->trend) {
-            'Naik' => 'text-emerald-600 ',
+            'Naik' => 'text-emerald-600',
             'Turun' => 'text-rose-600',
             'Stabil' => 'text-slate-500',
             default => 'text-slate-400',
         };
     }
 
-    protected $fillable = [
-        'id_unit',
-        'id_category',
-        'id_level',
-        'risk_event_deta',
-        'value',
-        'inherent',
-        'trend',
-        'status',
-        'type',
-    ];
+    public function kategoriRisiko(): BelongsTo
+    {
+        return $this->belongsTo(KategoriRisiko::class, 'id_kategori', 'id_kategori');
+    }
 
-    public function unit(): BelongsTo
+    public function levelRisiko(): BelongsTo
+    {
+        return $this->belongsTo(LevelRisiko::class, 'id_level', 'id_level');
+    }
+
+    public function unitKerja(): BelongsTo
     {
         return $this->belongsTo(TopUnitKerja::class, 'id_unit', 'id_unit');
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(VdsCategorie::class, 'id_category', 'id_category');
-    }
-
-    public function level(): BelongsTo
-    {
-        return $this->belongsTo(VdsLevel::class, 'id_level', 'id_level');
     }
 }

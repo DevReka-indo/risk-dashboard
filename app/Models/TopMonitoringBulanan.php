@@ -46,7 +46,7 @@ class TopMonitoringBulanan extends Model
     public function level(): BelongsTo
     {
         return $this->belongsTo(
-            TopLevelRisiko::class,
+            LevelRisiko::class,
             'id_level',
             'id_level'
         );

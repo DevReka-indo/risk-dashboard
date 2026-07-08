@@ -7,98 +7,149 @@ use Illuminate\Support\Facades\DB;
 
 class RiskDashboardSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // 1. Seed Tabel Master: top_unit_kerja (Hanya mengambil/mengisi nama_unit)
-        $units = [
-            ['nama_unit' => 'Departemen SDM'],
-            ['nama_unit' => 'Departemen Hukum'],
-            ['nama_unit' => 'Departemen Operasional'],
-            ['nama_unit' => 'Departemen Keuangan'],
-            ['nama_unit' => 'Departemen IT'],
-        ];
-        DB::table('top_unit_kerja')->insert($units);
-
-        // 2. Seed Tabel Master: vds_level
-        // Memasukkan gabungan opsi kapital (untuk DPT) dan huruf kecil (untuk SMAP) jika dibutuhkan,
-        // namun disesuaikan dengan isi blueprint enum yang kamu buat.
+        // 1. Seed Tabel level_risiko (Sesuai Gambar 1)
         $levels = [
-            ['level_name' => 'Low'],
-            ['level_name' => 'Low to Moderate'],
-            ['level_name' => 'Moderate'],
-            ['level_name' => 'Moderate to High'],
-            ['level_name' => 'High'],
-        ];
-        DB::table('vds_level')->insert($levels);
-
-        // 3. Seed Tabel Master: vds_categorie
-        $categories = [
-            ['category_name' => 'Operasional'],
-            ['category_name' => 'Strategis'],
-            ['category_name' => 'Finansial'],
-            ['category_name' => 'Kepatuhan (Compliance)'],
-        ];
-        DB::table('vds_categorie')->insert($categories);
-
-        // 4. Seed Tabel Utama: vdpt_monitoring (Contoh Data DPT)
-        DB::table('vdpt_monitoring')->insert([
             [
-                'id_unit' => 1, // Mengacu ke Departemen SDM
-                'id_category' => 1, // Mengacu ke Operasional
-                'id_level' => 3, // Mengacu ke Moderate
-                'risk_event_deta' => 'Keterlambatan pemenuhan kuota rekrutmen karyawan inti.',
-                'value' => 12,
-                'inherent' => 15,
-                'trend' => 'Naik',
-                'status' => true,
-                'type' => 'Non-Proyek',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'id_level' => 1,
+                'nama_level' => 'Low',
+                'urutan' => 1,
+                'kode_warna' => '#00B050',
+                'created_at' => '2026-07-06 04:23:49',
+                'updated_at' => '2026-07-06 04:23:49',
             ],
             [
-                'id_unit' => 5, // Mengacu ke Departemen IT
-                'id_category' => 2, // Mengacu ke Strategis
-                'id_level' => 5, // Mengacu ke High
-                'risk_event_deta' => 'Kegagalan migrasi server core dashboard ke infrastruktur baru.',
-                'value' => 20,
-                'inherent' => 25,
-                'trend' => 'Stabil',
-                'status' => true,
-                'type' => 'Proyek',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'id_level' => 2,
+                'nama_level' => 'Low to Moderate',
+                'urutan' => 2,
+                'kode_warna' => '#92D050',
+                'created_at' => '2026-07-06 04:23:49',
+                'updated_at' => '2026-07-06 04:23:49',
             ],
+            [
+                'id_level' => 3,
+                'nama_level' => 'Moderate',
+                'urutan' => 3,
+                'kode_warna' => '#FFC000',
+                'created_at' => '2026-07-06 04:23:49',
+                'updated_at' => '2026-07-06 04:23:49',
+            ],
+            [
+                'id_level' => 4,
+                'nama_level' => 'Moderate to High',
+                'urutan' => 4,
+                'kode_warna' => '#ED7D31',
+                'created_at' => '2026-07-06 04:23:49',
+                'updated_at' => '2026-07-06 04:23:49',
+            ],
+            [
+                'id_level' => 5,
+                'nama_level' => 'High',
+                'urutan' => 5,
+                'kode_warna' => '#FF0000',
+                'created_at' => '2026-07-06 04:23:49',
+                'updated_at' => '2026-07-06 04:23:49',
+            ],
+        ];
+
+        // Menggunakan updateOrInsert agar data tidak duplikat jika seeder dijalankan ulang
+        foreach ($levels as $level) {
+            DB::table('level_risiko')->updateOrInsert(['id_level' => $level['id_level']], $level);
+        }
+
+        // 2. Seed Tabel kategori_risiko (Sesuai Gambar 2)
+        $kategori = [
+            [
+                'id_kategori' => 1,
+                'nama_kategori' => 'Strategis',
+                'type' => 'departement',
+                'keterangan' => null,
+                'created_at' => '2026-07-06 04:23:49',
+                'updated_at' => '2026-07-06 04:23:49',
+            ],
+            [
+                'id_kategori' => 2,
+                'nama_kategori' => 'Operasional',
+                'type' => 'departement',
+                'keterangan' => null,
+                'created_at' => '2026-07-06 04:23:49',
+                'updated_at' => '2026-07-06 04:23:49',
+            ],
+            [
+                'id_kategori' => 3,
+                'nama_kategori' => 'Keuangan',
+                'type' => 'departement',
+                'keterangan' => null,
+                'created_at' => '2026-07-06 04:23:49',
+                'updated_at' => '2026-07-06 04:23:49',
+            ],
+            [
+                'id_kategori' => 4,
+                'nama_kategori' => 'Investasi',
+                'type' => 'departement',
+                'keterangan' => null,
+                'created_at' => '2026-07-06 04:23:49',
+                'updated_at' => '2026-07-06 04:23:49',
+            ],
+            [
+                'id_kategori' => 5,
+                'nama_kategori' => 'Finansial',
+                'type' => 'departement',
+                'keterangan' => null,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'id_kategori' => 6,
+                'nama_kategori' => 'Hukum',
+                'type' => 'departement',
+                'keterangan' => null,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'id_kategori' => 7,
+                'nama_kategori' => 'Hukum',
+                'type' => 'smap',
+                'keterangan' => null,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+        ];
+
+        foreach ($kategori as $kat) {
+            DB::table('kategori_risiko')->updateOrInsert(['id_kategori' => $kat['id_kategori']], $kat);
+        }
+
+        // 3. Dummy Seed untuk dep_monitoring & smap_monitoring (Opsional)
+        // Pastikan id_unit = 1 sudah ada di tabel top_unit_kerja Anda sebelum menjalankan ini
+
+        DB::table('dep_monitoring')->insert([
+            'id_unit' => 1,
+            'id_kategori' => 2, // Operasional
+            'id_level' => 3,    // Moderate
+            'risk_event_deta' => 'Kegagalan sistem server utama selama 2 jam.',
+            'value' => 50000000,
+            'inherent' => 4,
+            'trend' => 'Stabil',
+            'status' => true,
+            'type' => 'Non-Proyek',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        // 5. Seed Tabel Utama: vsmap_monitoring (Contoh Data SMAP)
-        // Catatan: Karena enum 'trend' dan 'status' di tabel SMAP kamu menggunakan huruf kecil,
-        // datanya disesuaikan menjadi 'turun'/'stagnan' dan 'aktif'/'nonaktif'.
-        DB::table('vsmap_monitoring')->insert([
-            [
-                'id_unit' => 2, // Mengacu ke Departemen Hukum
-                'id_category' => 4, // Mengacu ke Kepatuhan
-                'id_level' => 2, // Mengacu ke Low to Moderate
-                'risk_event' => 'Keterlambatan pembaruan sertifikasi ISO anti-penyuapan.',
-                'value' => 6,
-                'inherent' => 10,
-                'trend' => 'turun',
-                'status' => 'aktif',
-                'created_at' => now(),
-            ],
-            [
-                'id_unit' => 3, // Mengacu ke Departemen Operasional
-                'id_category' => 1, // Mengacu ke Operasional
-                'id_level' => 4, // Mengacu ke Moderate to High
-                'risk_event' => 'Adanya temuan konflik kepentingan pada proses pengadaan vendor.',
-                'value' => 16,
-                'inherent' => 16,
-                'trend' => 'stagnan',
-                'status' => 'aktif',
-                'created_at' => now(),
-            ],
+        DB::table('smap_monitoring')->insert([
+            'id_unit' => 1,
+            'id_kategori' => 6, // Kepatuhan
+            'id_level' => 1,    // Low
+            'risk_event_deta' => 'Keterlambatan pelaporan dokumen triwulan.',
+            'value' => 0,
+            'inherent' => 2,
+            'trend' => 'Turun',
+            'status' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 }

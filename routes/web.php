@@ -3,13 +3,15 @@
 use App\Http\Controllers\Auth\SsoCallbackController;
 use App\Http\Controllers\Auth\SsoRedirectController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RiskController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SmapController;
 use App\Http\Controllers\TopRiskController;
 use App\Http\Controllers\UnitKerjaController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\KategoriRisikoController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function (): void {
@@ -47,63 +49,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:unit-kerja.delete')
         ->name('unit-kerja.destroy');
 
-    // Risk Register
-    Route::get('/risks', [RiskController::class, 'index'])
-        ->middleware('permission:risk.view')
-        ->name('risks.index');
-    Route::get('/risks/create', [RiskController::class, 'create'])
-        ->middleware('permission:risk.create')
-        ->name('risks.create');
-    Route::post('/risks', [RiskController::class, 'store'])
-        ->middleware('permission:risk.create')
-        ->name('risks.store');
-    Route::get('/risks/{risk}/edit', [RiskController::class, 'edit'])
-        ->middleware('permission:risk.edit')
-        ->name('risks.edit');
-    Route::put('/risks/{risk}', [RiskController::class, 'update'])
-        ->middleware('permission:risk.edit')
-        ->name('risks.update');
-    Route::delete('/risks/{risk}', [RiskController::class, 'destroy'])
-        ->middleware('permission:risk.delete')
-        ->name('risks.destroy');
-
-    // Top Risk
+    // HATI HATI ROUTE GALAK
+    // JANGAN DIHAPUS
+    // TOP RISK
     Route::get('/top-risk', [TopRiskController::class, 'index'])
         ->middleware('permission:toprisk.view')
         ->name('top-risk.index');
-
     Route::get('/top-risk/create', [TopRiskController::class, 'create'])
         ->middleware('permission:toprisk.create')
         ->name('top-risk.create');
-
     Route::post('/top-risk', [TopRiskController::class, 'store'])
         ->middleware('permission:toprisk.create')
         ->name('top-risk.store');
-
     Route::get('/top-risk/{topRisk}', [TopRiskController::class, 'show'])
         ->middleware('permission:toprisk.view')
         ->name('top-risk.show');
-
     Route::get('/top-risk/{topRisk}/edit', [TopRiskController::class, 'edit'])
         ->middleware('permission:toprisk.edit')
         ->name('top-risk.edit');
-
     Route::put('/top-risk/{topRisk}', [TopRiskController::class, 'update'])
         ->middleware('permission:toprisk.edit')
         ->name('top-risk.update');
-
     Route::delete('/top-risk/{topRisk}', [TopRiskController::class, 'destroy'])
         ->middleware('permission:toprisk.delete')
         ->name('top-risk.destroy');
-
     Route::post('/top-risk/{topRisk}/monitoring', [TopRiskController::class, 'storeMonitoring'])
         ->middleware('permission:toprisk.create')
         ->name('top-risk.monitoring.store');
-
     Route::put('/top-risk/{topRisk}/monitoring/{monitoring}', [TopRiskController::class, 'updateMonitoring'])
         ->middleware('permission:toprisk.edit')
         ->name('top-risk.monitoring.update');
-
     Route::delete('/top-risk/{topRisk}/monitoring/{monitoring}', [TopRiskController::class, 'destroyMonitoring'])
         ->middleware('permission:toprisk.delete')
         ->name('top-risk.monitoring.destroy');
@@ -168,11 +143,81 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:permission.delete')
         ->name('permissions.destroy');
 
+    // Risk Register - Department Risk
+    Route::get('/risks/department', [DepartemenController::class, 'index'])
+        ->middleware('permission:risk.view')
+        ->name('department-risk.index');
+    Route::get('/risks/department/create', [DepartemenController::class, 'create'])
+        ->middleware('permission:risk.create')
+        ->name('department-risk.create');
+    Route::post('/risks/department', [DepartemenController::class, 'store'])
+        ->middleware('permission:risk.create')
+        ->name('department-risk.store');
+    Route::get('/risks/department/{id}', [DepartemenController::class, 'show'])
+        ->middleware('permission:risk.view')
+        ->name('department-risk.show');
+    Route::get('/risks/department/{id}/edit', [DepartemenController::class, 'edit'])
+        ->middleware('permission:risk.edit')
+        ->name('department-risk.edit');
+    Route::put('/risks/department/{id}', [DepartemenController::class, 'update'])
+        ->middleware('permission:risk.edit')
+        ->name('department-risk.update');
+    Route::delete('/risks/department/{id}', [DepartemenController::class, 'destroy'])
+        ->middleware('permission:risk.delete')
+        ->name('department-risk.destroy');
+
+    // Risk Register - SMAP Risk
+    Route::get('/risks/smap', [SmapController::class, 'index'])
+        ->middleware('permission:risk.view')
+        ->name('smap-risk.index');
+    Route::get('/risks/smap/create', [SmapController::class, 'create'])
+        ->middleware('permission:risk.create')
+        ->name('smap-risk.create');
+    Route::post('/risks/smap', [SmapController::class, 'store'])
+        ->middleware('permission:risk.create')
+        ->name('smap-risk.store');
+    Route::get('/risks/smap/{id}', [SmapController::class, 'show'])
+        ->middleware('permission:risk.view')
+        ->name('smap-risk.show');
+    Route::get('/risks/smap/{id}/edit', [SmapController::class, 'edit'])
+        ->middleware('permission:risk.edit')
+        ->name('smap-risk.edit');
+    Route::put('/risks/smap/{id}', [SmapController::class, 'update'])
+        ->middleware('permission:risk.edit')
+        ->name('smap-risk.update');
+    Route::delete('/risks/smap/{id}', [SmapController::class, 'destroy'])
+        ->middleware('permission:risk.delete')
+        ->name('smap-risk.destroy');
+
+    //Kategori
+    Route::get('/kategori-risiko', [KategoriRisikoController::class, 'index'])
+        ->middleware('permission:kategori-risiko.view') // Kembali ke kategori-risiko
+        ->name('kategori-risiko.index');
+    Route::get('/kategori-risiko/create', [KategoriRisikoController::class, 'create'])
+        ->middleware('permission:kategori-risiko.create')
+        ->name('kategori-risiko.create');
+    Route::post('/kategori-risiko', [KategoriRisikoController::class, 'store'])
+        ->middleware('permission:kategori-risiko.create')
+        ->name('kategori-risiko.store');
+    Route::get('/kategori-risiko/{id}', [KategoriRisikoController::class, 'show'])
+        ->middleware('permission:kategori-risiko.view')
+        ->name('kategori-risiko.show');
+    Route::get('/kategori-risiko/{id}/edit', [KategoriRisikoController::class, 'edit'])
+        ->middleware('permission:kategori-risiko.edit')
+        ->name('kategori-risiko.edit');
+    Route::put('/kategori-risiko/{id}', [KategoriRisikoController::class, 'update'])
+        ->middleware('permission:kategori-risiko.edit')
+        ->name('kategori-risiko.update');
+    Route::delete('/kategori-risiko/{id}', [KategoriRisikoController::class, 'destroy'])
+        ->middleware('permission:kategori-risiko.delete')
+        ->name('kategori-risiko.destroy');
+        
     Route::get('/settings', function () {
         return 'Halaman Pengaturan';
     })
         ->middleware('permission:setting.view')
         ->name('settings.index');
+
 });
 
 Route::middleware('auth')->group(function () {

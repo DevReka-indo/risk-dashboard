@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\KategoriRisiko;
+use App\Models\LevelRisiko;
 use App\Models\TopAturanEfektivitas;
-use App\Models\TopKategoriRisiko;
-use App\Models\TopLevelRisiko;
 use App\Models\TopMonitoringBulanan;
 use App\Models\TopRisiko;
 use App\Models\TopUnitKerja;
@@ -56,7 +56,7 @@ class TopRiskController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $kategoriRisiko = TopKategoriRisiko::query()->orderBy('nama_kategori', 'asc')->get();
+        $kategoriRisiko = KategoriRisiko::query()->orderBy('nama_kategori', 'asc')->get();
 
         $unitKerja = TopUnitKerja::query()->orderBy('nama_unit', 'asc')->get();
 
@@ -95,7 +95,7 @@ class TopRiskController extends Controller
 
     public function create(): View
     {
-        $kategoriRisiko = TopKategoriRisiko::query()->orderBy('nama_kategori', 'asc')->get();
+        $kategoriRisiko = KategoriRisiko::query()->orderBy('nama_kategori', 'asc')->get();
 
         $unitKerja = TopUnitKerja::query()->orderBy('nama_unit', 'asc')->get();
 
@@ -140,7 +140,7 @@ class TopRiskController extends Controller
             },
         ]);
 
-        $levelRisiko = TopLevelRisiko::query()->orderBy('urutan', 'asc')->get();
+        $levelRisiko = LevelRisiko::query()->orderBy('urutan', 'asc')->get();
 
         return view('top-risk.show', compact('topRisk', 'levelRisiko'));
     }
@@ -149,7 +149,7 @@ class TopRiskController extends Controller
     {
         $topRisk->load('unitKerja');
 
-        $kategoriRisiko = TopKategoriRisiko::query()->orderBy('nama_kategori', 'asc')->get();
+        $kategoriRisiko = KategoriRisiko::query()->orderBy('nama_kategori', 'asc')->get();
 
         $unitKerja = TopUnitKerja::query()->orderBy('nama_unit', 'asc')->get();
 
@@ -220,8 +220,8 @@ class TopRiskController extends Controller
             'period' => [
                 'month' => $selectedMonth,
                 'year' => $selectedYear,
-                'label' => $this->monthName($selectedMonth) . ' ' . $selectedYear,
-                'previous_label' => $this->monthName($previousMonth) . ' ' . $previousYear,
+                'label' => $this->monthName($selectedMonth).' '.$selectedYear,
+                'previous_label' => $this->monthName($previousMonth).' '.$previousYear,
             ],
             'summary' => [
                 'total_risiko' => TopRisiko::query()->count('*'),
@@ -245,7 +245,7 @@ class TopRiskController extends Controller
             ->values()
             ->map(function (TopMonitoringBulanan $monitoring, int $index): array {
                 return [
-                    'code' => 'R' . ($index + 1),
+                    'code' => 'R'.($index + 1),
                     'risk_name' => $monitoring->risiko?->nama_peristiwa_risiko ?? '-',
                     'value' => (int) $monitoring->nilai,
                     'level' => $monitoring->level?->nama_level ?? '-',
@@ -295,10 +295,10 @@ class TopRiskController extends Controller
 
     private function buildLevelDistribution(Collection $currentMonitoring): Collection
     {
-        return TopLevelRisiko::query()
+        return LevelRisiko::query()
             ->orderBy('urutan', 'asc')
             ->get()
-            ->map(function (TopLevelRisiko $levelRisiko) use ($currentMonitoring): array {
+            ->map(function (LevelRisiko $levelRisiko) use ($currentMonitoring): array {
                 $total = $currentMonitoring->where('id_level', $levelRisiko->id_level)->count();
 
                 return [
@@ -311,10 +311,10 @@ class TopRiskController extends Controller
 
     private function buildCategoryDistribution(Collection $currentMonitoring): Collection
     {
-        return TopKategoriRisiko::query()
+        return KategoriRisiko::query()
             ->orderBy('nama_kategori', 'asc')
             ->get()
-            ->map(function (TopKategoriRisiko $kategoriRisiko) use ($currentMonitoring): array {
+            ->map(function (KategoriRisiko $kategoriRisiko) use ($currentMonitoring): array {
                 $total = $currentMonitoring
                     ->filter(function (TopMonitoringBulanan $monitoring) use ($kategoriRisiko): bool {
                         return (int) ($monitoring->risiko?->id_kategori ?? 0) === (int) $kategoriRisiko->id_kategori;
@@ -375,7 +375,7 @@ class TopRiskController extends Controller
             ->get(['bulan', 'tahun', 'nilai'])
             ->map(function (TopMonitoringBulanan $monitoring): array {
                 return [
-                    'label' => $this->shortMonthName((int) $monitoring->bulan) . ' ' . $monitoring->tahun,
+                    'label' => $this->shortMonthName((int) $monitoring->bulan).' '.$monitoring->tahun,
                     'value' => (int) $monitoring->nilai,
                 ];
             })
@@ -408,7 +408,7 @@ class TopRiskController extends Controller
             }
         }
 
-        $allValuesAreSame = !$hasIncrease && !$hasDecrease;
+        $allValuesAreSame = ! $hasIncrease && ! $hasDecrease;
 
         if ($allValuesAreSame) {
             return [
@@ -418,7 +418,7 @@ class TopRiskController extends Controller
             ];
         }
 
-        if (!$hasDecrease && $lastValue > $firstValue) {
+        if (! $hasDecrease && $lastValue > $firstValue) {
             return [
                 'trend' => 'Naik',
                 'description' => 'Nilai risiko tidak pernah turun dan nilai akhir lebih besar dari nilai awal.',
@@ -426,7 +426,7 @@ class TopRiskController extends Controller
             ];
         }
 
-        if (!$hasIncrease && $lastValue < $firstValue) {
+        if (! $hasIncrease && $lastValue < $firstValue) {
             return [
                 'trend' => 'Turun',
                 'description' => 'Nilai risiko tidak pernah naik dan nilai akhir lebih kecil dari nilai awal.',
@@ -450,18 +450,18 @@ class TopRiskController extends Controller
         return [$selectedMonth - 1, $selectedYear];
     }
 
-private function resolveTwoPeriodTrendLabel(float $currentValue, float $previousValue): string
-{
-    if ($currentValue > $previousValue) {
-        return 'Naik';
-    }
+    private function resolveTwoPeriodTrendLabel(float $currentValue, float $previousValue): string
+    {
+        if ($currentValue > $previousValue) {
+            return 'Naik';
+        }
 
-    if ($currentValue < $previousValue) {
-        return 'Turun';
-    }
+        if ($currentValue < $previousValue) {
+            return 'Turun';
+        }
 
-    return 'Stagnan';
-}
+        return 'Stagnan';
+    }
 
     private function shortMonthName(int $month): string
     {
@@ -595,7 +595,7 @@ private function resolveTwoPeriodTrendLabel(float $currentValue, float $previous
             return null;
         }
 
-        $levelBulanIni = TopLevelRisiko::query()->where('id_level', $idLevelBulanIni)->firstOrFail();
+        $levelBulanIni = LevelRisiko::query()->where('id_level', $idLevelBulanIni)->firstOrFail();
 
         $kondisiNilai = $this->compareValue(current: $nilaiBulanIni, previous: $monitoringSebelumnya->nilai);
 

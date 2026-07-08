@@ -28,7 +28,7 @@ class TopRisiko extends Model
     public function kategori(): BelongsTo
     {
         return $this->belongsTo(
-            TopKategoriRisiko::class,
+            KategoriRisiko::class,
             'id_kategori',
             'id_kategori'
         );
