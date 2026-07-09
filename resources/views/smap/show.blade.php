@@ -91,6 +91,12 @@
                             <option value="Q4" @selected(old('quarter') == 'Q4')>Q4 (Kuartal 4)</option>
                         </select>
                     </div>
+                    
+                    @error('quarter')
+                        <p class="mt-2 text-sm text-red-600">
+                            {{ $message }}
+                        </p>
+                    @enderror
 
                     {{-- Input Tahun --}}
                     <div>

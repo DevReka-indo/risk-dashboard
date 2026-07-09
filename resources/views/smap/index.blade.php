@@ -1,7 +1,7 @@
 <x-admin-layout>
     <x-slot name="header">
         <h1 class="text-lg font-bold text-slate-900">
-            Risk SMAP 
+            Risk SMAP
         </h1>
         <p class="hidden text-sm text-slate-500 sm:block">
             Monitoring daftar risiko SMAP berdasarkan unit kerja, kategori, dan status.
@@ -34,11 +34,13 @@
         @include('smap._tab-chart')
     @else
         <div class="space-y-6">
+            {{-- Filter Section --}}
             <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
                 <form method="GET" action="{{ route('smap-risk.index') }}" class="grid gap-4 lg:grid-cols-12 lg:items-end">
                     <input type="hidden" name="tab" value="data">
 
-                    <div class="lg:col-span-3">
+                    {{-- Search --}}
+                    <div class="lg:col-span-4">
                         <label for="search" class="block text-sm font-semibold text-slate-700">
                             Cari Risiko
                         </label>
@@ -48,28 +50,11 @@
                             type="text"
                             name="search"
                             value="{{ $search }}"
-                            placeholder="Cari risk event..."
+                            placeholder="Cari nama peristiwa risiko..."
                             class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
 
-                    <div class="lg:col-span-3">
-                        <label for="unit_id" class="block text-sm font-semibold text-slate-700">
-                            Unit Kerja
-                        </label>
-
-                        <select
-                            id="unit_id"
-                            name="unit_id"
-                            class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Semua Unit</option>
-                            @foreach ($units as $unit)
-                                <option value="{{ $unit->id_unit }}" @selected((string) $unitId === (string) $unit->id_unit)>
-                                    {{ $unit->nama_unit }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
+                    {{-- Filter Kategori --}}
                     <div class="lg:col-span-3">
                         <label for="category_id" class="block text-sm font-semibold text-slate-700">
                             Kategori
@@ -88,7 +73,27 @@
                         </select>
                     </div>
 
+                    {{-- Filter Unit Kerja --}}
                     <div class="lg:col-span-3">
+                        <label for="unit_id" class="block text-sm font-semibold text-slate-700">
+                            Unit Kerja
+                        </label>
+
+                        <select
+                            id="unit_id"
+                            name="unit_id"
+                            class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Semua Unit</option>
+                            @foreach ($units as $unit)
+                                <option value="{{ $unit->id_unit }}" @selected((string) $unitId === (string) $unit->id_unit)>
+                                    {{ $unit->nama_unit }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Filter Status --}}
+                    <div class="lg:col-span-2">
                         <label for="status" class="block text-sm font-semibold text-slate-700">
                             Status
                         </label>
@@ -103,6 +108,7 @@
                         </select>
                     </div>
 
+                    {{-- Tombol Aksi --}}
                     <div class="flex flex-col gap-3 sm:flex-row lg:col-span-12 lg:justify-between">
                         <div class="flex flex-col gap-3 sm:flex-row">
                             <button
@@ -130,64 +136,101 @@
                 </form>
             </div>
 
+            {{-- Tabel Data --}}
             <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-slate-200">
                         <thead class="bg-slate-50">
                             <tr>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    NO
+                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                                    Risiko
                                 </th>
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    UNIT KERJA
+                                    Kategori
                                 </th>
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    RISK EVENT
+                                    Unit Kerja
                                 </th>
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    KATEGORI
+                                    Monitoring Terakhir
                                 </th>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    PERIODE LATEST
+                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                                    Status
                                 </th>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    STATUS
-                                </th>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    ACTION
+                                <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
+                                    Aksi
                                 </th>
                             </tr>
                         </thead>
 
                         <tbody class="divide-y divide-slate-200">
-                            @forelse ($smapRisks as $index => $risk)
+                            @forelse ($smapRisks as $smapRisk)
+                                @php
+                                    $monitoringTerakhir = $smapRisk->latestPeriode;
+                                @endphp
+
                                 <tr class="hover:bg-slate-50">
-                                    <td class="px-6 py-4 text-center text-sm text-slate-600">
-                                        {{ $smapRisks->firstItem() + $index }}
-                                    </td>
-
-                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
-                                        {{ $risk->unitKerja->nama_unit ?? '-' }}
-                                    </td>
-
+                                    {{-- Kolom Risiko --}}
                                     <td class="px-6 py-4">
                                         <div class="max-w-md">
                                             <div class="font-semibold text-slate-900">
-                                                {{ $risk->risk_event_deta }}
+                                                {{ $smapRisk->risk_event_deta }}
+                                            </div>
+                                            <div class="mt-1 text-xs text-slate-500">
+                                                Dibuat: {{ $smapRisk->created_at?->format('d M Y') ?? '-' }}
                                             </div>
                                         </div>
                                     </td>
 
+                                    {{-- Kolom Kategori --}}
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
-                                        {{ $risk->kategoriRisiko->nama_kategori ?? '-' }}
+                                        {{ $smapRisk->kategoriRisiko->nama_kategori ?? '-' }}
                                     </td>
 
-                                    <td class="whitespace-nowrap px-6 py-4 text-center text-sm font-medium text-slate-800">
-                                        {{ $risk->latestPeriode->period->period_name ?? 'N/A' }}
+                                    {{-- Kolom Unit Kerja --}}
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
+                                        {{ $smapRisk->unitKerja->nama_unit ?? '-' }}
                                     </td>
 
-                                    <td class="whitespace-nowrap px-6 py-4 text-center">
-                                        @if ($risk->status)
+                                    {{-- Kolom Monitoring Terakhir --}}
+                                    <td class="px-6 py-4">
+                                        @if ($monitoringTerakhir)
+                                            <div class="space-y-1">
+                                                <div class="text-sm font-semibold text-slate-900">
+                                                    {{ $monitoringTerakhir->period->period_name ?? '-' }}
+                                                </div>
+
+                                                <div class="flex flex-wrap gap-2">
+                                                    <span class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                                                        Nilai {{ $monitoringTerakhir->value ?? 0 }}
+                                                    </span>
+
+                                                    <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                                                        {{ $smapRisk->levelRisiko->nama_level ?? '-' }}
+                                                    </span>
+                                                </div>
+
+                                                <div class="text-xs text-slate-500">
+                                                    Trend:
+                                                    <span class="font-semibold">
+                                                        @if(($monitoringTerakhir->trend ?? '') === 'Naik')
+                                                            <span class="text-rose-600">↑ Naik</span>
+                                                        @elseif(($monitoringTerakhir->trend ?? '') === 'Turun')
+                                                            <span class="text-emerald-600">↓ Turun</span>
+                                                        @else
+                                                            <span class="text-slate-500">→ Stabil</span>
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <span class="text-sm text-slate-400">Belum ada monitoring</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Kolom Status --}}
+                                    <td class="whitespace-nowrap px-6 py-4">
+                                        @if ($smapRisk->status)
                                             <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                                                 Aktif
                                             </span>
@@ -198,21 +241,22 @@
                                         @endif
                                     </td>
 
-                                    <td class="whitespace-nowrap px-6 py-4 text-center">
-                                        <div class="flex items-center justify-center gap-2">
+                                    {{-- Kolom Aksi --}}
+                                    <td class="whitespace-nowrap px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
                                             <a
-                                                href="{{ route('smap-risk.show', $risk->id_smap) }}"
+                                                href="{{ route('smap-risk.show', $smapRisk->id_smap) }}"
                                                 class="inline-flex items-center rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
                                                 Detail
                                             </a>
 
                                             <a
-                                                href="{{ route('smap-risk.edit', $risk->id_smap) }}"
+                                                href="{{ route('smap-risk.edit', $smapRisk->id_smap) }}"
                                                 class="inline-flex items-center rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
                                                 Edit
                                             </a>
 
-                                            <form method="POST" action="{{ route('smap-risk.destroy', $risk->id_smap) }}" onsubmit="return confirm('Yakin ingin menghapus data Risk SMAP ini?')">
+                                            <form method="POST" action="{{ route('smap-risk.destroy', $smapRisk->id_smap) }}" onsubmit="return confirm('Yakin ingin menghapus data Risk SMAP ini?')">
                                                 @csrf
                                                 @method('DELETE')
 
@@ -227,7 +271,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-12 text-center">
+                                    <td colspan="6" class="px-6 py-12 text-center">
                                         <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
                                             <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12V16.5ZM10.29 3.86 1.82 18a2.25 2.25 0 0 0 1.93 3.375h16.5A2.25 2.25 0 0 0 22.18 18L13.71 3.86a2.25 2.25 0 0 0-3.42 0Z" />
