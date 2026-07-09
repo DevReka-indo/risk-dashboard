@@ -13,7 +13,7 @@ use Illuminate\View\View;
 
 class SmapController extends Controller
 {
-   public function index(Request $request): \Illuminate\View\View
+  public function index(Request $request): \Illuminate\View\View
     {
         $tab = $request->query('tab', 'list');
 
@@ -34,7 +34,7 @@ class SmapController extends Controller
             $risikoAktif = 0;
 
             $labels = [];
-            $data = [];
+            $data = []; // Untuk suplai chart departemen lama
             $catLabels = [];
             $catData = [];
 
@@ -51,15 +51,16 @@ class SmapController extends Controller
                 ->orderBy('nama_kategori', 'asc')
                 ->get();
 
-            $trendLabels = ['Naik', 'Stabil', 'Turun'];
+            $trendLabels = ['Naik', 'Turun', 'Stagnan'];
             $trendData = [0, 0, 0];
 
+            // Penampung data untuk Stacked Bar Chart Komposisi Risk Owner
+            $chartDatasets = [];
 
             if ($period) {
-                // Kunci ID period-nya ke variabel biasa
+                // Kunci ID period-nya ke variabel biasa agar Intelephense aman
                 $periodId = $period->id_period;
 
-                // 🔥 Mengubah whereNotNull menjadi where('...', '!=', null) biar Intelephense gak salah baca argumen
                 $totalRisiko = SmapMonitoring::query()
                     ->where('parent_id', '!=', null)
                     ->where('id_period', $periodId)
@@ -110,11 +111,56 @@ class SmapController extends Controller
                 ];
             }
 
-            foreach ($allUnits as $unit) {
-                $labels[] = $unit->nama_unit;
-                $data[] = $risksPerDept[$unit->id_unit] ?? 0;
+            // Menyusun struktur awal dataset berdasarkan Level Risiko untuk Stacked Chart
+            $stackedTemplates = [];
+            $colorMapping = [
+                'High'             => '#ef4444', // Merah
+                'Moderate to High' => '#f59e0b', // Kuning/Amber
+                'Moderate'         => '#eab308', // Kuning terang
+                'Low'              => '#10b981'  // Hijau
+            ];
+
+            foreach ($allLevels as $level) {
+                $stackedTemplates[$level->id_level] = [
+                    'label' => $level->nama_level,
+                    'backgroundColor' => $colorMapping[$level->nama_level] ?? '#cbd5e1',
+                    'data' => []
+                ];
             }
 
+            // Loop untuk memproses data unit kerja/departemen
+            foreach ($allUnits as $unit) {
+                $totalUnitRisks = $risksPerDept[$unit->id_unit] ?? 0;
+
+                // Variabel data lama tetap diisi semua agar chart default / list lain tidak error
+                $data[] = $totalUnitRisks;
+
+                // 🔥 FILTER GRAFIK BARU: Hanya masukkan departemen ke Sumbu Y jika jumlah risikonya > 0
+                if ($totalUnitRisks > 0) {
+                    $labels[] = $unit->nama_unit; // Nama departemen masuk ke sumbu Y grafik komposisi
+
+                    $currentDeptRisks = [];
+                    if ($period) {
+                        $currentDeptRisks = SmapMonitoring::query()
+                            ->where('parent_id', '!=', null)
+                            ->where('id_period', $period->id_period)
+                            ->where('id_unit', $unit->id_unit)
+                            ->selectRaw('id_level, count(*) as total')
+                            ->groupBy('id_level')
+                            ->pluck('total', 'id_level')
+                            ->toArray();
+                    }
+
+                    // Pecah jumlah per tingkatan level risiko
+                    foreach ($allLevels as $level) {
+                        $stackedTemplates[$level->id_level]['data'][] = $currentDeptRisks[$level->id_level] ?? 0;
+                    }
+                }
+            }
+            // Ubah format key menjadi berindeks angka biasa agar aman di-encode JavaScript
+            $chartDatasets = array_values($stackedTemplates);
+
+            // Pengelompokan data distribusi level untuk list widget sampingan
             foreach ($allLevels as $level) {
                 $count = $risksPerLevel[$level->id_level] ?? 0;
                 $maxLevelCount = max($maxLevelCount, $count);
@@ -128,6 +174,7 @@ class SmapController extends Controller
                 $item['percentage'] = $maxLevelCount > 0 ? ($item['count'] / $maxLevelCount) * 100 : 0;
             }
 
+            // Kategori SMAP
             foreach ($allCategories as $category) {
                 $catLabels[] = $category->nama_kategori;
                 $catData[] = $risksPerCategory[$category->id_kategori] ?? 0;
@@ -154,12 +201,13 @@ class SmapController extends Controller
                 'selectedPeriode',
                 'selectedYear',
                 'dashboardData',
-                'labels',
-                'data',
+                'labels',          // Digunakan sumbu Y chart departemen lama & chart komposisi baru
+                'data',            // Digunakan chart departemen lama
+                'chartDatasets',   // 🔥 Digunakan untuk chart komposisi bertumpuk
                 'catLabels',
                 'catData',
-                'trendLabels', // Dikirim ke blade
-                'trendData'    // Dikirim ke blade
+                'trendLabels',
+                'trendData'
             ));
         }
 

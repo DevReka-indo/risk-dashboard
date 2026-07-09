@@ -72,4 +72,9 @@
         'trendLabels' => $trendLabels,
         'trendData'   => $trendData
     ])
+
+    @include('smap.partials._chart-komposisi', [
+        'labels'        => $labels,
+        'chartDatasets' => $chartDatasets,
+    ])
 </div>
