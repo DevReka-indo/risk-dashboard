@@ -9,7 +9,49 @@ class RiskDashboardSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Seed Tabel level_risiko (Sesuai Gambar 1)
+        // ==========================================
+        // TAMBAHAN: Seed Tabel periods (Master Periode)
+        // ==========================================
+        $periods = [
+            [
+                'id_period' => 1,
+                'period_name' => 'TW1 2026',
+                'year' => 2026,
+                'quarter' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id_period' => 2,
+                'period_name' => 'TW2 2026',
+                'year' => 2026,
+                'quarter' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id_period' => 3,
+                'period_name' => 'TW3 2026',
+                'year' => 2026,
+                'quarter' => 3,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id_period' => 4,
+                'period_name' => 'TW4 2026',
+                'year' => 2026,
+                'quarter' => 4,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
+
+        foreach ($periods as $period) {
+            DB::table('periods')->updateOrInsert(['id_period' => $period['id_period']], $period);
+        }
+
+        // 1. Seed Tabel level_risiko
         $levels = [
             [
                 'id_level' => 1,
@@ -53,12 +95,11 @@ class RiskDashboardSeeder extends Seeder
             ],
         ];
 
-        // Menggunakan updateOrInsert agar data tidak duplikat jika seeder dijalankan ulang
         foreach ($levels as $level) {
             DB::table('level_risiko')->updateOrInsert(['id_level' => $level['id_level']], $level);
         }
 
-        // 2. Seed Tabel kategori_risiko (Sesuai Gambar 2)
+        // 2. Seed Tabel kategori_risiko
         $kategori = [
             [
                 'id_kategori' => 1,
@@ -122,32 +163,33 @@ class RiskDashboardSeeder extends Seeder
             DB::table('kategori_risiko')->updateOrInsert(['id_kategori' => $kat['id_kategori']], $kat);
         }
 
-        // 3. Dummy Seed untuk dep_monitoring & smap_monitoring (Opsional)
-        // Pastikan id_unit = 1 sudah ada di tabel top_unit_kerja Anda sebelum menjalankan ini
-
+        // 3. Dummy Seed untuk dep_monitoring & smap_monitoring
+        // 💡 REVISI: Mengikuti aturan baru, saat awal ditambahkan, periode diset null (kosong)
         DB::table('dep_monitoring')->insert([
             'id_unit' => 1,
             'id_kategori' => 2, // Operasional
             'id_level' => 3,    // Moderate
             'risk_event_deta' => 'Kegagalan sistem server utama selama 2 jam.',
-            'value' => 50000000,
+            'value' => 12,
             'inherent' => 4,
             'trend' => 'Stabil',
             'status' => true,
             'type' => 'Non-Proyek',
+            'id_period' => null, // 💡 Periode dikosongkan terlebih dahulu sesuai revisi Anda
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
         DB::table('smap_monitoring')->insert([
             'id_unit' => 1,
-            'id_kategori' => 6, // Kepatuhan
+            'id_kategori' => 6, // Hukum/Kepatuhan
             'id_level' => 1,    // Low
             'risk_event_deta' => 'Keterlambatan pelaporan dokumen triwulan.',
             'value' => 0,
             'inherent' => 2,
             'trend' => 'Turun',
             'status' => true,
+            'id_period' => null, // 💡 Periode dikosongkan terlebih dahulu sesuai revisi Anda
             'created_at' => now(),
             'updated_at' => now(),
         ]);

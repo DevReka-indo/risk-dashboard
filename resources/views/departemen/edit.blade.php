@@ -51,38 +51,6 @@
                     <textarea id="risk_event_deta" name="risk_event_deta" rows="4" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('risk_event_deta', $risk->risk_event_deta) }}</textarea>
                 </div>
 
-                {{-- Value (Manual) --}}
-                <div>
-                    <label for="value" class="block text-sm font-semibold text-slate-700">Value (Skor 1-25) <span class="text-rose-500">*</span></label>
-                    <input type="number" id="value" name="value" x-model="value" min="1" max="25" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-
-                {{-- Level (Otomatis dari JS) --}}
-                <div>
-                    <label for="id_level" class="block text-sm font-semibold text-slate-700">Level (Otomatis) <span class="text-rose-500">*</span></label>
-                    <select id="id_level" name="id_level" :value="otomatisLevel" class="mt-2 w-full rounded-2xl border-slate-200 bg-slate-50 px-4 py-3 text-sm shadow-sm pointer-events-none">
-                        @foreach ($levels as $level)
-                            <option value="{{ $level->id_level }}" @selected(old('id_level', $risk->id_level) == $level->id_level)>{{ $level->nama_level }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Inherent (Manual) --}}
-                <div>
-                    <label for="inherent" class="block text-sm font-semibold text-slate-700">Inherent <span class="text-rose-500">*</span></label>
-                    <input type="number" id="inherent" name="inherent" x-model="inherent" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-
-                {{-- Trend (Otomatis dari JS) --}}
-                <div>
-                    <label for="trend" class="block text-sm font-semibold text-slate-700">Trend (Otomatis) <span class="text-rose-500">*</span></label>
-                    <select id="trend" name="trend" :value="otomatisTrend" class="mt-2 w-full rounded-2xl border-slate-200 bg-slate-50 px-4 py-3 text-sm shadow-sm pointer-events-none">
-                        <option value="Stabil" @selected(old('trend', $risk->trend) === 'Stabil')>Stabil</option>
-                        <option value="Naik" @selected(old('trend', $risk->trend) === 'Naik')>Naik</option>
-                        <option value="Turun" @selected(old('trend', $risk->trend) === 'Turun')>Turun</option>
-                    </select>
-                </div>
-
                 {{-- Type --}}
                 <div>
                     <label for="type" class="block text-sm font-semibold text-slate-700">Type <span class="text-rose-500">*</span></label>
@@ -108,7 +76,4 @@
             <button type="submit" class="rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-indigo-700 transition">Simpan Perubahan</button>
         </div>
     </form>
-
-    {{-- Memanggil script otomatisasi dari folder public/js (Menggantikan vanilla JS bawaan sebelumnya) --}}
-    <script src="{{ asset('js/otomatisasi-logic.js') }}"></script>
 </x-admin-layout>

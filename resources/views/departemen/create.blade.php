@@ -40,43 +40,6 @@
                     @error('risk_event_deta') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
                 </div>
 
-                {{-- Value --}}
-                <div>
-                    <label for="value" class="block text-sm font-semibold text-slate-700">Value <span class="text-rose-500">*</span></label>
-                    <input type="number" id="value" name="value" x-model="value" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    @error('value') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Level --}}
-                <div>
-                    <label for="id_level" class="block text-sm font-semibold text-slate-700">Level <span class="text-rose-500">*</span></label>
-                    <select id="id_level" name="id_level" :value="otomatisLevel" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">Pilih Level</option>
-                        @foreach ($levels as $level)
-                            <option value="{{ $level->id_level }}" @selected(old('id_level') == $level->id_level)>{{ $level->nama_level }}</option>
-                        @endforeach
-                    </select>
-                    @error('id_level') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Inherent --}}
-                <div>
-                    <label for="inherent" class="block text-sm font-semibold text-slate-700">Inherent <span class="text-rose-500">*</span></label>
-                    <input type="number" id="inherent" name="inherent" x-model="inherent" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    @error('inherent') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Trend --}}
-                <div>
-                    <label for="trend" class="block text-sm font-semibold text-slate-700">Trend <span class="text-rose-500">*</span></label>
-                    <select id="trend" name="trend" :value="otomatisTrend" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="Stabil" @selected(old('trend') === 'Stabil')>Stabil</option>
-                        <option value="Naik" @selected(old('trend') === 'Naik')>Naik</option>
-                        <option value="Turun" @selected(old('trend') === 'Turun')>Turun</option>
-                    </select>
-                    @error('trend') <p class="mt-2 text-sm text-rose-600">{{ $message }}</p> @enderror
-                </div>
-
                 {{-- Type --}}
                 <div>
                     <label for="type" class="block text-sm font-semibold text-slate-700">Type <span class="text-rose-500">*</span></label>
@@ -105,6 +68,4 @@
         </div>
     </form>
 
-    {{-- Memanggil script otomatisasi dari folder public/js --}}
-    <script src="{{ asset('js/otomatisasi-logic.js') }}"></script>
 </x-admin-layout>

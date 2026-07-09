@@ -197,7 +197,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/risks/smap/{id}/monitoring', [SmapController::class, 'storeMonitoring'])
         ->middleware('permission:risk.create')
         ->name('smap-risk.store-monitoring');
-    Route::delete('/risks/smap/monitoring/{id}', [SmapController::class, 'destroyMonitoring'])
+    Route::delete('/risks/smap/monitoring/{id_period}', [SmapController::class, 'destroyMonitoring'])
         ->middleware('permission:risk.delete')
         ->name('smap-risk.destroy-monitoring');
 

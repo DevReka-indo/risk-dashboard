@@ -8,6 +8,8 @@
     <title>{{ $title ?? config('app.name', 'Risk Dashboard') }}</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="bg-white font-sans text-slate-900 antialiased">

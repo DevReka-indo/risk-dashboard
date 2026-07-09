@@ -21,6 +21,7 @@ class DepMonitoring extends Model
         'trend',
         'status',
         'type',
+        'id_period',
     ];
 
     protected function casts(): array
@@ -79,4 +80,23 @@ class DepMonitoring extends Model
     {
         return $this->belongsTo(TopUnitKerja::class, 'id_unit', 'id_unit');
     }
+
+    public function periode(): BelongsTo
+    {
+        return $this->belongsTo(Period::class, 'id_period', 'id_period');
+    }
+
+    public function periods()
+    {
+        // Menggunakan belongsToMany ke model LevelRisiko atau sejenisnya,
+        // namun karena ini bertindak sebagai tabel riwayat mandiri, kita cukup definisikan seperti ini:
+        return $this->belongsToMany(
+            \App\Models\LevelRisiko::class, // Kita hubungkan lewat tabel pivot ke master level_risiko
+            'dep_monitoring_periods',
+            'id_monitoring',
+            'id_level'
+        )->withPivot('id', 'quarter', 'year', 'value', 'inherent', 'trend') // Sertakan id transaksi, kuartal, dan tahun
+        ->withTimestamps();
+    }
+
 }

@@ -106,7 +106,7 @@ class TopRiskController extends Controller
     {
         $validated = $request->validate([
             'nama_peristiwa_risiko' => ['required', 'string', 'max:255'],
-            'id_kategori' => ['required', 'integer', 'exists:top_kategori_risiko,id_kategori'],
+            'id_kategori' => ['required', 'integer', 'exists:kategori_risiko,id_kategori'],
             'tanggal_dibuat' => ['required', 'date'],
             'is_aktif' => ['nullable', 'boolean'],
             'unit_kerja' => ['required', 'array', 'min:1'],
@@ -507,7 +507,7 @@ class TopRiskController extends Controller
             'bulan' => ['required', 'integer', 'between:1,12', Rule::unique('top_monitoring_bulanan', 'bulan')->where('tahun', $request->integer('tahun'))->where('id_risiko', $topRisk->id_risiko)],
             'tahun' => ['required', 'integer', 'digits:4', 'min:2000'],
             'nilai' => ['required', 'integer', 'min:0'],
-            'id_level' => ['required', 'integer', 'exists:top_level_risiko,id_level'],
+            'id_level' => ['required', 'integer', 'exists:level_risiko,id_level'],
             'status' => ['required', Rule::in(['Aktif', 'Tidak Aktif'])],
             'progres_belum' => ['nullable', 'integer', 'min:0'],
             'progres_proses' => ['nullable', 'integer', 'min:0'],
@@ -542,7 +542,7 @@ class TopRiskController extends Controller
             'bulan' => ['required', 'integer', 'between:1,12', Rule::unique('top_monitoring_bulanan', 'bulan')->where('tahun', $request->integer('tahun'))->where('id_risiko', $topRisk->id_risiko)->ignore($monitoring->id_monitoring, 'id_monitoring')],
             'tahun' => ['required', 'integer', 'digits:4', 'min:2000'],
             'nilai' => ['required', 'integer', 'min:0'],
-            'id_level' => ['required', 'integer', 'exists:top_level_risiko,id_level'],
+            'id_level' => ['required', 'integer', 'exists:level_risiko,id_level'],
             'status' => ['required', Rule::in(['Aktif', 'Tidak Aktif'])],
             'progres_belum' => ['nullable', 'integer', 'min:0'],
             'progres_proses' => ['nullable', 'integer', 'min:0'],
