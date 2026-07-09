@@ -72,53 +72,53 @@
         </div>
 
         {{-- Filter Section --}}
-<div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-    <form method="GET" action="{{ route('kategori-risiko.index') }}" class="grid gap-4 lg:grid-cols-12 lg:items-end">
-        {{-- Search --}}
-        <div class="lg:col-span-4">
-            <label for="search" class="block text-sm font-semibold text-slate-700">
-                Cari Kategori
-            </label>
-            <input
-                id="search"
-                type="text"
-                name="search"
-                value="{{ $search ?? '' }}"
-                placeholder="Cari nama kategori..."
-                class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <form method="GET" action="{{ route('kategori-risiko.index') }}" class="grid gap-4 lg:grid-cols-12 lg:items-end">
+                {{-- Search --}}
+                <div class="lg:col-span-4">
+                    <label for="search" class="block text-sm font-semibold text-slate-700">
+                        Cari Kategori
+                    </label>
+                    <input
+                        id="search"
+                        type="text"
+                        name="search"
+                        value="{{ $search ?? '' }}"
+                        placeholder="Cari nama kategori..."
+                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
 
-        {{-- Filter Tipe --}}
-        <div class="lg:col-span-3">
-            <label for="type" class="block text-sm font-semibold text-slate-700">
-                Tipe (Alokasi)
-            </label>
-            <select
-                id="type"
-                name="type"
-                class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                <option value="">Semua Tipe</option>
-                <option value="smap" @selected(($type ?? '') === 'smap')>SMAP</option>
-                <option value="departemen" @selected(($type ?? '') === 'departemen')>Departemen</option>
-            </select>
-        </div>
+                {{-- Filter Tipe --}}
+                <div class="lg:col-span-3">
+                    <label for="type" class="block text-sm font-semibold text-slate-700">
+                        Tipe (Alokasi)
+                    </label>
+                    <select
+                        id="type"
+                        name="type"
+                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Semua Tipe</option>
+                        <option value="smap" @selected(($type ?? '') === 'smap')>SMAP</option>
+                        <option value="departemen" @selected(($type ?? '') === 'departemen')>Departemen</option>
+                    </select>
+                </div>
 
-        {{-- Tombol Aksi --}}
-        <div class="lg:col-span-5 flex items-end gap-3">
-            <button
-                type="submit"
-                class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition">
-                Filter
-            </button>
+                {{-- Tombol Aksi --}}
+                <div class="lg:col-span-5 flex items-end gap-3">
+                    <button
+                        type="submit"
+                        class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition">
+                        Filter
+                    </button>
 
-            <a
-                href="{{ route('kategori-risiko.index') }}"
-                class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
-                Reset
-            </a>
+                    <a
+                        href="{{ route('kategori-risiko.index') }}"
+                        class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                        Reset
+                    </a>
+                </div>
+            </form>
         </div>
-    </form>
-</div>
 
         {{-- Table Section --}}
         <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -182,6 +182,12 @@
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-2">
+                                        <a
+                                            href="{{ route('kategori-risiko.show', $category->id_kategori) }}"
+                                            class="inline-flex items-center rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                                            Detail
+                                        </a>
+
                                         <a
                                             href="{{ route('kategori-risiko.edit', $category->id_kategori) }}"
                                             class="inline-flex items-center rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">

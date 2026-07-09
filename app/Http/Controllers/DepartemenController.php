@@ -6,58 +6,194 @@ use App\Models\TopUnitKerja;
 use App\Models\DepMonitoring;
 use App\Models\KategoriRisiko;
 use App\Models\LevelRisiko;
-use App\Models\Period;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Contracts\View\View;
+use Illuminate\View\View;
 
 class DepartemenController extends Controller
 {
     public function index(Request $request): View
     {
+        $tab = $request->query('tab', 'data');
+
+        // ==========================================
+        // 1. LOGIKA UNTUK TAB DASHBOARD
+        // ==========================================
+        if ($tab === 'dashboard') {
+            // Samakan dengan SMAP: Menggunakan integer periode 1-4
+            $defaultQuarter = ceil(date('n') / 3);
+            $selectedPeriode = (int) $request->query('periode', $defaultQuarter);
+            $selectedYear = (int) $request->query('tahun', date('Y'));
+
+            // Memetakan integer ke format string pivot tabel Departemen (TW1 - TW4)
+            $quarterMap = [1 => 'TW1', 2 => 'TW2', 3 => 'TW3', 4 => 'TW4'];
+            $twString = $quarterMap[$selectedPeriode] ?? 'TW1';
+
+            $totalRisiko = 0;
+            $risikoAktif = 0;
+
+            $labels = [];
+            $data = [];
+            $catLabels = [];
+            $catData = [];
+
+            $levelDistributionData = [];
+            $maxLevelCount = 0;
+
+            $allUnits = TopUnitKerja::orderBy('nama_unit', 'asc')->get();
+            $allLevels = LevelRisiko::orderBy('id_level', 'asc')->get();
+            $allCategories = KategoriRisiko::orderBy('nama_kategori', 'asc')->get();
+
+            $trendLabels = ['Naik', 'Turun', 'Stagnan'];
+            $trendData = [0, 0, 0];
+            $chartDatasets = [];
+
+            // Query dasar mengambil history pivot periode yang dipilih
+            $baseDashboardQuery = DB::table('dep_monitoring_periods')
+                ->join('dep_monitoring', 'dep_monitoring_periods.id_monitoring', '=', 'dep_monitoring.id_monitoring')
+                ->where('dep_monitoring_periods.year', $selectedYear)
+                ->where('dep_monitoring_periods.quarter', $twString);
+
+            // Perhitungan Metrik
+            $totalRisiko = (clone $baseDashboardQuery)->count(DB::raw('DISTINCT dep_monitoring.id_monitoring'));
+            $risikoAktif = (clone $baseDashboardQuery)->where('dep_monitoring.status', 1)->count(DB::raw('DISTINCT dep_monitoring.id_monitoring'));
+
+            $risksPerDept = (clone $baseDashboardQuery)
+                ->selectRaw('dep_monitoring.id_unit, count(DISTINCT dep_monitoring.id_monitoring) as total')
+                ->groupBy('dep_monitoring.id_unit')
+                ->pluck('total', 'id_unit')
+                ->toArray();
+
+            $risksPerLevel = (clone $baseDashboardQuery)
+                ->selectRaw('dep_monitoring_periods.id_level, count(*) as total')
+                ->groupBy('dep_monitoring_periods.id_level')
+                ->pluck('total', 'id_level')
+                ->toArray();
+
+            $risksPerCategory = (clone $baseDashboardQuery)
+                ->selectRaw('dep_monitoring.id_kategori, count(DISTINCT dep_monitoring.id_monitoring) as total')
+                ->groupBy('dep_monitoring.id_kategori')
+                ->pluck('total', 'id_kategori')
+                ->toArray();
+
+            $risksPerTrend = (clone $baseDashboardQuery)
+                ->selectRaw('dep_monitoring_periods.trend, count(*) as total')
+                ->groupBy('dep_monitoring_periods.trend')
+                ->pluck('total', 'trend')
+                ->toArray();
+
+            // Proteksi agar trend Stabil dan Stagnan digabung menjadi satu warna
+            $trendData = [
+                ($risksPerTrend['Naik'] ?? $risksPerTrend['naik'] ?? 0),
+                ($risksPerTrend['Turun'] ?? $risksPerTrend['turun'] ?? 0),
+                (($risksPerTrend['Stagnan'] ?? 0) + ($risksPerTrend['stagnan'] ?? 0) + ($risksPerTrend['Stabil'] ?? 0) + ($risksPerTrend['stabil'] ?? 0)),
+            ];
+
+            // Setup kerangka warna Stacked Chart
+            $stackedTemplates = [];
+            $colorMapping = [
+                'High'             => '#ef4444', // Merah
+                'Moderate to High' => '#f59e0b', // Kuning/Amber
+                'Moderate'         => '#eab308', // Kuning terang
+                'Low to Moderate'  => '#3b82f6', // Biru
+                'Low'              => '#10b981'  // Hijau
+            ];
+
+            foreach ($allLevels as $level) {
+                $levelName = $level->nama_level ?? $level->level;
+                $stackedTemplates[$level->id_level] = [
+                    'label' => $levelName,
+                    'backgroundColor' => $colorMapping[$levelName] ?? '#cbd5e1',
+                    'data' => []
+                ];
+            }
+
+            // Loop Komposisi per Departemen
+            foreach ($allUnits as $unit) {
+                $totalUnitRisks = $risksPerDept[$unit->id_unit] ?? 0;
+                $data[] = $totalUnitRisks;
+
+                if ($totalUnitRisks > 0) {
+                    $labels[] = $unit->nama_unit;
+
+                    $currentDeptRisks = (clone $baseDashboardQuery)
+                        ->where('dep_monitoring.id_unit', $unit->id_unit)
+                        ->selectRaw('dep_monitoring_periods.id_level, count(*) as total')
+                        ->groupBy('dep_monitoring_periods.id_level')
+                        ->pluck('total', 'id_level')
+                        ->toArray();
+
+                    foreach ($allLevels as $level) {
+                        $stackedTemplates[$level->id_level]['data'][] = $currentDeptRisks[$level->id_level] ?? 0;
+                    }
+                }
+            }
+            $chartDatasets = array_values($stackedTemplates);
+
+            // Distribusi Bar Persentase Level
+            foreach ($allLevels as $level) {
+                $count = $risksPerLevel[$level->id_level] ?? 0;
+                $maxLevelCount = max($maxLevelCount, $count);
+
+                $levelDistributionData[] = [
+                    'name'  => $level->nama_level ?? $level->level,
+                    'count' => $count
+                ];
+            }
+            foreach ($levelDistributionData as &$item) {
+                $item['percentage'] = $maxLevelCount > 0 ? ($item['count'] / $maxLevelCount) * 100 : 0;
+            }
+
+            // Kategori Departemen
+            foreach ($allCategories as $category) {
+                $catLabels[] = $category->nama_kategori;
+                $catData[] = $risksPerCategory[$category->id_kategori] ?? 0;
+            }
+
+            $dashboardData = [
+                'summary' => [
+                    'total_risiko'      => $totalRisiko,
+                    'risiko_aktif'      => $risikoAktif,
+                    'jumlah_departemen' => $allUnits->count(),
+                ],
+                'period' => "Triwulan {$selectedPeriode} - {$selectedYear}",
+                'level_distribution' => $levelDistributionData,
+            ];
+
+            return view('departemen.index', compact(
+                'tab',
+                'selectedPeriode',
+                'selectedYear',
+                'dashboardData',
+                'labels',
+                'data',
+                'chartDatasets',
+                'catLabels',
+                'catData',
+                'trendLabels',
+                'trendData'
+            ));
+        }
+
+        // ==========================================
+        // 2. LOGIKA UNTUK TAB DATA (Tabel List)
+        // ==========================================
         $search     = $request->string('search')->toString();
         $unitId     = $request->string('unit_id')->toString();
         $categoryId = $request->string('category_id')->toString();
         $levelId    = $request->string('level_id')->toString();
-        $trend      = $request->string('trend')->toString();
         $type       = $request->string('type')->toString();
         $status     = $request->string('status')->toString();
-        $periodId   = $request->string('period_id')->toString();
 
-        // Tangkap input manual dari form filter tahun & triwulan
-        $tahun      = $request->string('tahun')->toString();
-        $triwulan   = $request->string('triwulan')->toString();
-        $tab        = $request->string('tab')->toString() ?: 'data';
-
-        // Logika pencarian id_period berdasarkan tahun & triwulan pilihan user
-        if ($tahun || $triwulan) {
-            $matchedPeriod = Period::query()
-                ->when($tahun, fn($q) => $q->where('year', $tahun))
-                ->when($triwulan, fn($q) => $q->where('quarter', $triwulan))
-                ->first();
-
-            if ($matchedPeriod) {
-                $periodId = $matchedPeriod->id_period;
-            } else {
-                $periodId = 'none'; // Menghasilkan data kosong jika kombinasi tidak ditemukan
-            }
-        }
-
-        // --- QUERY UTAMA UNTUK TABEL DATA ---
         $risks = DepMonitoring::query()
-            ->with([
-                'unitKerja',
-                'kategoriRisiko',
-                'levelRisiko',
-                'periode' => fn($query) => $query->orderBy('year', 'desc')
-                                                ->orderBy('quarter', 'desc')
-            ])
+            ->with(['unitKerja', 'kategoriRisiko', 'levelRisiko', 'periods' => function($q) {
+                $q->orderBy('year', 'desc')->orderBy('quarter', 'desc');
+            }])
             ->when($search, fn($q) => $q->where('risk_event_deta', 'like', "%{$search}%"))
             ->when($unitId, fn($q) => $q->where('id_unit', $unitId))
             ->when($categoryId, fn($q) => $q->where('id_kategori', $categoryId))
             ->when($levelId, fn($q) => $q->where('id_level', $levelId))
-            ->when($trend, fn($q) => $q->where('trend', $trend))
             ->when($type, fn($q) => $q->where('type', $type))
             ->when($status !== '', fn($q) => $q->where('status', (bool) $status))
             ->oldest('id_monitoring')
@@ -67,213 +203,10 @@ class DepartemenController extends Controller
         $units      = TopUnitKerja::orderBy('nama_unit', 'asc')->get();
         $categories = KategoriRisiko::orderBy('nama_kategori', 'asc')->get();
         $levels     = LevelRisiko::all();
-        $periods    = Period::orderBy('year', 'desc')->orderBy('quarter', 'desc')->get();
-
-        // Membuat rentang tahun dinamis dari 2024 hingga 3 tahun ke depan
-        $currentYear = (int) date('Y');
-        $availableYears = range(2024, $currentYear + 3);
-
-        // --- DEKLARASI VARIABEL AWAL (Pencegah Error Merah / Undefined Variable) ---
-        $chartLabels          = [];
-        $chartData            = [];
-        $levelDistribution    = collect([]);
-        $categoryDistribution = collect([]);
-        $statusDistribution   = collect([]);
-        $trendRisks           = collect([]);
-        $rekapUnitLevel       = collect([]);
-
-        // Variabel untuk Grafik Tren Risiko Horizontal
-        $trendLabels          = ['Naik', 'Turun', 'Stagnan'];
-        $trendData            = [0, 0, 0];
-
-        // Variabel untuk Grafik Stacked Matriks Level per Departemen
-        $matrixChartLabels    = [];
-        $matrixChartDatasets  = [];
-
-        // --- PROSES AMBIL DATA FILTER PERIODE ---
-        $filteredPeriodIds = [];
-        if ($tahun || $triwulan) {
-            $filteredPeriodIds = Period::query()
-                ->when($tahun, fn($q) => $q->where('year', $tahun))
-                ->when($triwulan, fn($q) => $q->where('quarter', $triwulan))
-                ->pluck('id_period')
-                ->toArray();
-        }
-
-        // --- HITUNG VALUE SUMMARY CARD SECARA AMAN ---
-        $baseQuery = DepMonitoring::query()
-            ->when(($tahun || $triwulan) && !empty($filteredPeriodIds), function($q) use ($filteredPeriodIds) {
-                return $q->whereIn('id_period', $filteredPeriodIds);
-            })
-            ->when(($tahun || $triwulan) && empty($filteredPeriodIds), function($q) {
-                return $q->whereNull('id_period');
-            });
-
-        $summary = [
-            'total_risiko'    => (clone $baseQuery)->count(),
-            'risiko_aktif'    => (clone $baseQuery)->where('status', true)->count(),
-            'rata_rata_nilai' => 0,
-            'tren'            => 'Stagnan'
-        ];
-
-        // Label dinamis untuk sub-header
-        $periodLabel = ($triwulan && $tahun) ? "{$triwulan} - {$tahun}" : "Saat Ini";
-        $period = [
-            'label'          => $periodLabel,
-            'previous_label' => 'Bulan Sebelumnya'
-        ];
-
-        // --- KALKULASI UTAMA DASHBOARD (Hanya Dieksekusi Saat Tab Dashboard Aktif) ---
-        if ($tab === 'dashboard') {
-
-            // 1. Hitung data untuk Grafik Distribusi Utama Per Departemen
-            $riskCounts = DepMonitoring::query()
-                ->selectRaw('id_unit, count(*) as total')
-                ->when($categoryId, fn($q) => $q->where('id_kategori', $categoryId))
-                ->when($levelId, fn($q) => $q->where('id_level', $levelId))
-                ->when($trend, fn($q) => $q->where('trend', $trend))
-                ->when($type, fn($q) => $q->where('type', $type))
-                ->when($status !== '', fn($q) => $q->where('status', (bool) $status))
-                ->when(!empty($filteredPeriodIds), fn($q) => $q->whereIn('id_period', $filteredPeriodIds))
-                ->groupBy('id_unit')
-                ->pluck('total', 'id_unit');
-
-            foreach ($units as $unit) {
-                if ($unitId && $unit->id_unit != $unitId) continue;
-
-                $chartLabels[] = $unit->nama_unit;
-                $chartData[]   = $riskCounts->get($unit->id_unit, 0);
-            }
-
-            // 2. Hitung data untuk Distribusi Level Risiko
-            $levelDistribution = LevelRisiko::orderBy('id_level', 'asc')->get()->map(function($level) use ($filteredPeriodIds) {
-                $count = DepMonitoring::query()->where('id_level', $level->id_level)
-                    ->when(!empty($filteredPeriodIds), fn($q) => $q->whereIn('id_period', $filteredPeriodIds))
-                    ->count();
-
-                return [
-                    'label' => $level->nama_level,
-                    'total' => $count
-                ];
-            });
-
-            // 3. Hitung data untuk Jumlah Kategori Risiko
-            $categoryDistribution = KategoriRisiko::orderBy('nama_kategori', 'asc')->get()->map(function($category) use ($filteredPeriodIds) {
-                $count = DepMonitoring::query()->where('id_kategori', $category->id_kategori)
-                    ->when(!empty($filteredPeriodIds), fn($q) => $q->whereIn('id_period', $filteredPeriodIds))
-                    ->count();
-
-                return [
-                    'label' => $category->nama_kategori,
-                    'total' => $count
-                ];
-            });
-
-            // 4. Hitung data untuk Trend Pergerakan Risiko (List Detail)
-            $trendRisks = DepMonitoring::with(['unitKerja', 'levelRisiko', 'periode'])
-                ->when($unitId, fn($q) => $q->where('id_unit', $unitId))
-                ->when($categoryId, fn($q) => $q->where('id_kategori', $categoryId))
-                ->when(!empty($filteredPeriodIds), fn($q) => $q->whereIn('id_period', $filteredPeriodIds))
-                ->get()
-                ->map(function($risk, $index) {
-                    $statusTrend = $risk->trend === 'Stabil' ? 'Stagnan' : ($risk->trend ?: 'Stagnan');
-
-                    // AMAN: Ambil nilai pivot, jika null default ke 0
-                    $currentValue = $risk->periode->pivot->value ?? 0;
-
-                    // AMAN: Cek apakah relasi periode ada sebelum mengambil quarter & year
-                    $periodLabel = $risk->periode
-                        ? $risk->periode->quarter . ' ' . $risk->periode->year
-                        : 'No Period';
-
-                    return [
-                        'id_monitoring'     => $risk->id_monitoring,
-                        'number'            => $index + 1,
-                        'risk_name'         => $risk->risk_event_deta,
-                        'unit'              => $risk->unitKerja->nama_unit ?? 'N/A',
-                        'level'             => $risk->levelRisiko->nama_level ?? 'N/A',
-                        'trend'             => $statusTrend,
-                        'current_value'     => $currentValue,
-                        'trend_description' => $risk->risk_event_deta,
-                        'trend_values'      => [
-                            ['label' => $periodLabel, 'value' => (int)$currentValue]
-                        ]
-                    ];
-                });
-
-            // 5. Hitung Data Grafik Tren Risiko Horizontal (Naik, Turun, Stagnan)
-            $trendCounts = DepMonitoring::query()
-                ->selectRaw('trend, count(*) as total')
-                ->when(!empty($filteredPeriodIds), fn($q) => $q->whereIn('id_period', $filteredPeriodIds))
-                ->groupBy('trend')
-                ->pluck('total', 'trend');
-
-            $trendData = [
-                (int)$trendCounts->get('Naik', 0),
-                (int)$trendCounts->get('Turun', 0),
-                (int)($trendCounts->get('Stagnan', 0) + $trendCounts->get('Stabil', 0) + $trendCounts->get('Fluktuatif', 0))
-            ];
-
-            // 6. Matriks Rincian & Grafik Bertumpuk Level Risiko per Unit Kerja
-            $matrixData = [];
-            $riskMatrixData = DepMonitoring::query()
-                ->selectRaw('id_unit, id_level, count(*) as total')
-                ->when(!empty($filteredPeriodIds), fn($q) => $q->whereIn('id_period', $filteredPeriodIds))
-                ->groupBy('id_unit', 'id_level')
-                ->get();
-
-            foreach ($riskMatrixData as $data) {
-                $matrixData[$data->id_unit][$data->id_level] = $data->total;
-            }
-
-            $rekapUnitLevel = $units->map(function($unit) use ($levels, $matrixData) {
-                $row = [
-                    'nama_unit'  => $unit->nama_unit,
-                    'levels'     => [],
-                    'total_unit' => 0
-                ];
-
-                foreach ($levels as $level) {
-                    $count = $matrixData[$unit->id_unit][$level->id_level] ?? 0;
-                    $row['levels'][$level->id_level] = $count;
-                    $row['total_unit'] += $count;
-                }
-
-                return $row;
-            });
-
-            // Format Data Khusus untuk Grafik Stacked Bar Chart.js
-            $matrixChartLabels = $units->pluck('nama_unit')->toArray();
-
-            $levelColors = [
-                1 => '#ef4444', // Red
-                2 => '#f97316', // Orange
-                3 => '#eab308', // Yellow
-                4 => '#3b82f6', // Blue
-                5 => '#10b981', // Emerald
-            ];
-
-            foreach ($levels as $level) {
-                $dataPoints = [];
-                foreach ($units as $unit) {
-                    $dataPoints[] = $matrixData[$unit->id_unit][$level->id_level] ?? 0;
-                }
-
-                $matrixChartDatasets[] = [
-                    'label'           => $level->nama_level,
-                    'data'            => $dataPoints,
-                    'backgroundColor' => $levelColors[$level->id_level] ?? '#64748b',
-                    'borderRadius'    => 4
-                ];
-            }
-        }
 
         return view('departemen.index', compact(
-            'risks', 'search', 'unitId', 'categoryId', 'levelId', 'trend',
-            'type', 'status', 'periodId', 'tahun', 'triwulan', 'availableYears', 'units', 'categories', 'levels',
-            'periods', 'tab', 'chartLabels', 'chartData', 'summary', 'period',
-            'levelDistribution', 'categoryDistribution', 'statusDistribution',
-            'trendRisks', 'trendLabels', 'trendData', 'rekapUnitLevel', 'matrixChartLabels', 'matrixChartDatasets'
+            'tab', 'risks', 'search', 'unitId', 'categoryId', 'levelId',
+            'type', 'status', 'units', 'categories', 'levels'
         ));
     }
 
@@ -282,9 +215,8 @@ class DepartemenController extends Controller
         $units      = TopUnitKerja::all();
         $categories = KategoriRisiko::all();
         $levels     = LevelRisiko::all();
-        $periods    = Period::orderBy('year', 'desc')->orderBy('quarter', 'desc')->get();
 
-        return view('departemen.create', compact('units', 'categories', 'levels', 'periods'));
+        return view('departemen.create', compact('units', 'categories', 'levels'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -299,6 +231,7 @@ class DepartemenController extends Controller
 
         $defaultLevel = DB::table('level_risiko')->orderBy('urutan', 'asc')->first();
 
+        // Setter nilai awal sebelum ada riwayat triwulan
         $validated['value']    = 0;
         $validated['inherent'] = 0;
         $validated['trend']    = 'Stabil';
@@ -307,7 +240,7 @@ class DepartemenController extends Controller
         DepMonitoring::create($validated);
 
         return redirect()
-            ->route('department-risk.index')
+            ->route('department-risk.index', ['tab' => 'data'])
             ->with('success', 'Risk Department berhasil ditambahkan.');
     }
 
@@ -317,9 +250,8 @@ class DepartemenController extends Controller
         $units      = TopUnitKerja::orderBy('nama_unit', 'asc')->get();
         $categories = KategoriRisiko::orderBy('nama_kategori', 'asc')->get();
         $levels     = LevelRisiko::all();
-        $periods    = Period::orderBy('year', 'desc')->orderBy('quarter', 'desc')->get();
 
-        return view('departemen.edit', compact('risk', 'units', 'categories', 'levels', 'periods'));
+        return view('departemen.edit', compact('risk', 'units', 'categories', 'levels'));
     }
 
     public function update(Request $request, string $id): RedirectResponse
@@ -330,14 +262,13 @@ class DepartemenController extends Controller
             'risk_event_deta' => ['required', 'string'],
             'status'          => ['required', 'boolean'],
             'type'            => ['required', 'in:Proyek,Non-Proyek'],
-            'id_period'       => ['nullable', 'integer', 'exists:periods,id_period'],
         ]);
 
         $risk = DepMonitoring::findOrFail($id);
         $risk->update($validated);
 
         return redirect()
-            ->route('department-risk.index')
+            ->route('department-risk.index', ['tab' => 'data'])
             ->with('success', 'Risk Department berhasil diperbarui.');
     }
 
@@ -353,8 +284,11 @@ class DepartemenController extends Controller
 
     public function show(string $id): View
     {
-        $risk   = DepMonitoring::with(['unitKerja', 'kategoriRisiko', 'periods'])->findOrFail($id);
-        $levels = DB::table('level_risiko')->orderBy('urutan', 'asc')->get();
+        $risk   = DepMonitoring::with(['unitKerja', 'kategoriRisiko', 'periods' => function($q) {
+            $q->orderBy('year', 'desc')->orderBy('quarter', 'desc');
+        }])->findOrFail($id);
+
+        $levels = LevelRisiko::orderBy('urutan', 'asc')->get();
 
         return view('departemen.show', compact('risk', 'levels'));
     }
@@ -366,8 +300,8 @@ class DepartemenController extends Controller
             'year'     => ['required', 'integer', 'min:2020', 'max:2099'],
             'value'    => ['required', 'integer', 'min:1'],
             'inherent' => ['required', 'integer', 'min:1'],
-            'id_level' => ['required', 'integer', 'exists:level_risiko,id_level'],
-            'trend'    => ['required', 'in:Naik,Turun,Stabil'],
+            'trend'    => ['required', 'string'],
+            'calculated_level' => ['required', 'string'],
         ]);
 
         $risk = DepMonitoring::findOrFail($id);
@@ -383,7 +317,14 @@ class DepartemenController extends Controller
                 ->with('error', "Periode {$request->quarter} Tahun {$request->year} sudah terdaftar pada risiko ini.");
         }
 
-        $risk->periods()->attach($request->id_level, [
+        // Pencarian ID Level dinamis berdasarkan text (selaras dengan metode di SMAP)
+        $levelStr = $request->calculated_level;
+        // Ubah 'level' menjadi 'id_level'
+        $levelRecord = LevelRisiko::where('nama_level', $levelStr)->orWhere('id_level', $levelStr)->first();
+        $idLevelTerbaru = $levelRecord ? $levelRecord->id_level : $risk->id_level;
+
+        // Attach Pivot
+        $risk->periods()->attach($idLevelTerbaru, [
             'quarter'    => $request->quarter,
             'year'       => $request->year,
             'value'      => $request->value,
@@ -393,8 +334,16 @@ class DepartemenController extends Controller
             'updated_at' => now(),
         ]);
 
+        // Mengubah status parent risk sesuai data terbaru agar sinkron di index
+        $risk->update([
+            'id_level' => $idLevelTerbaru,
+            'value'    => $request->value,
+            'inherent' => $request->inherent,
+            'trend'    => $request->trend,
+        ]);
+
         return redirect()->route('department-risk.show', $id)
-            ->with('success', 'Data parameter triwulan baru berhasil ditambahkan.');
+            ->with('success', "Data parameter triwulan {$request->quarter} berhasil ditambahkan.");
     }
 
     public function destroyPeriod(string $id, string $pivotId): RedirectResponse
@@ -402,6 +351,6 @@ class DepartemenController extends Controller
         DB::table('dep_monitoring_periods')->where('id', $pivotId)->delete();
 
         return redirect()->route('department-risk.show', $id)
-            ->with('success', 'Data parameter triwulan berhasil dihapus.');
+            ->with('success', 'Data riwayat triwulan berhasil dihapus.');
     }
 }

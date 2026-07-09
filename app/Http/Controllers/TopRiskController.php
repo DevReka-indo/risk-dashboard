@@ -160,7 +160,7 @@ class TopRiskController extends Controller
     {
         $validated = $request->validate([
             'nama_peristiwa_risiko' => ['required', 'string', 'max:255'],
-            'id_kategori' => ['required', 'integer', 'exists:top_kategori_risiko,id_kategori'],
+            'id_kategori' => ['required', 'integer', 'exists:kategori_risiko,id_kategori'],
             'tanggal_dibuat' => ['required', 'date'],
             'is_aktif' => ['nullable', 'boolean'],
             'unit_kerja' => ['required', 'array', 'min:1'],
@@ -506,8 +506,8 @@ class TopRiskController extends Controller
         $validated = $request->validate([
             'bulan' => ['required', 'integer', 'between:1,12', Rule::unique('top_monitoring_bulanan', 'bulan')->where('tahun', $request->integer('tahun'))->where('id_risiko', $topRisk->id_risiko)],
             'tahun' => ['required', 'integer', 'digits:4', 'min:2000'],
-            'nilai' => ['required', 'integer', 'min:0'],
-            'id_level' => ['required', 'integer', 'exists:level_risiko,id_level'],
+            'nilai' => ['required', 'integer', 'between:1,25'],
+            // 'id_level' => ['required', 'integer', 'exists:level_risiko,id_level'],
             'status' => ['required', Rule::in(['Aktif', 'Tidak Aktif'])],
             'progres_belum' => ['nullable', 'integer', 'min:0'],
             'progres_proses' => ['nullable', 'integer', 'min:0'],
@@ -515,14 +515,22 @@ class TopRiskController extends Controller
             'catatan' => ['nullable', 'string'],
         ]);
 
-        $idAturanEfektivitas = $this->resolveAturanEfektivitasId(idRisiko: $topRisk->id_risiko, bulan: (int) $validated['bulan'], tahun: (int) $validated['tahun'], nilaiBulanIni: (int) $validated['nilai'], idLevelBulanIni: (int) $validated['id_level']);
+        $idLevel = $this->resolveLevelRisikoIdByNilai((int) $validated['nilai']);
+
+        $idAturanEfektivitas = $this->resolveAturanEfektivitasId(
+            idRisiko: $topRisk->id_risiko, 
+            bulan: (int) $validated['bulan'], 
+            tahun: (int) $validated['tahun'], 
+            nilaiBulanIni: (int) $validated['nilai'], 
+            idLevelBulanIni: $idLevel
+        );
 
         TopMonitoringBulanan::query()->create([
             'id_risiko' => $topRisk->id_risiko,
             'bulan' => $validated['bulan'],
             'tahun' => $validated['tahun'],
             'nilai' => $validated['nilai'],
-            'id_level' => $validated['id_level'],
+            'id_level' => $idLevel,
             'status' => $validated['status'],
             'progres_belum' => $validated['progres_belum'] ?? 0,
             'progres_proses' => $validated['progres_proses'] ?? 0,
@@ -541,8 +549,8 @@ class TopRiskController extends Controller
         $validated = $request->validate([
             'bulan' => ['required', 'integer', 'between:1,12', Rule::unique('top_monitoring_bulanan', 'bulan')->where('tahun', $request->integer('tahun'))->where('id_risiko', $topRisk->id_risiko)->ignore($monitoring->id_monitoring, 'id_monitoring')],
             'tahun' => ['required', 'integer', 'digits:4', 'min:2000'],
-            'nilai' => ['required', 'integer', 'min:0'],
-            'id_level' => ['required', 'integer', 'exists:level_risiko,id_level'],
+            'nilai' => ['required', 'integer', 'between:1,25'],
+            // 'id_level' => ['required', 'integer', 'exists:level_risiko,id_level'],
             'status' => ['required', Rule::in(['Aktif', 'Tidak Aktif'])],
             'progres_belum' => ['nullable', 'integer', 'min:0'],
             'progres_proses' => ['nullable', 'integer', 'min:0'],
@@ -550,7 +558,15 @@ class TopRiskController extends Controller
             'catatan' => ['nullable', 'string'],
         ]);
 
-        $idAturanEfektivitas = $this->resolveAturanEfektivitasId(idRisiko: $topRisk->id_risiko, bulan: (int) $validated['bulan'], tahun: (int) $validated['tahun'], nilaiBulanIni: (int) $validated['nilai'], idLevelBulanIni: (int) $validated['id_level']);
+        $idLevel = $this->resolveLevelRisikoIdByNilai((int) $validated['nilai']);
+
+        $idAturanEfektivitas = $this->resolveAturanEfektivitasId(
+            idRisiko: $topRisk->id_risiko, 
+            bulan: (int) $validated['bulan'], 
+            tahun: (int) $validated['tahun'], 
+            nilaiBulanIni: (int) $validated['nilai'], 
+            idLevelBulanIni: $idLevel
+        );
 
         TopMonitoringBulanan::query()
             ->where('id_monitoring', $monitoring->id_monitoring)
@@ -558,7 +574,7 @@ class TopRiskController extends Controller
                 'bulan' => $validated['bulan'],
                 'tahun' => $validated['tahun'],
                 'nilai' => $validated['nilai'],
-                'id_level' => $validated['id_level'],
+                'id_level' => $idLevel,
                 'status' => $validated['status'],
                 'progres_belum' => $validated['progres_belum'] ?? 0,
                 'progres_proses' => $validated['progres_proses'] ?? 0,
@@ -577,6 +593,22 @@ class TopRiskController extends Controller
         TopMonitoringBulanan::query()->where('id_monitoring', $monitoring->id_monitoring)->delete();
 
         return redirect()->route('top-risk.show', $topRisk)->with('success', 'Data monitoring bulanan berhasil dihapus.');
+    }
+
+    private function resolveLevelRisikoIdByNilai(int $nilai): int
+    {
+        $urutanLevel = match (true) {
+            $nilai >= 20 && $nilai <= 25 => 5, // High
+            $nilai >= 16 && $nilai <= 19 => 4, // Moderate to High
+            $nilai >= 11 && $nilai <= 15 => 3, // Moderate
+            $nilai >= 6 && $nilai <= 10 => 2,  // Low to Moderate
+            $nilai >= 1 && $nilai <= 5 => 1,   // Low
+            default => throw new \InvalidArgumentException('Nilai risiko tidak valid.'),
+        };
+
+        return (int) LevelRisiko::query()
+            ->where('urutan', $urutanLevel)
+            ->valueOrFail('id_level');
     }
 
     private function resolveAturanEfektivitasId(int $idRisiko, int $bulan, int $tahun, int $nilaiBulanIni, int $idLevelBulanIni): ?int

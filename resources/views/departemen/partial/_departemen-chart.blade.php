@@ -1,78 +1,46 @@
 <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
     <div class="mb-5 flex flex-col gap-1">
-        <h2 class="text-base font-bold text-slate-900">
-            Grafik Distribusi Risiko per Departemen
-        </h2>
-        <p class="text-sm text-slate-500">
-            Jumlah risiko berdasarkan jabatan/unit kerja yang difilter.
-        </p>
+        <h2 class="text-lg font-bold text-slate-900">Grafik Risiko per Departemen</h2>
+        <p class="text-sm text-slate-500">Jumlah risiko berdasarkan jabatan/unit kerja yang difilter.</p>
     </div>
 
-    <div class="relative w-full" style="height: 380px;">
+    <div class="relative w-full min-h-[400px]">
         <canvas id="departmentRiskChart"></canvas>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const chartElement = document.getElementById('departmentRiskChart');
-        if (!chartElement) return;
+        let existingChart = Chart.getChart("departmentRiskChart");
+        if (existingChart != undefined) existingChart.destroy();
 
-        const ctx = chartElement.getContext('2d');
-        const labels = {!! json_encode($chartLabels ?? []) !!};
-        const dataValues = {!! json_encode($chartData ?? []) !!};
-
-        // Gradasi warna agar grafik tampak modern & premium
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(79, 70, 229, 0.9)');
-        gradient.addColorStop(1, 'rgba(79, 70, 229, 0.4)');
+        const ctx = document.getElementById('departmentRiskChart').getContext('2d');
+        const labelsData = {!! json_encode($labels ?? []) !!};
+        const dataValues = {!! json_encode($data ?? []) !!};
 
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: labels,
+                labels: labelsData,
                 datasets: [{
-                    label: ' Total Risiko',
+                    label: 'Total Risiko',
                     data: dataValues,
-                    backgroundColor: gradient,
-                    hoverBackgroundColor: 'rgba(67, 56, 202, 1)',
-                    borderRadius: 6,
-                    barPercentage: 0.6,
+                    backgroundColor: '#4f46e5',
+                    borderRadius: 8,
+                    barThickness: 40,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: 1500, easing: 'easeOutQuart' },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                        titleFont: { size: 13, family: "'Inter', sans-serif" },
-                        bodyFont: { size: 14, weight: 'bold', family: "'Inter', sans-serif" },
-                        padding: 12,
-                        cornerRadius: 8,
-                        displayColors: false,
-                    }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: {
-                            font: { family: "'Inter', sans-serif", size: 11 },
-                            color: '#64748b'
-                        }
+                        ticks: { autoSkip: false, maxRotation: 45, minRotation: 45, font: { size: 11 } }
                     },
-                    y: {
-                        beginAtZero: true,
-                        border: { display: false },
-                        grid: { color: '#f1f5f9' },
-                        ticks: {
-                            stepSize: 1,
-                            font: { family: "'Inter', sans-serif", size: 12 },
-                            color: '#94a3b8'
-                        }
-                    }
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
                 }
             }
         });

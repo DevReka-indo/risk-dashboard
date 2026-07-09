@@ -1,73 +1,51 @@
 <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
     <div class="mb-6">
-        <h2 class="text-base font-bold text-slate-900">Grafik Tren Risiko</h2>
+        <h2 class="text-lg font-bold text-slate-900">Grafik Tren Risiko</h2>
         <p class="mt-1 text-sm text-slate-500">Nilai risiko Triwulan ini dibandingkan dengan Nilai risiko inherent.</p>
     </div>
 
-    <div class="relative w-full min-h-[220px]">
+    <div class="relative w-full min-h-[250px]">
         <canvas id="chartTrenRisikoHorizontal"></canvas>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         let existingChart = Chart.getChart("chartTrenRisikoHorizontal");
-        if (existingChart != undefined) {
-            existingChart.destroy();
-        }
+        if (existingChart != undefined) existingChart.destroy();
 
         const ctxTrend = document.getElementById('chartTrenRisikoHorizontal').getContext('2d');
+        const labels = {!! json_encode($trendLabels) !!};
+        const dataValues = {!! json_encode($trendData) !!};
+
+        const dynamicColors = labels.map(label => {
+            if (label === 'Naik') return '#f59e0b';
+            if (label === 'Turun') return '#65a30d';
+            if (label === 'Stabil' || label === 'Stagnan') return '#ea580c';
+            return '#cbd5e1';
+        });
 
         new Chart(ctxTrend, {
             type: 'bar',
             data: {
-                labels: {!! json_encode($trendLabels) !!},
+                labels: labels,
                 datasets: [{
                     label: 'Jumlah Risiko',
-                    data: {!! json_encode($trendData) !!},
-                    backgroundColor: [
-                        '#f59e0b', // Amber/Kuning -> Naik
-                        '#65a30d', // Lime/Hijau -> Turun
-                        '#ea580c'  // Orange/Jingga -> Stagnan
-                    ],
-                    borderRadius: 8,
-                    borderSkipped: false,
-                    barThickness: 24, // Ketebalan bar disesuaikan agar lebih proporsional
+                    data: dataValues,
+                    backgroundColor: dynamicColors,
+                    borderRadius: 6,
+                    barThickness: 16,
                 }]
             },
             options: {
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        padding: 10,
-                        backgroundColor: '#0f172a',
-                        titleFont: { family: 'Plus Jakarta Sans, sans-serif', weight: '700' },
-                        bodyFont: { family: 'Plus Jakarta Sans, sans-serif' }
-                    }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            color: '#64748b',
-                            font: { family: 'Plus Jakarta Sans, sans-serif', size: 11 }
-                        },
-                        grid: {
-                            color: '#f1f5f9',
-                            drawBorder: false
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#334155',
-                            font: { family: 'Plus Jakarta Sans, sans-serif', size: 12, weight: '600' }
-                        },
-                        grid: { display: false }
-                    }
+                    x: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { drawBorder: false } },
+                    y: { grid: { display: false } }
                 }
             }
         });

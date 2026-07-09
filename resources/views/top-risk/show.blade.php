@@ -87,7 +87,7 @@
                     Input Monitoring Bulanan
                 </h2>
                 <p class="mt-1 text-sm text-slate-500">
-                    Nilai dan level risiko diisi manual. Efektivitas akan dihitung otomatis dari data bulan sebelumnya.
+                    Nilai risiko diisi berdasarkan matrix risiko. Level risiko dan efektivitas akan dihitung otomatis oleh sistem.
                 </p>
             </div>
 
@@ -147,9 +147,10 @@
                         name="nilai"
                         value="{{ old('nilai') }}"
                         required
-                        min="0"
+                        min="1"
+                        max="25"
                         class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        placeholder="0">
+                        placeholder="1-25">
 
                     @error('nilai')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
@@ -157,26 +158,19 @@
                 </div>
 
                 <div class="lg:col-span-3">
-                    <label for="id_level" class="block text-sm font-semibold text-slate-700">
+                    <label class="block text-sm font-semibold text-slate-700">
                         Level Risiko
                     </label>
 
-                    <select
-                        id="id_level"
-                        name="id_level"
-                        required
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">Pilih level</option>
-                        @foreach ($levelRisiko as $level)
-                            <option value="{{ $level->id_level }}" @selected((int) old('id_level') === (int) $level->id_level)>
-                                {{ $level->nama_level }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div
+                        id="level-preview"
+                        class="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600">
+                        Otomatis mengikuti nilai risiko
+                    </div>
 
-                    @error('id_level')
-                        <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
-                    @enderror
+                    <p id="level-preview-help" class="mt-2 text-xs text-slate-500">
+                        Masukkan nilai 1 sampai 25 untuk melihat level.
+                    </p>
                 </div>
 
                 <div class="lg:col-span-3">
@@ -279,6 +273,20 @@
 
             <div class="space-y-4">
                 @forelse ($topRisk->monitoringBulanan as $monitoring)
+
+                    @php
+                        $levelUrutan = (int) ($monitoring->level->urutan ?? 0);
+
+                        $levelBadgeClass = match ($levelUrutan) {
+                            1 => 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200',
+                            2 => 'bg-lime-100 text-lime-800 ring-1 ring-lime-200',
+                            3 => 'bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200',
+                            4 => 'bg-orange-100 text-orange-800 ring-1 ring-orange-200',
+                            5 => 'bg-red-100 text-red-800 ring-1 ring-red-200',
+                            default => 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
+                        };
+                    @endphp
+
                     <div class="rounded-3xl border border-slate-200 bg-white p-5">
                         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                             <div>
@@ -291,7 +299,7 @@
                                         Nilai {{ $monitoring->nilai }}
                                     </span>
 
-                                    <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                                    <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $levelBadgeClass }}">
                                         {{ $monitoring->level->nama_level ?? '-' }}
                                     </span>
 
@@ -399,8 +407,9 @@
                                         name="nilai"
                                         value="{{ $monitoring->nilai }}"
                                         required
-                                        min="0"
-                                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        min="1"
+                                        max="25"
+                                        class="js-edit-nilai mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                 </div>
 
                                 <div class="lg:col-span-3">
@@ -408,16 +417,14 @@
                                         Level Risiko
                                     </label>
 
-                                    <select
-                                        name="id_level"
-                                        required
-                                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                        @foreach ($levelRisiko as $level)
-                                            <option value="{{ $level->id_level }}" @selected((int) $monitoring->id_level === (int) $level->id_level)>
-                                                {{ $level->nama_level }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <div
+                                        class="js-edit-level-preview mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600">
+                                        {{ $monitoring->level->nama_level ?? 'Akan dihitung ulang' }}
+                                    </div>
+
+                                    <p class="js-edit-level-help mt-2 text-xs text-slate-500">
+                                        Level akan otomatis mengikuti nilai risiko.
+                                    </p>
                                 </div>
 
                                 <div class="lg:col-span-3">
@@ -514,4 +521,108 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const defaultClass = 'mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600';
+
+            const levelClasses = {
+                low: 'mt-2 rounded-2xl border border-emerald-300 bg-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-200',
+                lowModerate: 'mt-2 rounded-2xl border border-lime-300 bg-lime-100 px-4 py-3 text-sm font-semibold text-lime-800 ring-1 ring-lime-200',
+                moderate: 'mt-2 rounded-2xl border border-yellow-300 bg-yellow-100 px-4 py-3 text-sm font-semibold text-yellow-800 ring-1 ring-yellow-200',
+                moderateHigh: 'mt-2 rounded-2xl border border-orange-300 bg-orange-100 px-4 py-3 text-sm font-semibold text-orange-800 ring-1 ring-orange-200',
+                high: 'mt-2 rounded-2xl border border-red-300 bg-red-100 px-4 py-3 text-sm font-semibold text-red-800 ring-1 ring-red-200',
+                invalid: 'mt-2 rounded-2xl border border-rose-300 bg-rose-100 px-4 py-3 text-sm font-semibold text-rose-800 ring-1 ring-rose-200',
+            };
+
+            function resolveLevelByNilai(nilai) {
+                if (nilai >= 20 && nilai <= 25) {
+                    return {
+                        label: 'High',
+                        className: levelClasses.high,
+                        help: 'Nilai 20 - 25 termasuk level High.',
+                    };
+                }
+
+                if (nilai >= 16 && nilai <= 19) {
+                    return {
+                        label: 'Moderate to High',
+                        className: levelClasses.moderateHigh,
+                        help: 'Nilai 16 - 19 termasuk level Moderate to High.',
+                    };
+                }
+
+                if (nilai >= 11 && nilai <= 15) {
+                    return {
+                        label: 'Moderate',
+                        className: levelClasses.moderate,
+                        help: 'Nilai 11 - 15 termasuk level Moderate.',
+                    };
+                }
+
+                if (nilai >= 6 && nilai <= 10) {
+                    return {
+                        label: 'Low to Moderate',
+                        className: levelClasses.lowModerate,
+                        help: 'Nilai 6 - 10 termasuk level Low to Moderate.',
+                    };
+                }
+
+                if (nilai >= 1 && nilai <= 5) {
+                    return {
+                        label: 'Low',
+                        className: levelClasses.low,
+                        help: 'Nilai 1 - 5 termasuk level Low.',
+                    };
+                }
+
+                return {
+                    label: 'Nilai tidak valid',
+                    className: levelClasses.invalid,
+                    help: 'Nilai risiko harus berada pada rentang 1 sampai 25.',
+                };
+            }
+
+            function bindLevelPreview(nilaiInput, levelPreview, levelHelp) {
+                if (!nilaiInput || !levelPreview || !levelHelp) {
+                    return;
+                }
+
+                function updateLevelPreview() {
+                    const nilai = Number(nilaiInput.value);
+
+                    if (!nilaiInput.value) {
+                        levelPreview.className = defaultClass;
+                        levelPreview.textContent = 'Otomatis mengikuti nilai risiko';
+                        levelHelp.textContent = 'Masukkan nilai 1 sampai 25 untuk melihat level.';
+                        return;
+                    }
+
+                    const level = resolveLevelByNilai(nilai);
+
+                    levelPreview.className = level.className;
+                    levelPreview.textContent = level.label;
+                    levelHelp.textContent = level.help;
+                }
+
+                nilaiInput.addEventListener('input', updateLevelPreview);
+                updateLevelPreview();
+            }
+
+            bindLevelPreview(
+                document.getElementById('nilai'),
+                document.getElementById('level-preview'),
+                document.getElementById('level-preview-help')
+            );
+
+            document.querySelectorAll('form').forEach(function (form) {
+                bindLevelPreview(
+                    form.querySelector('.js-edit-nilai'),
+                    form.querySelector('.js-edit-level-preview'),
+                    form.querySelector('.js-edit-level-help')
+                );
+            });
+        });
+    </script>
+
 </x-admin-layout>

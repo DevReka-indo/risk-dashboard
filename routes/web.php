@@ -49,8 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:unit-kerja.delete')
         ->name('unit-kerja.destroy');
 
-    // HATI HATI ROUTE GALAK
-    // JANGAN DIHAPUS
+
     // TOP RISK
     Route::get('/top-risk', [TopRiskController::class, 'index'])
         ->middleware('permission:toprisk.view')

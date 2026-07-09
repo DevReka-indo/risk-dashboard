@@ -2,27 +2,29 @@
     <form method="GET" action="{{ route('department-risk.index') }}" class="grid gap-4 md:grid-cols-3 md:items-end">
         <input type="hidden" name="tab" value="dashboard">
 
-        {{-- Filter 1: Tahun --}}
+        {{-- Filter 1: Triwulan (Diselaraskan dengan string database) --}}
         <div>
-            <label for="filter_tahun" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Tahun</label>
-            <select id="filter_tahun" name="tahun" class="block w-full truncate rounded-2xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-indigo-500">
-                <option value="">Semua Tahun</option>
-                @foreach ($availableYears as $y)
-                    <option value="{{ $y }}" @selected($tahun == $y)>Tahun {{ $y }}</option>
-                @endforeach
+            <label for="filter_triwulan" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Periode (Triwulan)</label>
+            <select id="filter_triwulan" name="triwulan" class="block w-full truncate rounded-2xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-indigo-500">
+                <option value="">Semua Triwulan</option>
+                <option value="Triwulan I" @selected($triwulan == 'Triwulan I')>Triwulan I</option>
+                <option value="Triwulan II" @selected($triwulan == 'Triwulan II')>Triwulan II</option>
+                <option value="Triwulan III" @selected($triwulan == 'Triwulan III')>Triwulan III</option>
+                <option value="Triwulan IV" @selected($triwulan == 'Triwulan IV')>Triwulan IV</option>
             </select>
         </div>
 
-        {{-- Filter 2: Triwulan --}}
+        {{-- Filter 2: Tahun (Input Number agar user bisa input sendiri secara manual) --}}
         <div>
-            <label for="filter_triwulan" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Triwulan</label>
-            <select id="filter_triwulan" name="triwulan" class="block w-full truncate rounded-2xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-indigo-500">
-                <option value="">Semua Triwulan</option>
-                <option value="TW1" @selected($triwulan == 'TW1')>TW1</option>
-                <option value="TW2" @selected($triwulan == 'TW2')>TW2</option>
-                <option value="TW3" @selected($triwulan == 'TW3')>TW3</option>
-                <option value="TW4" @selected($triwulan == 'TW4')>TW4</option>
-            </select>
+            <label for="filter_tahun" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Tahun</label>
+            <input type="number"
+                   id="filter_tahun"
+                   name="tahun"
+                   value="{{ $tahun ?: date('Y') }}"
+                   placeholder="Contoh: 2026"
+                   min="2020"
+                   max="2035"
+                   class="block w-full rounded-2xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-indigo-500">
         </div>
 
         {{-- Filter & Reset Buttons --}}
