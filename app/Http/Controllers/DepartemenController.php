@@ -128,7 +128,7 @@ class DepartemenController extends Controller
 
             // 1. Hitung data untuk Grafik Distribusi Utama Per Departemen
             $riskCounts = DepMonitoring::query()
-                ->selectRaw('id_unit, count(*) as total', [])
+                ->selectRaw('id_unit, count(*) as total')
                 ->when($categoryId, fn($q) => $q->where('id_kategori', $categoryId))
                 ->when($levelId, fn($q) => $q->where('id_level', $levelId))
                 ->when($trend, fn($q) => $q->where('trend', $trend))
@@ -147,7 +147,7 @@ class DepartemenController extends Controller
 
             // 2. Hitung data untuk Distribusi Level Risiko
             $levelDistribution = LevelRisiko::orderBy('id_level', 'asc')->get()->map(function($level) use ($filteredPeriodIds) {
-                $count = DepMonitoring::where('id_level', $level->id_level)
+                $count = DepMonitoring::query()->where('id_level', $level->id_level)
                     ->when(!empty($filteredPeriodIds), fn($q) => $q->whereIn('id_period', $filteredPeriodIds))
                     ->count();
 
@@ -159,7 +159,7 @@ class DepartemenController extends Controller
 
             // 3. Hitung data untuk Jumlah Kategori Risiko
             $categoryDistribution = KategoriRisiko::orderBy('nama_kategori', 'asc')->get()->map(function($category) use ($filteredPeriodIds) {
-                $count = DepMonitoring::where('id_kategori', $category->id_kategori)
+                $count = DepMonitoring::query()->where('id_kategori', $category->id_kategori)
                     ->when(!empty($filteredPeriodIds), fn($q) => $q->whereIn('id_period', $filteredPeriodIds))
                     ->count();
 
