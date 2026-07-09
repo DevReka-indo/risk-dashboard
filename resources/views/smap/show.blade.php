@@ -91,7 +91,7 @@
                             <option value="Q4" @selected(old('quarter') == 'Q4')>Q4 (Kuartal 4)</option>
                         </select>
                     </div>
-                    
+
                     @error('quarter')
                         <p class="mt-2 text-sm text-red-600">
                             {{ $message }}
@@ -162,7 +162,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/60 pb-3">
                             <div class="flex flex-wrap items-center gap-2">
                                 <span class="inline-flex rounded-lg bg-slate-900 px-3 py-1 text-xs font-bold text-white">
-                                    {{ $history->period_name ?? '-' }}
+                                {{ $history->period->period_name ?? '-' }} <!-- INI BENAR -->
                                 </span>
                                 <span class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">
                                     Nilai: {{ $history->value ?? 0 }}

@@ -41,24 +41,26 @@
 
                 {{-- Status Risiko (Card Checkbox style) --}}
                 <div x-data="{ active: {{ old('status', '1') == '1' ? 'true' : 'false' }} }">
+                    <!-- Tambahkan name="status" di sini dan sinkronkan value -->
                     <input type="hidden" name="status" :value="active ? '1' : '0'">
+
                     <div
                         @click="active = !active"
-                        :class="active ? 'border-indigo-200 bg-indigo-50/40' : 'border-slate-200 bg-white'"
+                        :class="active ? 'border-indigo-200 bg-indigo-50/40' : 'border-rose-200 bg-rose-50/40'"
                         class="flex items-start gap-3 rounded-2xl border p-4 shadow-sm cursor-pointer transition select-none"
                     >
                         <div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border transition"
-                             :class="active ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 bg-white'">
+                            :class="active ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-rose-400 bg-rose-400 text-white'">
                             <svg x-show="active" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                             </svg>
+                            <span x-show="!active">X</span>
                         </div>
                         <div>
-                            <span class="block text-sm font-semibold text-slate-800">Risiko Aktif</span>
-                            <span class="block text-xs text-slate-500 mt-0.5">Risiko aktif akan ikut ditampilkan dalam monitoring dan rekap dashboard.</span>
+                            <span class="block text-sm font-semibold text-slate-800" x-text="active ? 'Risiko Aktif' : 'Risiko Tidak Aktif'"></span>
+                            <span class="block text-xs text-slate-500 mt-0.5">Status saat ini menentukan visibilitas di dashboard.</span>
                         </div>
                     </div>
-                    @error('status') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
             </div>
 

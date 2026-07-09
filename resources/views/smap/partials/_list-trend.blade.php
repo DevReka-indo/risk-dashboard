@@ -1,0 +1,58 @@
+<div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-6">
+        <h2 class="text-lg font-bold text-slate-900">Grafik Tren Risiko</h2>
+        <p class="mt-1 text-sm text-slate-500">Nilai risiko Triwulan ini dibandingkan dengan Nilai risiko inherent.</p>
+    </div>
+
+    <div class="relative w-full min-h-[250px]">
+        <canvas id="chartTrenRisikoHorizontal"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let existingChart = Chart.getChart("chartTrenRisikoHorizontal");
+        if (existingChart != undefined) {
+            existingChart.destroy();
+        }
+
+        const ctxTrend = document.getElementById('chartTrenRisikoHorizontal').getContext('2d');
+
+        new Chart(ctxTrend, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($trendLabels) !!}, // Sumbu Y (Kiri): Naik, Turun, Stagnan
+                datasets: [{
+                    label: 'Jumlah Risiko',
+                    data: {!! json_encode($trendData) !!}, // Sumbu X (Bawah): Angka Jumlah
+                    backgroundColor: [
+                        '#f59e0b', // Kuning/Amber (Naik)
+                        '#65a30d', // Hijau/Lime (Turun)
+                        '#ea580c'  // Orange/Jingga (Stagnan)
+                    ],
+                    borderRadius: 6,
+                    barThickness: 16, // Dibikin ramping rapi sesuai gambar referensi lu
+                }]
+            },
+            options: {
+                indexAxis: 'y', // 🔥 MEMBUAT CHART MENYAMPING (Y = Nama, X = Angka)
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { // Sumbu angka di bawah
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grid: { drawBorder: false }
+                    },
+                    y: { // Sumbu label status di kiri
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+</script>

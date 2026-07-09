@@ -4,7 +4,7 @@
             Risk Department
         </h1>
         <p class="hidden text-sm text-slate-500 sm:block">
-            Monitoring daftar risiko departemen berdasarkan unit kerja, kategori, dan status.
+            Monitoring daftar risiko departemen berdasarkan unit kerja, kategori, tipe, dan status.
         </p>
     </x-slot>
 
@@ -39,18 +39,19 @@
                 <form method="GET" action="{{ route('department-risk.index') }}" class="grid gap-4 lg:grid-cols-12 lg:items-end">
                     <input type="hidden" name="tab" value="data">
 
+                    <input type="hidden" name="tahun" value="{{ $tahun ?? '' }}">
+                    <input type="hidden" name="triwulan" value="{{ $triwulan ?? '' }}">
                     {{-- Search --}}
-                    <div class="lg:col-span-4">
+                    <div class="lg:col-span-3">
                         <label for="search" class="block text-sm font-semibold text-slate-700">
                             Cari Risiko
                         </label>
-
                         <input
                             id="search"
                             type="text"
                             name="search"
                             value="{{ $search ?? '' }}"
-                            placeholder="Cari nama peristiwa risiko..."
+                            placeholder="Cari nama peristiwa..."
                             class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
 
@@ -59,7 +60,6 @@
                         <label for="category_id" class="block text-sm font-semibold text-slate-700">
                             Kategori
                         </label>
-
                         <select
                             id="category_id"
                             name="category_id"
@@ -74,11 +74,10 @@
                     </div>
 
                     {{-- Filter Unit Kerja --}}
-                    <div class="lg:col-span-3">
+                    <div class="lg:col-span-2">
                         <label for="unit_id" class="block text-sm font-semibold text-slate-700">
                             Unit Kerja
                         </label>
-
                         <select
                             id="unit_id"
                             name="unit_id"
@@ -92,12 +91,26 @@
                         </select>
                     </div>
 
+                    {{-- PERBAIKAN 2: Penambahan Filter Tipe (Sesuai dengan data di Controller) --}}
+                    <div class="lg:col-span-2">
+                        <label for="type" class="block text-sm font-semibold text-slate-700">
+                            Tipe Risiko
+                        </label>
+                        <select
+                            id="type"
+                            name="type"
+                            class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Semua Tipe</option>
+                            <option value="Proyek" @selected(($type ?? '') === 'Proyek')>Proyek</option>
+                            <option value="Non-Proyek" @selected(($type ?? '') === 'Non-Proyek')>Non-Proyek</option>
+                        </select>
+                    </div>
+
                     {{-- Filter Status --}}
                     <div class="lg:col-span-2">
                         <label for="status" class="block text-sm font-semibold text-slate-700">
                             Status
                         </label>
-
                         <select
                             id="status"
                             name="status"
@@ -109,7 +122,7 @@
                     </div>
 
                     {{-- Tombol Aksi --}}
-                    <div class="flex flex-col gap-3 sm:flex-row lg:col-span-12 lg:justify-between">
+                    <div class="flex flex-col gap-3 sm:flex-row lg:col-span-12 lg:justify-between mt-2">
                         <div class="flex flex-col gap-3 sm:flex-row">
                             <button
                                 type="submit"
@@ -144,24 +157,12 @@
                     <table class="min-w-full divide-y divide-slate-200">
                         <thead class="bg-slate-50">
                             <tr>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Risiko
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Kategori
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Unit Kerja
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Monitoring Terakhir
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Status
-                                </th>
-                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Aksi
-                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Risiko</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Kategori</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Unit Kerja</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Monitoring Terakhir</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
+                                <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">Aksi</th>
                             </tr>
                         </thead>
 
@@ -177,8 +178,14 @@
                                             <div class="font-semibold text-slate-900">
                                                 {{ $risk->risk_event_deta }}
                                             </div>
-                                            <div class="mt-1 text-xs text-slate-500">
-                                                Dibuat: {{ $risk->created_at?->format('d M Y') ?? '-' }}
+                                            {{-- Menampilkan badge Tipe jika ada --}}
+                                            <div class="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                                                <span>Dibuat: {{ $risk->created_at?->format('d M Y') ?? '-' }}</span>
+                                                @if($risk->type)
+                                                    <span class="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600">
+                                                        {{ $risk->type }}
+                                                    </span>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>
@@ -195,10 +202,11 @@
 
                                     {{-- Kolom Monitoring Terakhir --}}
                                     <td class="px-6 py-4">
-                                        @if ($latestPeriod)
+                                        {{-- PERBAIKAN 1: Proteksi Null menggunakan operator ?-> pada data pivot --}}
+                                        @if ($latestPeriod && isset($latestPeriod->pivot))
                                             <div class="space-y-1">
                                                 <div class="text-sm font-semibold text-slate-900">
-                                                    {{ $latestPeriod->pivot->quarter . ' ' . $latestPeriod->pivot->year }}
+                                                    {{ ($latestPeriod->pivot->quarter ?? '-') . ' ' . ($latestPeriod->pivot->year ?? '') }}
                                                 </div>
 
                                                 <div class="flex flex-wrap gap-2">
@@ -265,7 +273,6 @@
                                             <form method="POST" action="{{ route('department-risk.destroy', $risk->id_monitoring) }}" onsubmit="return confirm('Yakin ingin menghapus data Risk Department ini?')">
                                                 @csrf
                                                 @method('DELETE')
-
                                                 <button
                                                     type="submit"
                                                     class="inline-flex items-center rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50">
@@ -284,11 +291,9 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12V16.5ZM10.29 3.86 1.82 18a2.25 2.25 0 0 0 1.93 3.375h16.5A2.25 2.25 0 0 0 22.18 18L13.71 3.86a2.25 2.25 0 0 0-3.42 0Z" />
                                             </svg>
                                         </div>
-
                                         <div class="mt-3 text-sm font-semibold text-slate-900">
                                             Data Risk Department belum tersedia
                                         </div>
-
                                         <p class="mt-1 text-sm text-slate-500">
                                             Tambahkan risiko baru untuk Department.
                                         </p>

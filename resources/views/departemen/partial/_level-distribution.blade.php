@@ -1,4 +1,6 @@
 @php
+    // Memastikan $items terdefinisi sebagai collection, mengambil total tertinggi untuk pembagi persentase
+    $items = collect($items ?? []);
     $maxTotal = max((int) $items->max('total'), 1);
 @endphp
 
@@ -13,7 +15,7 @@
     </div>
 
     <div class="space-y-4">
-        @foreach ($items as $item)
+        @forelse ($items as $item)
             @php
                 $percentage = ((int) $item['total'] / $maxTotal) * 100;
             @endphp
@@ -35,6 +37,10 @@
                     </div>
                 </div>
             </div>
-        @endforeach
+        @empty
+            <div class="text-center py-6 text-sm text-slate-400">
+                Belum ada data distribusi level risiko.
+            </div>
+        @endforelse
     </div>
 </div>

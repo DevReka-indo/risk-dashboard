@@ -10,11 +10,11 @@
         </div>
     </x-slot>
 
-    <!-- CUKUP PAKAI INI SAJA -->
+    <!-- Alert -->
     @include('kategori-risiko.partials._alert')
 
     <div class="space-y-6">
-        <!-- Stats Cards -->
+        {{-- Stats Cards --}}
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div class="flex items-center justify-between">
@@ -71,9 +71,58 @@
             </div>
         </div>
 
-        <!-- Table Section -->
+        {{-- Filter Section --}}
+<div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <form method="GET" action="{{ route('kategori-risiko.index') }}" class="grid gap-4 lg:grid-cols-12 lg:items-end">
+        {{-- Search --}}
+        <div class="lg:col-span-4">
+            <label for="search" class="block text-sm font-semibold text-slate-700">
+                Cari Kategori
+            </label>
+            <input
+                id="search"
+                type="text"
+                name="search"
+                value="{{ $search ?? '' }}"
+                placeholder="Cari nama kategori..."
+                class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        </div>
+
+        {{-- Filter Tipe --}}
+        <div class="lg:col-span-3">
+            <label for="type" class="block text-sm font-semibold text-slate-700">
+                Tipe (Alokasi)
+            </label>
+            <select
+                id="type"
+                name="type"
+                class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <option value="">Semua Tipe</option>
+                <option value="smap" @selected(($type ?? '') === 'smap')>SMAP</option>
+                <option value="departemen" @selected(($type ?? '') === 'departemen')>Departemen</option>
+            </select>
+        </div>
+
+        {{-- Tombol Aksi --}}
+        <div class="lg:col-span-5 flex items-end gap-3">
+            <button
+                type="submit"
+                class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition">
+                Filter
+            </button>
+
+            <a
+                href="{{ route('kategori-risiko.index') }}"
+                class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+        {{-- Table Section --}}
         <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <!-- Table Header with Add Button -->
+            {{-- Table Header with Add Button --}}
             <div class="flex flex-col gap-4 border-b border-slate-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 class="text-sm font-bold text-slate-900">
@@ -93,7 +142,7 @@
                 </a>
             </div>
 
-            <!-- Table -->
+            {{-- Table --}}
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead class="bg-slate-50">
@@ -162,11 +211,19 @@
                                     </div>
 
                                     <div class="mt-3 text-sm font-semibold text-slate-900">
-                                        Belum ada data kategori risiko
+                                        @if(request('search') || request('type'))
+                                            Tidak ada kategori yang sesuai dengan filter
+                                        @else
+                                            Belum ada data kategori risiko
+                                        @endif
                                     </div>
 
                                     <p class="mt-1 text-sm text-slate-500">
-                                        Tambahkan kategori risiko baru untuk mulai mengelompokkan data risiko.
+                                        @if(request('search') || request('type'))
+                                            Coba ubah kata kunci atau filter yang digunakan.
+                                        @else
+                                            Tambahkan kategori risiko baru untuk mulai mengelompokkan data risiko.
+                                        @endif
                                     </p>
                                 </td>
                             </tr>
@@ -174,6 +231,13 @@
                     </tbody>
                 </table>
             </div>
+
+            {{-- Pagination --}}
+            @if($categories instanceof \Illuminate\Pagination\LengthAwarePaginator && $categories->hasPages())
+                <div class="border-t border-slate-200 px-6 py-4">
+                    {{ $categories->links() }}
+                </div>
+            @endif
         </div>
     </div>
 </x-admin-layout>
