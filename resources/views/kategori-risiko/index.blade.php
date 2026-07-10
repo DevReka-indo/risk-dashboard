@@ -11,7 +11,6 @@
     </x-slot>
 
     <!-- Alert -->
-    @include('kategori-risiko.partials._alert')
 
     <div class="space-y-6">
         {{-- Stats Cards --}}
@@ -73,7 +72,31 @@
 
         {{-- Filter Section --}}
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <form method="GET" action="{{ route('kategori-risiko.index') }}" class="grid gap-4 lg:grid-cols-12 lg:items-end">
+            <div class="grid gap-4 lg:grid-cols-12 lg:items-end"
+                 x-data="{
+                    search: '{{ request('search') ?? '' }}',
+                    type: '{{ request('type') ?? '' }}',
+                    filter() {
+                        const rows = document.querySelectorAll('[data-category-row]');
+                        let visible = 0;
+                        rows.forEach(row => {
+                            const name = row.dataset.name.toLowerCase();
+                            const rowType = row.dataset.type.toLowerCase();
+                            const matchSearch = this.search === '' || name.includes(this.search.toLowerCase());
+                            const matchType = this.type === '' || rowType === this.type.toLowerCase();
+                            if (matchSearch && matchType) {
+                                row.style.display = '';
+                                visible++;
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        });
+                        const countEl = document.getElementById('visible-count');
+                        if (countEl) countEl.textContent = visible;
+                    }
+                 }"
+                 x-init="filter()">
+
                 {{-- Search --}}
                 <div class="lg:col-span-4">
                     <label for="search" class="block text-sm font-semibold text-slate-700">
@@ -82,8 +105,8 @@
                     <input
                         id="search"
                         type="text"
-                        name="search"
-                        value="{{ $search ?? '' }}"
+                        x-model="search"
+                        @input="filter()"
                         placeholder="Cari nama kategori..."
                         class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
@@ -95,29 +118,25 @@
                     </label>
                     <select
                         id="type"
-                        name="type"
+                        x-model="type"
+                        @change="filter()"
                         class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         <option value="">Semua Tipe</option>
-                        <option value="smap" @selected(($type ?? '') === 'smap')>SMAP</option>
-                        <option value="departemen" @selected(($type ?? '') === 'departemen')>Departemen</option>
+                        <option value="smap">Smap</option>
+                        <option value="departemen">Departemen</option>
                     </select>
                 </div>
 
-                {{-- Tombol Aksi --}}
+                {{-- Tombol Reset --}}
                 <div class="lg:col-span-5 flex items-end gap-3">
                     <button
-                        type="submit"
-                        class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition">
-                        Filter
-                    </button>
-
-                    <a
-                        href="{{ route('kategori-risiko.index') }}"
+                        type="button"
+                        @click="search = ''; type = ''; filter()"
                         class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
                         Reset
-                    </a>
+                    </button>
                 </div>
-            </form>
+            </div>
         </div>
 
         {{-- Table Section --}}
@@ -129,7 +148,7 @@
                         Daftar Kategori Risiko
                     </h2>
                     <p class="text-xs text-slate-500">
-                        Total {{ $categories->count() }} kategori terdaftar
+                        Total <span id="visible-count">{{ $categories->count() }}</span> kategori terdaftar
                     </p>
                 </div>
                 <a
@@ -163,7 +182,10 @@
                     </thead>
                     <tbody class="divide-y divide-slate-200">
                         @forelse($categories as $category)
-                            <tr class="hover:bg-slate-50">
+                            <tr class="hover:bg-slate-50"
+                                data-category-row
+                                data-name="{{ strtolower($category->nama_kategori) }}"
+                                data-type="{{ strtolower($category->type) }}">
                                 <td class="px-6 py-4">
                                     <div class="font-semibold text-slate-900">
                                         {{ $category->nama_kategori }}

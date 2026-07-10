@@ -97,4 +97,9 @@ class UnitKerjaController extends Controller
             ->route('unit-kerja.index')
             ->with('success', 'Unit kerja berhasil dihapus.');
     }
+    public function show(TopUnitKerja $unitKerja): View
+{
+    $unitKerja->load(['risiko.kategori']);
+    return view('unit-kerja.show', compact('unitKerja'));
+}
 }

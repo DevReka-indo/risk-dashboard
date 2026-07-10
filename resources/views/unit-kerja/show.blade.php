@@ -5,26 +5,8 @@
     </x-slot>
 
     <div class="space-y-6">
-        {{-- 1. NOTIFIKASI FLASH MESSAGES --}}
-        @if (session('success'))
-            <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-semibold shadow-sm flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-emerald-600 flex-shrink-0">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{{ session('success') }}</span>
-            </div>
-        @endif
 
-        @if (session('error'))
-            <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 font-semibold shadow-sm flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-rose-600 flex-shrink-0">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span>{{ session('error') }}</span>
-            </div>
-        @endif
-
-        {{-- 2. DETAIL LENGKAP UNIT KERJA (dengan tombol kembali & edit) --}}
+        {{-- 2. DETAIL LENGKAP UNIT KERJA --}}
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h2 class="text-base font-bold text-slate-900">Detail Lengkap</h2>

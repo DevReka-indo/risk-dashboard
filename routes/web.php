@@ -39,6 +39,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/unit-kerja', [UnitKerjaController::class, 'store'])
         ->middleware('permission:unit-kerja.create')
         ->name('unit-kerja.store');
+    Route::get('/unit-kerja/{unitKerja}', [UnitKerjaController::class, 'show'])
+        ->middleware('permission:unit-kerja.view')
+        ->name('unit-kerja.show');
     Route::get('/unit-kerja/{unitKerja}/edit', [UnitKerjaController::class, 'edit'])
         ->middleware('permission:unit-kerja.edit')
         ->name('unit-kerja.edit');
@@ -172,7 +175,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('department-risk.destroy-period');
 
     // Risk Register - SMAP Risk
-    Route::get('/risks/smap', [SmapController::class, 'index'])
+   Route::get('/risks/smap', [SmapController::class, 'index'])
         ->middleware('permission:risk.view')
         ->name('smap-risk.index');
     Route::get('/risks/smap/create', [SmapController::class, 'create'])
@@ -181,6 +184,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/risks/smap', [SmapController::class, 'store'])
         ->middleware('permission:risk.create')
         ->name('smap-risk.store');
+    Route::delete('/risks/smap/monitoring/{id_period}', [SmapController::class, 'destroyMonitoring'])
+        ->middleware('permission:risk.delete')
+        ->name('smap-risk.destroy-monitoring');
     Route::get('/risks/smap/{id}', [SmapController::class, 'show'])
         ->middleware('permission:risk.view')
         ->name('smap-risk.show');
@@ -196,9 +202,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/risks/smap/{id}/monitoring', [SmapController::class, 'storeMonitoring'])
         ->middleware('permission:risk.create')
         ->name('smap-risk.store-monitoring');
-    Route::delete('/risks/smap/monitoring/{id_period}', [SmapController::class, 'destroyMonitoring'])
-        ->middleware('permission:risk.delete')
-        ->name('smap-risk.destroy-monitoring');
 
     //Kategori
     Route::get('/kategori-risiko', [KategoriRisikoController::class, 'index'])

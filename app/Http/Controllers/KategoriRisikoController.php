@@ -3,16 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\KategoriRisiko;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\Rule; // Tambahkan import Rule di atas
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View; // Tambahkan import Rule di atas
 
 class KategoriRisikoController extends Controller
 {
     public function index(): View
     {
         $categories = KategoriRisiko::orderBy('created_at', 'desc')->get();
+
         return view('kategori-risiko.index', compact('categories'));
     }
 
@@ -33,8 +34,8 @@ class KategoriRisikoController extends Controller
                     return $query->where('type', $request->type);
                 }),
             ],
-            'type'          => 'required|string|in:smap,departemen',
-            'keterangan'    => 'nullable|string',
+            'type' => 'required|string|in:smap,departemen',
+            'keterangan' => 'nullable|string',
         ], [
             'nama_kategori.unique' => 'Kategori dengan nama dan tipe alokasi tersebut sudah ada.',
         ]);
@@ -45,9 +46,21 @@ class KategoriRisikoController extends Controller
             ->with('success', 'Kategori risiko berhasil ditambahkan.');
     }
 
+    public function show($id): View
+    {
+        $category = KategoriRisiko::with([
+            'risiko',
+            'smapMonitorings.unitKerja',
+            'depMonitorings.unitKerja',
+        ])->findOrFail($id);
+
+        return view('kategori-risiko.show', compact('category'));
+    }
+
     public function edit($id): View
     {
         $category = KategoriRisiko::findOrFail($id);
+
         return view('kategori-risiko.edit', compact('category'));
     }
 
@@ -65,8 +78,8 @@ class KategoriRisikoController extends Controller
                         return $query->where('type', $request->type);
                     }),
             ],
-            'type'          => 'required|string|in:smap,departemen',
-            'keterangan'    => 'nullable|string',
+            'type' => 'required|string|in:smap,departemen',
+            'keterangan' => 'nullable|string',
         ], [
             'nama_kategori.unique' => 'Kategori dengan nama dan tipe alokasi tersebut sudah ada.',
         ]);
