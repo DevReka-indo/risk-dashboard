@@ -67,16 +67,17 @@ class SmapController extends Controller
 
         $chartDatasets = [];
 
+        // Definisikan di luar IF agar Intelephense aman dari redline undefined variable
         $stringQuarter = 'Q' . $selectedPeriode;
-        
-        if ($period) {
-            $stringQuarter = 'Q' . $selectedPeriode;
 
+        if ($period) {
+            // 1. HITUNG TOTAL RISIKO
             $totalRisiko = \App\Models\SmapMonitoringPeriod::query()
                 ->where('quarter', $stringQuarter)
                 ->where('year', $selectedYear)
                 ->count();
 
+            // 2. HITUNG RISIKO AKTIF
             $risikoAktif = DB::table('smap_monitoring_periods')
                 ->join('smap_monitoring', 'smap_monitoring_periods.id_smap', '=', 'smap_monitoring.id_smap')
                 ->where('smap_monitoring_periods.quarter', $stringQuarter)
@@ -84,6 +85,17 @@ class SmapController extends Controller
                 ->where('smap_monitoring.status', 1)
                 ->count();
 
+            // 🔥 3. HITUNG JUMLAH RISIKO PER DEPARTEMEN (Kunci Utama agar Grafik Muncul)
+            $risksPerDept = DB::table('smap_monitoring_periods')
+                ->join('smap_monitoring', 'smap_monitoring_periods.id_smap', '=', 'smap_monitoring.id_smap')
+                ->where('smap_monitoring_periods.quarter', $stringQuarter)
+                ->where('smap_monitoring_periods.year', $selectedYear)
+                ->selectRaw('smap_monitoring.id_unit, count(*) as total')
+                ->groupBy('smap_monitoring.id_unit')
+                ->pluck('total', 'id_unit')
+                ->toArray();
+
+            // 4. HITUNG JUMLAH RISIKO PER LEVEL
             $risksPerLevel = \App\Models\SmapMonitoringPeriod::query()
                 ->where('quarter', $stringQuarter)
                 ->where('year', $selectedYear)
@@ -92,6 +104,17 @@ class SmapController extends Controller
                 ->pluck('total', 'id_level')
                 ->toArray();
 
+            // 🔥 5. HITUNG JUMLAH RISIKO PER KATEGORI (Kunci Utama Grafik Kategori)
+            $risksPerCategory = DB::table('smap_monitoring_periods')
+                ->join('smap_monitoring', 'smap_monitoring_periods.id_smap', '=', 'smap_monitoring.id_smap')
+                ->where('smap_monitoring_periods.quarter', $stringQuarter)
+                ->where('smap_monitoring_periods.year', $selectedYear)
+                ->selectRaw('smap_monitoring.id_kategori, count(*) as total')
+                ->groupBy('smap_monitoring.id_kategori')
+                ->pluck('total', 'id_kategori')
+                ->toArray();
+
+            // 6. HITUNG TREND PERUBAHAN
             $risksPerTrend = \App\Models\SmapMonitoringPeriod::query()
                 ->where('quarter', $stringQuarter)
                 ->where('year', $selectedYear)
@@ -142,8 +165,7 @@ class SmapController extends Controller
                         ->groupBy('smap_monitoring_periods.id_level')
                         ->pluck('total', 'id_level')
                         ->toArray();
-                        }
-
+                }
 
                 foreach ($allLevels as $level) {
                     $stackedTemplates[$level->id_level]['data'][] = (int)($currentDeptRisks[$level->id_level] ?? 0);
