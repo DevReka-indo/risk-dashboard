@@ -36,4 +36,6 @@
     @include('departemen.partial._trend-risk')
 
     @include('departemen.partial._matrix-rekap')
+
+    @include('departemen.partial._chart-pie')
 </div>

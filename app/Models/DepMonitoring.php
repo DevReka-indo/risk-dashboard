@@ -11,6 +11,7 @@ class DepMonitoring extends Model
 
     protected $primaryKey = 'id_monitoring';
 
+    // 👇 1. UPDATE DI SINI: Tambahkan kolom baru ke fillable 👇
     protected $fillable = [
         'id_unit',
         'id_kategori',
@@ -22,6 +23,9 @@ class DepMonitoring extends Model
         'status',
         'type',
         'id_period',
+        'penanganan',
+        'target_value',
+        'target_id_level',
     ];
 
     protected function casts(): array
@@ -30,12 +34,12 @@ class DepMonitoring extends Model
             'status' => 'boolean',
             'value' => 'integer',
             'inherent' => 'integer',
+            'target_value' => 'integer', // Boleh ditambahkan agar konsisten sebagai angka
         ];
     }
 
     public function getLevelColorClass(): string
     {
-        // Menyesuaikan dengan relasi 'levelRisiko' dan properti 'nama_level'
         return match ($this->levelRisiko?->nama_level) {
             'Low' => 'bg-emerald-100 text-emerald-700',
             'Low to Moderate' => 'bg-yellow-100 text-yellow-700',
@@ -88,15 +92,24 @@ class DepMonitoring extends Model
 
     public function periods()
     {
-        // Menggunakan belongsToMany ke model LevelRisiko atau sejenisnya,
-        // namun karena ini bertindak sebagai tabel riwayat mandiri, kita cukup definisikan seperti ini:
         return $this->belongsToMany(
-            \App\Models\LevelRisiko::class, // Kita hubungkan lewat tabel pivot ke master level_risiko
+            \App\Models\LevelRisiko::class,
             'dep_monitoring_periods',
             'id_monitoring',
             'id_level'
-        )->withPivot('id', 'quarter', 'year', 'value', 'inherent', 'trend') // Sertakan id transaksi, kuartal, dan tahun
+        )
+        // 👇 2. UPDATE DI SINI: Tambahkan kolom baru ke withPivot 👇
+        ->withPivot(
+            'id',
+            'quarter',
+            'year',
+            'value',
+            'inherent',
+            'trend',
+            'penanganan',
+            'target_value',
+            'target_id_level'
+        )
         ->withTimestamps();
     }
-
 }

@@ -17,9 +17,7 @@ class DepartemenController extends Controller
     {
         $tab = $request->query('tab', 'data');
 
-        // ==========================================
-        // 1. LOGIKA UNTUK TAB DASHBOARD
-        // ==========================================
+        // 1. LOGIKA UNTUK TAB DASHBOARD=
         if ($tab === 'dashboard') {
             // Default 'all' agar saat pertama kali masuk menampilkan Semua Triwulan
             $selectedPeriode = $request->query('periode', 'all');
@@ -91,9 +89,7 @@ class DepartemenController extends Controller
                 (($risksPerTrend['Stagnan'] ?? 0) + ($risksPerTrend['stagnan'] ?? 0) + ($risksPerTrend['Stabil'] ?? 0) + ($risksPerTrend['stabil'] ?? 0)),
             ];
 
-            // -------------------------------------------------------------
             // LOGIKA PEMBUATAN DATASETS UNTUK GRAFIK MATRIX (DIKEMBALIKAN)
-            // -------------------------------------------------------------
             $stackedTemplates = [];
             $colorMapping = [
                 'High'             => '#ef4444', // Merah
@@ -177,9 +173,7 @@ class DepartemenController extends Controller
             ));
         }
 
-        // ==========================================
         // 2. LOGIKA UNTUK TAB DATA (Tabel List)
-        // ==========================================
         $search     = $request->string('search')->toString();
         $unitId     = $request->string('unit_id')->toString();
         $categoryId = $request->string('category_id')->toString();
@@ -286,58 +280,93 @@ class DepartemenController extends Controller
     public function updatePeriod(Request $request, string $id): RedirectResponse
     {
         $request->validate([
-            'quarter'  => ['required', 'in:TW1,TW2,TW3,TW4'],
-            'year'     => ['required', 'integer', 'min:2020', 'max:2099'],
-            'value'    => ['required', 'integer', 'min:1'],
-            'inherent' => ['required', 'integer', 'min:1'],
-            'trend'    => ['required', 'string'],
-            'calculated_level' => ['required', 'string'],
+            'quarter'                 => ['required', 'in:TW1,TW2,TW3,TW4'],
+            'year'                    => ['required', 'integer', 'min:2020', 'max:2099'],
+            'value'                   => ['required', 'numeric', 'min:1', 'max:25'],
+            'inherent'                => ['required', 'numeric', 'min:1', 'max:25'],
+            'target'                  => ['required', 'numeric', 'min:1', 'max:25'],
+            'penanganan'              => ['required', 'in:Belum,Proses,Sudah'],
+            'calculated_trend'        => ['required', 'string'],
+            'calculated_level'        => ['required'],
+            'calculated_target_level' => ['required'],
         ]);
 
         $risk = DepMonitoring::findOrFail($id);
+        $reqYear = $request->year;
+        $reqQuarter = $request->quarter;
 
+        // 1. Cek Duplikasi Input
         $isExist = DB::table('dep_monitoring_periods')
             ->where('id_monitoring', $id)
-            ->where('quarter', $request->quarter)
-            ->where('year', $request->year)
+            ->where('quarter', $reqQuarter)
+            ->where('year', $reqYear)
             ->exists();
 
         if ($isExist) {
-            return redirect()->route('department-risk.show', $id)
-                ->with('error', "Periode {$request->quarter} Tahun {$request->year} sudah terdaftar pada risiko ini.");
+            return redirect()->back()->with('error', "Periode {$reqQuarter} Tahun {$reqYear} sudah terdaftar pada risiko ini.");
         }
 
+        // 2. VALIDASI WAJIB URUT & AMBIL INHERENT SEBELUMNYA
+        $inherentValue = $request->inherent;
+        $quarterOrder = ['TW1' => 1, 'TW2' => 2, 'TW3' => 3, 'TW4' => 4];
+        $currentQNum = $quarterOrder[$reqQuarter];
+
+        // Jika bukan TW1, kita wajib cek kuartal sebelumnya
+        if ($currentQNum > 1) {
+            $prevQNum = $currentQNum - 1;
+            $prevQ = array_search($prevQNum, $quarterOrder); // Hasilnya: TW1 / TW2 / TW3
+
+            // Cari data kuartal sebelumnya di database
+            $prevPeriod = DB::table('dep_monitoring_periods')
+                ->where('id_monitoring', $id)
+                ->where('year', $reqYear)
+                ->where('quarter', $prevQ)
+                ->first();
+
+            // Jika kuartal sebelumnya tidak ditemukan, TOLAK!
+            if (!$prevPeriod) {
+                return redirect()->back()->with('error', "Gagal! Anda harus mengisi riwayat $prevQ Tahun $reqYear terlebih dahulu sebelum mengisi $reqQuarter.");
+            }
+
+            // Ganti Inherent secara paksa dari Current (Value) kuartal sebelumnya
+            $inherentValue = $prevPeriod->value;
+        }
+
+        // 3. Kalkulasi Level
         $levelInput = $request->calculated_level;
-
-        // Pengecekan Cerdas: Apakah input yang masuk itu Angka (ID) atau Teks (Nama)?
-        if (is_numeric($levelInput)) {
-            // Jika dari JS masuknya ID (contoh: 5)
-            $levelRecord = LevelRisiko::find($levelInput);
-        } else {
-            // Jika sebagai fallback masuknya Nama Text (contoh: 'High')
-            $levelRecord = LevelRisiko::where('nama_level', $levelInput)->first();
-        }
-
+        $levelRecord = LevelRisiko::where('id_level', $levelInput)->orWhere('nama_level', $levelInput)->first();
         $idLevelTerbaru = $levelRecord ? $levelRecord->id_level : $risk->id_level;
 
+        $targetLevelInput = $request->calculated_target_level;
+        $targetLevelRecord = LevelRisiko::where('id_level', $targetLevelInput)->orWhere('nama_level', $targetLevelInput)->first();
+        $idLevelTarget = $targetLevelRecord ? $targetLevelRecord->id_level : 1;
+
+        // 4. Simpan ke Pivot dan Update Tabel Utama
         $risk->periods()->attach($idLevelTerbaru, [
-            'quarter'    => $request->quarter,
-            'year'       => $request->year,
-            'value'      => $request->value,
-            'inherent'   => $request->inherent,
-            'trend'      => $request->trend,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'quarter'         => $reqQuarter,
+            'year'            => $reqYear,
+            'value'           => $request->value,
+            'inherent'        => $inherentValue, // Menggunakan Inherent yang sudah diverifikasi
+            'trend'           => $request->calculated_trend,
+            'target_value'    => $request->target,
+            'target_id_level' => $idLevelTarget,
+            'penanganan'      => $request->penanganan,
+            'created_at'      => now(),
+            'updated_at'      => now(),
         ]);
 
         $risk->update([
-            'id_level' => $idLevelTerbaru,
-            'value'    => $request->value,
-            'inherent' => $request->inherent,
-            'trend'    => $request->trend,
+            'id_level'        => $idLevelTerbaru,
+            'value'           => $request->value,
+            'inherent'        => $inherentValue,
+            'trend'           => $request->calculated_trend,
+            'penanganan'      => $request->penanganan,
+            'target_value'    => $request->target,
+            'target_id_level' => $idLevelTarget,
         ]);
 
-        return redirect()->route('department-risk.show', $id)->with('success', "Data parameter triwulan {$request->quarter} berhasil ditambahkan.");
+        return redirect()->route('department-risk.show', $id)
+                        ->with('success', "Data parameter triwulan $reqQuarter berhasil ditambahkan.");
     }
 
     public function destroyPeriod(string $id, string $pivotId): RedirectResponse
@@ -345,4 +374,19 @@ class DepartemenController extends Controller
         DB::table('dep_monitoring_periods')->where('id', $pivotId)->delete();
         return redirect()->route('department-risk.show', $id)->with('success', 'Data riwayat triwulan berhasil dihapus.');
     }
+
+    public function getChartData()
+    {
+        $data = DepMonitoring::with('levelRisiko')
+            ->select('id_level', DB::raw('count(*) as total'))
+            ->groupBy('id_level')
+            ->get();
+
+        // Format data untuk Chart.js
+        return response()->json([
+            'labels' => $data->pluck('levelRisiko.nama_level'),
+            'values' => $data->pluck('total'),
+            'colors' => ['#FF0000', '#F28C28', '#FFD700', '#90EE90', '#228B22'] // Sesuaikan dengan warna di gambar Anda
+        ]);
+}
 }
