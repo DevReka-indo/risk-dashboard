@@ -12,15 +12,27 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        let existingChart = Chart.getChart("chartKomposisiRiskOwner");
+        const canvasElement = document.getElementById('chartKomposisiRiskOwner');
+        if (!canvasElement) return;
+
+        let existingChart = Chart.getChart(canvasElement);
         if (existingChart != undefined) {
             existingChart.destroy();
         }
 
-        const ctxStacked = document.getElementById('chartKomposisiRiskOwner').getContext('2d');
+        const ctxStacked = canvasElement.getContext('2d');
         const labelsData = {!! json_encode($labels) !!};
 
-        // Mengatur tinggi container canvas secara dinamis berdasarkan jumlah departemen
+        const rawDatasets = {!! json_encode($chartDatasets) !!};
+
+        const cleanDatasets = rawDatasets.map(dataset => {
+            return {
+                ...dataset,
+                borderRadius: 4,
+                barThickness: 16,
+            };
+        });
+
         const chartHeight = Math.max(300, labelsData.length * 55);
         ctxStacked.canvas.parentNode.style.height = chartHeight + 'px';
 
@@ -28,7 +40,7 @@
             type: 'bar',
             data: {
                 labels: labelsData,
-                datasets: {!! json_encode($chartDatasets) !!}
+                datasets: cleanDatasets
             },
             options: {
                 indexAxis: 'y',
@@ -36,7 +48,6 @@
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        // 🔥 Kembalikan padding ke standar kecil agar sumbu Y bergeser penuh ke kiri card
                         left: 20,
                         right: 20,
                         top: 10,
@@ -70,7 +81,6 @@
                                 size: 12,
                                 weight: '500'
                             },
-                            // 🔥 Biarkan text merapat normal ke sumbu kiri dan tidak memaksa membuat ruang kosong raksasa
                             padding: 12
                         }
                     }

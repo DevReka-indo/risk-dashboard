@@ -23,12 +23,13 @@
                     data: {!! json_encode($data) !!},
                     backgroundColor: '#4f46e5',
                     borderRadius: 8,
-                    barThickness: 40,
+                    barThickness: 32,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                indexAxis: 'x',
                 plugins: {
                     legend: { display: false }
                 },
@@ -36,17 +37,19 @@
                     x: {
                         grid: { display: false },
                         ticks: {
-                            autoSkip: false, // 🔥 INI KUNCINYA BIAR MUNCUL SEMUA
-                            maxRotation: 45, // Miringin teks 45 derajat
-                            minRotation: 45, // Paksa miring biar rapi dan gak tabrakan
+                            autoSkip: false,
+                            maxRotation: 45,
+                            minRotation: 45,
                             font: {
-                                size: 11 // Bisa dikecilin dikit font-nya kalau namanya panjang-panjang
+                                size: 11
                             }
                         }
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1 }
+                        ticks: {
+                            stepSize: 1
+                        }
                     }
                 }
             }

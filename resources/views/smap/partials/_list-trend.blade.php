@@ -12,43 +12,49 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        let existingChart = Chart.getChart("chartTrenRisikoHorizontal");
-        if (existingChart != undefined) {
+        const canvasElement = document.getElementById('chartTrenRisikoHorizontal');
+        if (!canvasElement) return;
+
+        let existingChart = Chart.getChart(canvasElement);
+        if (existingChart) {
             existingChart.destroy();
         }
 
-        const ctxTrend = document.getElementById('chartTrenRisikoHorizontal').getContext('2d');
+        const ctxTrend = canvasElement.getContext('2d');
+
+        const labelTren = {!! json_encode($trendLabels) !!};
+        const dataTren = {!! json_encode($trendData) !!};
 
         new Chart(ctxTrend, {
             type: 'bar',
             data: {
-                labels: {!! json_encode($trendLabels) !!}, // Sumbu Y (Kiri): Naik, Turun, Stagnan
+                labels: labelTren,
                 datasets: [{
                     label: 'Jumlah Risiko',
-                    data: {!! json_encode($trendData) !!}, // Sumbu X (Bawah): Angka Jumlah
+                    data: dataTren,
                     backgroundColor: [
-                        '#f59e0b', // Kuning/Amber (Naik)
-                        '#65a30d', // Hijau/Lime (Turun)
-                        '#ea580c'  // Orange/Jingga (Stagnan)
+                        '#ef4444',
+                        '#10b981',
+                        '#64748b'
                     ],
                     borderRadius: 6,
-                    barThickness: 16, // Dibikin ramping rapi sesuai gambar referensi lu
+                    barThickness: 20,
                 }]
             },
             options: {
-                indexAxis: 'y', // 🔥 MEMBUAT CHART MENYAMPING (Y = Nama, X = Angka)
+                indexAxis: 'y', 
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false }
                 },
                 scales: {
-                    x: { // Sumbu angka di bawah
+                    x: {
                         beginAtZero: true,
                         ticks: { stepSize: 1 },
-                        grid: { drawBorder: false }
+                        grid: { display: true }
                     },
-                    y: { // Sumbu label status di kiri
+                    y: {
                         grid: { display: false }
                     }
                 }

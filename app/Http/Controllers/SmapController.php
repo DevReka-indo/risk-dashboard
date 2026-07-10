@@ -13,207 +13,214 @@ use Illuminate\View\View;
 
 class SmapController extends Controller
 {
-  public function index(Request $request): \Illuminate\View\View
+    public function index(Request $request): View
     {
         $tab = $request->query('tab', 'list');
 
-        // ==========================================
-        // 1. LOGIKA UNTUK TAB DASHBOARD
-        // ==========================================
         if ($tab === 'dashboard') {
-            $defaultQuarter = ceil(date('n') / 3);
-            $selectedPeriode = (int) $request->query('periode', $defaultQuarter);
-            $selectedYear = (int) $request->query('tahun', date('Y'));
+            return $this->getDashboardView($request, $tab);
+        }
 
-            $period = Period::query()
-                ->where('quarter', $selectedPeriode)
-                ->where('year', $selectedYear)
-                ->first();
+        return $this->getListView($request, $tab);
+    }
 
-            $totalRisiko = 0;
-            $risikoAktif = 0;
+    /**
+     * Logika Khusus untuk Tab Dashboard (Grafik & Ringkasan)
+     */
+    protected function getDashboardView(Request $request, string $tab): View
+{
+    $defaultQuarter = ceil(date('n') / 3);
+    $selectedPeriode = (int) $request->query('periode', $defaultQuarter);
+    $selectedYear = (int) $request->query('tahun', date('Y'));
 
-            $labels = [];
-            $data = []; // Untuk suplai chart departemen lama
-            $catLabels = [];
-            $catData = [];
+    $period = Period::query()
+        ->where('quarter', $selectedPeriode)
+        ->where('year', $selectedYear)
+        ->first();
 
-            $risksPerDept = [];
-            $risksPerLevel = [];
-            $risksPerCategory = [];
-            $levelDistributionData = [];
-            $maxLevelCount = 0;
+    $totalRisiko = 0;
+    $risikoAktif = 0;
 
-            $allUnits = TopUnitKerja::orderBy('nama_unit', 'asc')->get();
-            $allLevels = LevelRisiko::orderBy('id_level', 'asc')->get();
-            $allCategories = KategoriRisiko::query()
-                ->where('type', 'smap')
-                ->orderBy('nama_kategori', 'asc')
-                ->get();
+    $labels = [];
+    $data = []; 
+    $catLabels = [];
+    $catData = [];
 
-            $trendLabels = ['Naik', 'Turun', 'Stagnan'];
-            $trendData = [0, 0, 0];
+    $risksPerDept = [];
+    $risksPerLevel = [];
+    $risksPerCategory = [];
+    $levelDistributionData = [];
+    $maxLevelCount = 0;
 
-            // Penampung data untuk Stacked Bar Chart Komposisi Risk Owner
-            $chartDatasets = [];
+    $allUnits = TopUnitKerja::orderBy('nama_unit', 'asc')->get();
+    $allLevels = LevelRisiko::orderBy('id_level', 'asc')->get();
+    $allCategories = KategoriRisiko::query()
+        ->where('type', 'smap')
+        ->orderBy('nama_kategori', 'asc')
+        ->get();
 
+    $trendLabels = ['Naik', 'Turun', 'Stagnan'];
+    $trendData = [0, 0, 0];
+
+    // Penampung data untuk Stacked Bar Chart Komposisi Risk Owner
+    $chartDatasets = [];
+
+    if ($period) {
+        $periodId = $period->id_period;
+
+        $totalRisiko = SmapMonitoring::query()
+            ->where('parent_id', '!=', null)
+            ->where('id_period', $periodId)
+            ->count();
+
+        $risikoAktif = SmapMonitoring::query()
+            ->where('parent_id', '!=', null)
+            ->where('id_period', $periodId)
+            ->where('status', 1)
+            ->count();
+
+        $risksPerDept = SmapMonitoring::query()
+            ->where('parent_id', '!=', null)
+            ->where('id_period', $periodId)
+            ->selectRaw('id_unit, count(*) as total')
+            ->groupBy('id_unit')
+            ->pluck('total', 'id_unit')
+            ->toArray();
+
+        $risksPerLevel = SmapMonitoring::query()
+            ->where('parent_id', '!=', null)
+            ->where('id_period', $periodId)
+            ->selectRaw('id_level, count(*) as total')
+            ->groupBy('id_level')
+            ->pluck('total', 'id_level')
+            ->toArray();
+
+        $risksPerCategory = SmapMonitoring::query()
+            ->where('parent_id', '!=', null)
+            ->where('id_period', $periodId)
+            ->selectRaw('id_kategori, count(*) as total')
+            ->groupBy('id_kategori')
+            ->pluck('total', 'id_kategori')
+            ->toArray();
+
+        $risksPerTrend = SmapMonitoring::query()
+            ->where('parent_id', '!=', null)
+            ->where('id_period', $periodId)
+            ->selectRaw('trend, count(*) as total')
+            ->groupBy('trend')
+            ->pluck('total', 'trend')
+            ->toArray();
+
+        $trendData = [
+            (int)($risksPerTrend['naik'] ?? $risksPerTrend['Naik'] ?? 0),
+            (int)($risksPerTrend['turun'] ?? $risksPerTrend['Turun'] ?? 0),
+            (int)($risksPerTrend['stabil'] ?? $risksPerTrend['Stabil'] ?? $risksPerTrend['stagnan'] ?? $risksPerTrend['Stagnan'] ?? 0),        ];
+    }
+
+    $stackedTemplates = [];
+    $colorMapping = [
+        'High'             => '#FF0100',
+        'Moderate to High' => '#FFC000',
+        'Moderate'         => '#FFFF00',
+        'Low to Moderate'  => '#91D050',
+        'Low'              => '#03B050'
+    ];
+
+    foreach ($allLevels as $level) {
+        $stackedTemplates[$level->id_level] = [
+            'label' => $level->nama_level,
+            'backgroundColor' => $colorMapping[$level->nama_level] ?? '#cbd5e1',
+            'data' => []
+        ];
+    }
+
+    // Loop untuk memproses data unit kerja/departemen
+    foreach ($allUnits as $unit) {
+        $totalUnitRisks = $risksPerDept[$unit->id_unit] ?? 0;
+
+        if ($totalUnitRisks > 0) {
+            $data[] = $totalUnitRisks;
+            $labels[] = $unit->nama_unit;
+
+            $currentDeptRisks = [];
             if ($period) {
-                // Kunci ID period-nya ke variabel biasa agar Intelephense aman
-                $periodId = $period->id_period;
-
-                $totalRisiko = SmapMonitoring::query()
+                $currentDeptRisks = SmapMonitoring::query()
                     ->where('parent_id', '!=', null)
-                    ->where('id_period', $periodId)
-                    ->count();
-
-                $risikoAktif = SmapMonitoring::query()
-                    ->where('parent_id', '!=', null)
-                    ->where('id_period', $periodId)
-                    ->where('status', 1)
-                    ->count();
-
-                $risksPerDept = SmapMonitoring::query()
-                    ->where('parent_id', '!=', null)
-                    ->where('id_period', $periodId)
-                    ->selectRaw('id_unit, count(*) as total')
-                    ->groupBy('id_unit')
-                    ->pluck('total', 'id_unit')
-                    ->toArray();
-
-                $risksPerLevel = SmapMonitoring::query()
-                    ->where('parent_id', '!=', null)
-                    ->where('id_period', $periodId)
+                    ->where('id_period', $period->id_period)
+                    ->where('id_unit', $unit->id_unit)
                     ->selectRaw('id_level, count(*) as total')
                     ->groupBy('id_level')
                     ->pluck('total', 'id_level')
                     ->toArray();
-
-                $risksPerCategory = SmapMonitoring::query()
-                    ->where('parent_id', '!=', null)
-                    ->where('id_period', $periodId)
-                    ->selectRaw('id_kategori, count(*) as total')
-                    ->groupBy('id_kategori')
-                    ->pluck('total', 'id_kategori')
-                    ->toArray();
-
-                $risksPerTrend = SmapMonitoring::query()
-                    ->where('parent_id', '!=', null)
-                    ->where('id_period', $periodId)
-                    ->selectRaw('trend, count(*) as total')
-                    ->groupBy('trend')
-                    ->pluck('total', 'trend')
-                    ->toArray();
-
-                $trendData = [
-                    ($risksPerTrend['naik'] ?? $risksPerTrend['Naik'] ?? 0),
-                    ($risksPerTrend['turun'] ?? $risksPerTrend['Turun'] ?? 0),
-                    ($risksPerTrend['stagnan'] ?? $risksPerTrend['Stagnan'] ?? 0),
-                ];
             }
-
-            // Menyusun struktur awal dataset berdasarkan Level Risiko untuk Stacked Chart
-            $stackedTemplates = [];
-            $colorMapping = [
-                'High'             => '#ef4444', // Merah
-                'Moderate to High' => '#f59e0b', // Kuning/Amber
-                'Moderate'         => '#eab308', // Kuning terang
-                'Low'              => '#10b981'  // Hijau
-            ];
 
             foreach ($allLevels as $level) {
-                $stackedTemplates[$level->id_level] = [
-                    'label' => $level->nama_level,
-                    'backgroundColor' => $colorMapping[$level->nama_level] ?? '#cbd5e1',
-                    'data' => []
-                ];
+                $stackedTemplates[$level->id_level]['data'][] = (int)($currentDeptRisks[$level->id_level] ?? 0);
             }
-
-            // Loop untuk memproses data unit kerja/departemen
-            foreach ($allUnits as $unit) {
-                $totalUnitRisks = $risksPerDept[$unit->id_unit] ?? 0;
-
-                // Variabel data lama tetap diisi semua agar chart default / list lain tidak error
-                $data[] = $totalUnitRisks;
-
-                // 🔥 FILTER GRAFIK BARU: Hanya masukkan departemen ke Sumbu Y jika jumlah risikonya > 0
-                if ($totalUnitRisks > 0) {
-                    $labels[] = $unit->nama_unit; // Nama departemen masuk ke sumbu Y grafik komposisi
-
-                    $currentDeptRisks = [];
-                    if ($period) {
-                        $currentDeptRisks = SmapMonitoring::query()
-                            ->where('parent_id', '!=', null)
-                            ->where('id_period', $period->id_period)
-                            ->where('id_unit', $unit->id_unit)
-                            ->selectRaw('id_level, count(*) as total')
-                            ->groupBy('id_level')
-                            ->pluck('total', 'id_level')
-                            ->toArray();
-                    }
-
-                    // Pecah jumlah per tingkatan level risiko
-                    foreach ($allLevels as $level) {
-                        $stackedTemplates[$level->id_level]['data'][] = $currentDeptRisks[$level->id_level] ?? 0;
-                    }
-                }
-            }
-            // Ubah format key menjadi berindeks angka biasa agar aman di-encode JavaScript
-            $chartDatasets = array_values($stackedTemplates);
-
-            // Pengelompokan data distribusi level untuk list widget sampingan
-            foreach ($allLevels as $level) {
-                $count = $risksPerLevel[$level->id_level] ?? 0;
-                $maxLevelCount = max($maxLevelCount, $count);
-
-                $levelDistributionData[] = [
-                    'name'  => $level->nama_level,
-                    'count' => $count
-                ];
-            }
-            foreach ($levelDistributionData as &$item) {
-                $item['percentage'] = $maxLevelCount > 0 ? ($item['count'] / $maxLevelCount) * 100 : 0;
-            }
-
-            // Kategori SMAP
-            foreach ($allCategories as $category) {
-                $catLabels[] = $category->nama_kategori;
-                $catData[] = $risksPerCategory[$category->id_kategori] ?? 0;
-            }
-
-            $jumlahDepartemen = $allUnits->count();
-
-            $dashboardData = [
-                'summary' => [
-                    'total_risiko'      => $totalRisiko,
-                    'risiko_aktif'      => $risikoAktif,
-                    'jumlah_departemen' => $jumlahDepartemen,
-                ],
-                'period' => "Triwulan {$selectedPeriode} - {$selectedYear}",
-                'heatmap' => [],
-                'level_distribution' => $levelDistributionData,
-                'trend_risk' => [],
-                'category_distribution' => [],
-                'status_distribution' => [],
-            ];
-
-            return view('smap.index', compact(
-                'tab',
-                'selectedPeriode',
-                'selectedYear',
-                'dashboardData',
-                'labels',          // Digunakan sumbu Y chart departemen lama & chart komposisi baru
-                'data',            // Digunakan chart departemen lama
-                'chartDatasets',   // 🔥 Digunakan untuk chart komposisi bertumpuk
-                'catLabels',
-                'catData',
-                'trendLabels',
-                'trendData'
-            ));
         }
+    }
 
-        // ==========================================
-        // 2. LOGIKA UNTUK TAB LIST (Tabel Data)
-        // ==========================================
+    $data = array_values($data);
+    $labels = array_values($labels);
+    $chartDatasets = array_values($stackedTemplates);
+
+    foreach ($allLevels as $level) {
+        $count = $risksPerLevel[$level->id_level] ?? 0;
+        $maxLevelCount = max($maxLevelCount, $count);
+
+        $levelDistributionData[] = [
+            'name'  => $level->nama_level,
+            'count' => $count
+        ];
+    }
+    foreach ($levelDistributionData as &$item) {
+        $item['percentage'] = $maxLevelCount > 0 ? ($item['count'] / $maxLevelCount) * 100 : 0;
+    }
+
+    // Kategori SMAP
+    foreach ($allCategories as $category) {
+        $catLabels[] = $category->nama_kategori;
+        $catData[] = $risksPerCategory[$category->id_kategori] ?? 0;
+    }
+    $catLabels = array_values($catLabels);
+    $catData = array_values($catData);
+
+    $jumlahDepartemen = $allUnits->count();
+
+    $dashboardData = [
+        'summary' => [
+            'total_risiko'      => $totalRisiko,
+            'risiko_aktif'      => $risikoAktif,
+            'jumlah_departemen' => $jumlahDepartemen,
+        ],
+        'period' => "Triwulan {$selectedPeriode} - {$selectedYear}",
+        'heatmap' => [],
+        'level_distribution' => $levelDistributionData,
+        'trend_risk' => $trendData,
+        'category_distribution' => $catData,
+        'status_distribution' => [],
+    ];
+
+    return view('smap.index', compact(
+        'tab',
+        'selectedPeriode',
+        'selectedYear',
+        'dashboardData',
+        'labels',
+        'data',
+        'chartDatasets',
+        'catLabels',
+        'catData',
+        'trendLabels',
+        'trendData'
+    ));
+}
+
+    /**
+     * Logika Khusus untuk Tab List (Tabel, Pencarian, & Filter)
+     */
+    protected function getListView(Request $request, string $tab): View
+    {
         $search = $request->string('search')->toString();
         $unitId = $request->string('unit_id')->toString();
         $categoryId = $request->string('category_id')->toString();
@@ -291,7 +298,6 @@ class SmapController extends Controller
         $validated['inherent']   = 0;
         $validated['trend']      = 'Stabil';
 
-        // 3. Simpan data ke database
         SmapMonitoring::create($validated);
 
         return redirect()
@@ -351,7 +357,7 @@ class SmapController extends Controller
         return view('smap.show', compact('risk', 'periods'));
     }
 
-public function storeMonitoring(Request $request, $id)
+    public function storeMonitoring(Request $request, $id)
     {
         $request->validate([
             'quarter'           => 'required|in:Q1,Q2,Q3,Q4',
@@ -359,7 +365,7 @@ public function storeMonitoring(Request $request, $id)
             'value'             => 'required|numeric|min:1|max:25',
             'inherent'          => 'required|numeric',
             'status_monitoring' => 'required|in:0,1',
-            'calculated_level'  => 'required|string', // Validasi tambahan dari form blade
+            'calculated_level'  => 'required|integer|min:1|max:5', // 🔴 DIUBAH MENJADI INTEGER
         ]);
 
         $quarterMapping = [
@@ -397,23 +403,14 @@ public function storeMonitoring(Request $request, $id)
                 ]);
         }
 
-        // 🔥 PERBAIKAN 1: Konversi string calculated_level (Low, Medium, High, Significant)
-        // dari form menjadi ID integer yang sesuai dengan isi tabel level_risiko Anda
-        $levelMapping = [
-            'Low'         => 1,
-            'Medium'      => 2,
-            'High'        => 3,
-            'Significant' => 4,
-        ];
-        $idLevelTerbaru = $levelMapping[$request->calculated_level] ?? $parentRisk->id_level;
+        $idLevelTerbaru = (int) $request->calculated_level ?: $parentRisk->id_level;
 
-        // Simpan data riwayat perkembangan kuartal
         SmapMonitoring::create([
             'parent_id'       => $parentRisk->id_smap,
             'id_period'       => $period->id_period,
             'id_unit'         => $parentRisk->id_unit,
             'id_kategori'     => $parentRisk->id_kategori,
-            'id_level'        => $idLevelTerbaru, // Menggunakan ID Level terhitung terbaru
+            'id_level'        => $idLevelTerbaru,
             'risk_event_deta' => $parentRisk->risk_event_deta,
             'inherent'        => $request->inherent,
             'trend'           => $request->calculated_trend,
@@ -421,7 +418,6 @@ public function storeMonitoring(Request $request, $id)
             'status'          => $request->status_monitoring,
         ]);
 
-        // 🔥 PERBAIKAN 2: Update status Data Master (Parent) supaya halaman Index ikut ter-update otomatis
         $parentRisk->update([
             'status' => $request->status_monitoring
         ]);
@@ -430,18 +426,16 @@ public function storeMonitoring(Request $request, $id)
             ->with('success', "Berhasil merekam perkembangan risiko untuk periode {$periodName}!");
     }
 
-    public function destroyMonitoring(int $id_period): RedirectResponse
+    public function destroyMonitoring(int $id_smap): RedirectResponse
     {
-        $monitoring = SmapMonitoring::query()
-            ->where('id_period', $id_period)
-            ->firstOrFail();
+        $monitoring = SmapMonitoring::findOrFail($id_smap);
 
-        $idSmap = $monitoring->parent_id;
+        $idSmapParent = $monitoring->parent_id;
 
-        SmapMonitoring::destroy($monitoring->id_smap);
+        $monitoring->delete();
 
         return redirect()
-            ->route('smap-risk.show', $idSmap)
+            ->route('smap-risk.show', $idSmapParent)
             ->with('success', 'Riwayat monitoring berhasil dihapus.');
     }
 }

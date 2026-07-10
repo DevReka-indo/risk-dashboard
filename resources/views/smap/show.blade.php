@@ -4,31 +4,7 @@
         <p class="hidden text-sm text-slate-500 sm:block">Kelola input nilai berkala dan riwayat perkembangan risiko.</p>
     </x-slot>
 
-    <!-- Wrapper Utama Alpine.js untuk menghitung Otomatisasi Level & Trend secara Real-time -->
-    <div class="space-y-6" x-data="{
-        value: '{{ old('value', 0) }}',
-        inherent: '{{ old('inherent', 0) }}',
-
-        // Fungsi hitung Level otomatis berdasarkan rentang nilai Value
-        get otomatisLevel() {
-            let v = parseInt(this.value) || 0;
-            if (v <= 0) return 'Pilih level';
-            if (v >= 1 && v <= 5) return 'Low';
-            if (v >= 6 && v <= 12) return 'Medium';
-            if (v >= 13 && v <= 19) return 'High';
-            return 'Significant';
-        },
-
-        // Fungsi hitung Trend otomatis membandingkan Value saat ini dengan Inherent
-        get otomatisTrend() {
-            let v = parseInt(this.value) || 0;
-            let i = parseInt(this.inherent) || 0;
-            if (v === 0 && i === 0) return 'Stabil';
-            if (v > i) return 'Naik';
-            if (v < i) return 'Turun';
-            return 'Stabil';
-        }
-    }">
+    <div class="space-y-6" x-data="smapRiskForm('{{ old('value', 0) }}', '{{ old('inherent', 0) }}')">
 
         @if (session('success'))
             <div class="rounded-2xl bg-emerald-50 p-4 border border-emerald-200 text-sm text-emerald-800">
@@ -107,13 +83,13 @@
                     {{-- Input Value --}}
                     <div>
                         <label for="value" class="block text-sm font-medium text-slate-700">Value (Score 1-25)</label>
-                        <input id="value" type="number" name="value" x-model.number="value" min="1" max="25" required placeholder="0" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm">
+                        <input id="value" type="number" name="value" x-model="value" min="1" max="25" required placeholder="0" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm">
                     </div>
 
                     {{-- Input Inherent --}}
                     <div>
                         <label for="inherent" class="block text-sm font-medium text-slate-700">Inherent</label>
-                        <input id="inherent" type="number" name="inherent" x-model.number="inherent" required placeholder="0" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm">
+                        <input id="inherent" type="number" name="inherent" x-model="inherent" required placeholder="0" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm">
                     </div>
 
                     {{-- Status Monitoring --}}
@@ -125,14 +101,22 @@
                         </select>
                     </div>
 
-                    {{-- Tampilan Level Terotomatisasi (Read Only) --}}
+                    {{-- Tampilan Level Terotomatisasi --}}
                     <div>
                         <label class="block text-sm font-medium text-slate-400">Level Risiko (Otomatis)</label>
-                        <div class="mt-2 w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm" x-text="otomatisLevel"></div>
+                        <div class="mt-2 w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm"
+                             x-text="{
+                                1: 'Low',
+                                2: 'Low Moderate',
+                                3: 'Moderate',
+                                4: 'Moderate to High',
+                                5: 'High'
+                             }[otomatisLevel] || 'Pilih level'">
+                        </div>
                         <input type="hidden" name="calculated_level" :value="otomatisLevel">
                     </div>
 
-                    {{-- Tampilan Trend Terotomatisasi (Read Only) --}}
+                    {{-- Tampilan Trend Terotomatisasi --}}
                     <div class="sm:col-span-2">
                         <label class="block text-sm font-medium text-slate-400">Trend Perubahan (Otomatis)</label>
                         <div class="mt-2 w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm" x-text="otomatisTrend"></div>
@@ -158,11 +142,10 @@
             <div class="space-y-4">
                 @forelse ($risk->detailPeriode as $history)
                     <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-5 shadow-sm">
-                        {{-- Baris Atas Log Riwayat --}}
                         <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/60 pb-3">
                             <div class="flex flex-wrap items-center gap-2">
                                 <span class="inline-flex rounded-lg bg-slate-900 px-3 py-1 text-xs font-bold text-white">
-                                {{ $history->period->period_name ?? '-' }} <!-- INI BENAR -->
+                                {{ $history->period->period_name ?? '-' }}
                                 </span>
                                 <span class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">
                                     Nilai: {{ $history->value ?? 0 }}
@@ -177,8 +160,8 @@
                                 @endif
                             </div>
 
-                            {{-- Button Hapus Aman dengan fallback jika id_period null --}}
-                            <form method="POST" action="{{ route('smap-risk.destroy-monitoring', $history->id_period ?? 0) }}" onsubmit="return confirm('Hapus log riwayat kuartal ini?')">
+                            {{-- 🔴 PERBAIKAN: Mengirimkan $history->id_smap bukan id_period --}}
+                            <form method="POST" action="{{ route('smap-risk.destroy-monitoring', $history->id_smap ?? 0) }}" onsubmit="return confirm('Hapus log riwayat kuartal ini?')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50">
@@ -187,7 +170,6 @@
                             </form>
                         </div>
 
-                        {{-- Baris Grid Parameter Metrics --}}
                         <div class="mt-4 grid gap-4 grid-cols-2 md:grid-cols-3">
                             <div class="rounded-xl bg-white p-3 border border-slate-100">
                                 <div class="text-xs text-slate-400 font-medium">Inherent Score</div>
@@ -212,4 +194,6 @@
         </div>
 
     </div>
+
+    <script src="{{ asset('js/otomatisasi-logic.js') }}"></script>
 </x-admin-layout>
