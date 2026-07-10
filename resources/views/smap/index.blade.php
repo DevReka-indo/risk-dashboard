@@ -65,8 +65,8 @@
                             name="category_id"
                             class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="">Semua Kategori</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id_kategori }}" @selected((string) $categoryId === (string) $category->id_kategori)>
+                            @foreach ($categories as $category)@selected($categoryId == $category->id_kategori)
+                                <option value="{{ $category->id_kategori }}" >
                                     {{ $category->nama_kategori }}
                                 </option>
                             @endforeach
@@ -166,6 +166,7 @@
                         <tbody class="divide-y divide-slate-200">
                             @forelse ($smapRisks as $smapRisk)
                                 @php
+                                    // Mengambil baris record dari tabel smap_monitoring_periods ter-update
                                     $monitoringTerakhir = $smapRisk->latestPeriode;
                                 @endphp
 
@@ -197,7 +198,8 @@
                                         @if ($monitoringTerakhir)
                                             <div class="space-y-1">
                                                 <div class="text-sm font-semibold text-slate-900">
-                                                    {{ $monitoringTerakhir->period->period_name ?? '-' }}
+                                                    {{-- Menampilkan gabungan kolom quarter & year secara langsung --}}
+                                                    {{ $monitoringTerakhir->quarter }} {{ $monitoringTerakhir->year }}
                                                 </div>
 
                                                 <div class="flex flex-wrap gap-2">
@@ -206,7 +208,8 @@
                                                     </span>
 
                                                     <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                                                        {{ $smapRisk->levelRisiko->nama_level ?? '-' }}
+                                                        {{-- Membaca level dari baris relasi period --}}
+                                                        {{ $monitoringTerakhir->levelRisiko->nama_level ?? '-' }}
                                                     </span>
                                                 </div>
 

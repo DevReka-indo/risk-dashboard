@@ -23,7 +23,7 @@
                         @if ($risk->status)
                             <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Aktif</span>
                         @else
-                            <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Tidak Aktif</span>
+                            <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Tidak Atif</span>
                         @endif
                     </div>
                     <h2 class="text-2xl font-bold tracking-tight text-slate-900">{{ $risk->risk_event_deta }}</h2>
@@ -145,7 +145,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/60 pb-3">
                             <div class="flex flex-wrap items-center gap-2">
                                 <span class="inline-flex rounded-lg bg-slate-900 px-3 py-1 text-xs font-bold text-white">
-                                {{ $history->period->period_name ?? '-' }}
+                                    {{ $history->period->period_name ?? '-' }}
                                 </span>
                                 <span class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">
                                     Nilai: {{ $history->value ?? 0 }}
@@ -153,15 +153,10 @@
                                 <span class="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
                                     {{ $history->levelRisiko->nama_level ?? '-' }}
                                 </span>
-                                @if($history->status)
-                                    <span class="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Aktif</span>
-                                @else
-                                    <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Tidak Aktif</span>
-                                @endif
                             </div>
 
-                            {{-- 🔴 PERBAIKAN: Mengirimkan $history->id_smap bukan id_period --}}
-                            <form method="POST" action="{{ route('smap-risk.destroy-monitoring', $history->id_smap ?? 0) }}" onsubmit="return confirm('Hapus log riwayat kuartal ini?')">
+                            {{-- Form Destroy yang sudah disempurnakan --}}
+                            <form method="POST" action="{{ route('smap-risk.destroy-monitoring', ['id_period' => $history->id_detail]) }}" onsubmit="return confirm('Hapus log riwayat kuartal ini?')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50">
@@ -177,7 +172,15 @@
                             </div>
                             <div class="rounded-xl bg-white p-3 border border-slate-100">
                                 <div class="text-xs text-slate-400 font-medium">Trend Terhitung</div>
-                                <div class="mt-1 text-sm font-bold text-slate-800">{{ $history->trend ?? 'Stabil' }}</div>
+                                <div class="mt-1 text-sm font-bold text-slate-800">
+                                    @if(($history->trend ?? '') === 'Naik')
+                                        <span class="text-rose-600">↑ Naik</span>
+                                    @elseif(($history->trend ?? '') === 'Turun')
+                                        <span class="text-emerald-600">↓ Turun</span>
+                                    @else
+                                        <span class="text-slate-500">→ Stabil</span>
+                                    @endif
+                                </div>
                             </div>
                             <div class="col-span-2 md:col-span-1 rounded-xl bg-white p-3 border border-slate-100">
                                 <div class="text-xs text-slate-400 font-medium">Waktu Submit</div>

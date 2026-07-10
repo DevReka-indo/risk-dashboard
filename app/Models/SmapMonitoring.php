@@ -93,15 +93,20 @@ class SmapMonitoring extends Model
         return $this->belongsTo(Period::class, 'id_period', 'id_period');
     }
 
-    // Mengambil semua riwayat kuartal (anak) milik risiko ini (induk) untuk di halaman detail
-    public function detailPeriode(): HasMany
-    {
-        return $this->hasMany(SmapMonitoring::class, 'parent_id', 'id_smap')->latest('id_smap');
-    }
+// Di dalam file app/Models/SmapMonitoring.php
 
-    // SAKTI: Mengambil hanya 1 riwayat monitoring TERBARU untuk ditayangkan di halaman INDEX
-    public function latestPeriode(): HasOne
-    {
-        return $this->hasOne(SmapMonitoring::class, 'parent_id', 'id_smap')->latestOfMany('id_smap');
-    }
+// 1. Mengambil hanya 1 data kuartal TERBARU untuk halaman INDEX utama
+public function latestPeriode(): HasOne
+{
+    // Menggunakan 'id_detail' karena itu primary key increment tabel smap_monitoring_periods kita
+    return $this->hasOne(SmapMonitoringPeriod::class, 'id_smap', 'id_smap')
+                ->latestOfMany('id_detail');
+}
+
+// 2. Mengambil semua riwayat kuartal milik risiko ini untuk halaman SHOW detail
+public function detailPeriode(): HasMany
+{
+    return $this->hasMany(SmapMonitoringPeriod::class, 'id_smap', 'id_smap')
+                ->latest('id_detail');
+}
 }
