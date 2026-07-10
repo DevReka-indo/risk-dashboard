@@ -42,6 +42,11 @@
             </div>
         </div>
 
+        {{-- Mengambil data level untuk mapping ID ke Nama --}}
+        @php
+            $levelMap = \App\Models\LevelRisiko::all()->pluck('nama_level', 'id_level')->toJson();
+        @endphp
+
         <form method="POST" action="{{ route('department-risk.update-period', $risk->id_monitoring) }}" x-data="smapRiskForm('{{ old('value', '') }}', '{{ old('inherent', '') }}', '{{ old('trend', 'Stabil') }}')">
             @csrf @method('PUT')
             <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -66,11 +71,20 @@
                         <label class="block text-sm font-semibold">Inherent</label>
                         <input type="number" name="inherent" x-model="inherent" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm focus:border-indigo-500" required>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold">Level Risiko</label>
+
+                    {{-- Bagian Level Risiko dengan Mapping Nama --}}
+                    <div x-data="{ levelMap: {{ $levelMap }} }">
+                        <label class="block text-sm font-semibold text-slate-700">Level Risiko</label>
+                        {{-- Input Hidden: Mengirim ID angka ke Controller --}}
                         <input type="hidden" name="calculated_level" :value="otomatisLevel">
-                        <input type="text" :value="otomatisLevel" disabled class="mt-2 w-full rounded-2xl border-slate-200 bg-slate-50 px-4 py-3 text-sm cursor-not-allowed">
+
+                        {{-- Input Text: Menampilkan Nama Level berdasarkan ID --}}
+                        <input type="text"
+                               :value="levelMap[otomatisLevel] || '--'"
+                               disabled
+                               class="mt-2 w-full rounded-2xl border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 cursor-not-allowed">
                     </div>
+
                     <div>
                         <label class="block text-sm font-semibold">Trend</label>
                         <input type="hidden" name="trend" :value="otomatisTrend">

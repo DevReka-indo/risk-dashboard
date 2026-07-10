@@ -21,14 +21,12 @@ class DepartemenController extends Controller
         // 1. LOGIKA UNTUK TAB DASHBOARD
         // ==========================================
         if ($tab === 'dashboard') {
-            // Samakan dengan SMAP: Menggunakan integer periode 1-4
-            $defaultQuarter = ceil(date('n') / 3);
-            $selectedPeriode = (int) $request->query('periode', $defaultQuarter);
+            // Default 'all' agar saat pertama kali masuk menampilkan Semua Triwulan
+            $selectedPeriode = $request->query('periode', 'all');
             $selectedYear = (int) $request->query('tahun', date('Y'));
 
-            // Memetakan integer ke format string pivot tabel Departemen (TW1 - TW4)
             $quarterMap = [1 => 'TW1', 2 => 'TW2', 3 => 'TW3', 4 => 'TW4'];
-            $twString = $quarterMap[$selectedPeriode] ?? 'TW1';
+            $twString = $quarterMap[$selectedPeriode] ?? null;
 
             $totalRisiko = 0;
             $risikoAktif = 0;
@@ -52,8 +50,12 @@ class DepartemenController extends Controller
             // Query dasar mengambil history pivot periode yang dipilih
             $baseDashboardQuery = DB::table('dep_monitoring_periods')
                 ->join('dep_monitoring', 'dep_monitoring_periods.id_monitoring', '=', 'dep_monitoring.id_monitoring')
-                ->where('dep_monitoring_periods.year', $selectedYear)
-                ->where('dep_monitoring_periods.quarter', $twString);
+                ->where('dep_monitoring_periods.year', $selectedYear);
+
+            // Filter Triwulan (jika bukan 'all')
+            if ($selectedPeriode !== 'all' && $twString) {
+                $baseDashboardQuery->where('dep_monitoring_periods.quarter', $twString);
+            }
 
             // Perhitungan Metrik
             $totalRisiko = (clone $baseDashboardQuery)->count(DB::raw('DISTINCT dep_monitoring.id_monitoring'));
@@ -83,14 +85,15 @@ class DepartemenController extends Controller
                 ->pluck('total', 'trend')
                 ->toArray();
 
-            // Proteksi agar trend Stabil dan Stagnan digabung menjadi satu warna
             $trendData = [
                 ($risksPerTrend['Naik'] ?? $risksPerTrend['naik'] ?? 0),
                 ($risksPerTrend['Turun'] ?? $risksPerTrend['turun'] ?? 0),
                 (($risksPerTrend['Stagnan'] ?? 0) + ($risksPerTrend['stagnan'] ?? 0) + ($risksPerTrend['Stabil'] ?? 0) + ($risksPerTrend['stabil'] ?? 0)),
             ];
 
-            // Setup kerangka warna Stacked Chart
+            // -------------------------------------------------------------
+            // LOGIKA PEMBUATAN DATASETS UNTUK GRAFIK MATRIX (DIKEMBALIKAN)
+            // -------------------------------------------------------------
             $stackedTemplates = [];
             $colorMapping = [
                 'High'             => '#ef4444', // Merah
@@ -100,6 +103,7 @@ class DepartemenController extends Controller
                 'Low'              => '#10b981'  // Hijau
             ];
 
+            // Inisialisasi kerangka warna untuk tiap level
             foreach ($allLevels as $level) {
                 $levelName = $level->nama_level ?? $level->level;
                 $stackedTemplates[$level->id_level] = [
@@ -109,38 +113,41 @@ class DepartemenController extends Controller
                 ];
             }
 
-            // Loop Komposisi per Departemen
+            // Loop per Departemen
             foreach ($allUnits as $unit) {
                 $totalUnitRisks = $risksPerDept[$unit->id_unit] ?? 0;
+
+                // 1. Array ini khusus untuk grafik pertama (warna biru tunggal)
+                $labels[] = $unit->nama_unit;
                 $data[] = $totalUnitRisks;
 
+                // 2. Query ini khusus untuk memecah data level pada grafik kedua (Matrix)
+                $currentDeptRisks = [];
                 if ($totalUnitRisks > 0) {
-                    $labels[] = $unit->nama_unit;
-
                     $currentDeptRisks = (clone $baseDashboardQuery)
                         ->where('dep_monitoring.id_unit', $unit->id_unit)
                         ->selectRaw('dep_monitoring_periods.id_level, count(*) as total')
                         ->groupBy('dep_monitoring_periods.id_level')
                         ->pluck('total', 'id_level')
                         ->toArray();
+                }
 
-                    foreach ($allLevels as $level) {
-                        $stackedTemplates[$level->id_level]['data'][] = $currentDeptRisks[$level->id_level] ?? 0;
-                    }
+                foreach ($allLevels as $level) {
+                    $stackedTemplates[$level->id_level]['data'][] = $currentDeptRisks[$level->id_level] ?? 0;
                 }
             }
+
+            // Hasil akhir array untuk grafik horizontal Matrix
             $chartDatasets = array_values($stackedTemplates);
+            // -------------------------------------------------------------
 
             // Distribusi Bar Persentase Level
             foreach ($allLevels as $level) {
                 $count = $risksPerLevel[$level->id_level] ?? 0;
                 $maxLevelCount = max($maxLevelCount, $count);
-
-                $levelDistributionData[] = [
-                    'name'  => $level->nama_level ?? $level->level,
-                    'count' => $count
-                ];
+                $levelDistributionData[] = ['name' => $level->nama_level ?? $level->level, 'count' => $count];
             }
+
             foreach ($levelDistributionData as &$item) {
                 $item['percentage'] = $maxLevelCount > 0 ? ($item['count'] / $maxLevelCount) * 100 : 0;
             }
@@ -151,28 +158,22 @@ class DepartemenController extends Controller
                 $catData[] = $risksPerCategory[$category->id_kategori] ?? 0;
             }
 
+            $periodDisplay = $selectedPeriode === 'all' ? "Semua Triwulan - {$selectedYear}" : "Triwulan {$selectedPeriode} - {$selectedYear}";
+
             $dashboardData = [
                 'summary' => [
                     'total_risiko'      => $totalRisiko,
                     'risiko_aktif'      => $risikoAktif,
                     'jumlah_departemen' => $allUnits->count(),
                 ],
-                'period' => "Triwulan {$selectedPeriode} - {$selectedYear}",
+                'period' => $periodDisplay,
                 'level_distribution' => $levelDistributionData,
             ];
 
             return view('departemen.index', compact(
-                'tab',
-                'selectedPeriode',
-                'selectedYear',
-                'dashboardData',
-                'labels',
-                'data',
-                'chartDatasets',
-                'catLabels',
-                'catData',
-                'trendLabels',
-                'trendData'
+                'tab', 'selectedPeriode', 'selectedYear', 'dashboardData',
+                'labels', 'data', 'chartDatasets', 'catLabels', 'catData',
+                'trendLabels', 'trendData'
             ));
         }
 
@@ -215,7 +216,6 @@ class DepartemenController extends Controller
         $units      = TopUnitKerja::all();
         $categories = KategoriRisiko::all();
         $levels     = LevelRisiko::all();
-
         return view('departemen.create', compact('units', 'categories', 'levels'));
     }
 
@@ -231,7 +231,6 @@ class DepartemenController extends Controller
 
         $defaultLevel = DB::table('level_risiko')->orderBy('urutan', 'asc')->first();
 
-        // Setter nilai awal sebelum ada riwayat triwulan
         $validated['value']    = 0;
         $validated['inherent'] = 0;
         $validated['trend']    = 'Stabil';
@@ -239,9 +238,7 @@ class DepartemenController extends Controller
 
         DepMonitoring::create($validated);
 
-        return redirect()
-            ->route('department-risk.index', ['tab' => 'data'])
-            ->with('success', 'Risk Department berhasil ditambahkan.');
+        return redirect()->route('department-risk.index', ['tab' => 'data'])->with('success', 'Risk Department berhasil ditambahkan.');
     }
 
     public function edit(string $id): View
@@ -250,7 +247,6 @@ class DepartemenController extends Controller
         $units      = TopUnitKerja::orderBy('nama_unit', 'asc')->get();
         $categories = KategoriRisiko::orderBy('nama_kategori', 'asc')->get();
         $levels     = LevelRisiko::all();
-
         return view('departemen.edit', compact('risk', 'units', 'categories', 'levels'));
     }
 
@@ -267,9 +263,7 @@ class DepartemenController extends Controller
         $risk = DepMonitoring::findOrFail($id);
         $risk->update($validated);
 
-        return redirect()
-            ->route('department-risk.index', ['tab' => 'data'])
-            ->with('success', 'Risk Department berhasil diperbarui.');
+        return redirect()->route('department-risk.index', ['tab' => 'data'])->with('success', 'Risk Department berhasil diperbarui.');
     }
 
     public function destroy(string $id): RedirectResponse
@@ -277,9 +271,7 @@ class DepartemenController extends Controller
         $risk = DepMonitoring::findOrFail($id);
         $risk->delete();
 
-        return redirect()
-            ->route('department-risk.index', ['tab' => 'data'])
-            ->with('success', 'Risk Department berhasil dihapus.');
+        return redirect()->route('department-risk.index', ['tab' => 'data'])->with('success', 'Risk Department berhasil dihapus.');
     }
 
     public function show(string $id): View
@@ -287,9 +279,7 @@ class DepartemenController extends Controller
         $risk   = DepMonitoring::with(['unitKerja', 'kategoriRisiko', 'periods' => function($q) {
             $q->orderBy('year', 'desc')->orderBy('quarter', 'desc');
         }])->findOrFail($id);
-
         $levels = LevelRisiko::orderBy('urutan', 'asc')->get();
-
         return view('departemen.show', compact('risk', 'levels'));
     }
 
@@ -317,13 +307,19 @@ class DepartemenController extends Controller
                 ->with('error', "Periode {$request->quarter} Tahun {$request->year} sudah terdaftar pada risiko ini.");
         }
 
-        // Pencarian ID Level dinamis berdasarkan text (selaras dengan metode di SMAP)
-        $levelStr = $request->calculated_level;
-        // Ubah 'level' menjadi 'id_level'
-        $levelRecord = LevelRisiko::where('nama_level', $levelStr)->orWhere('id_level', $levelStr)->first();
+        $levelInput = $request->calculated_level;
+
+        // Pengecekan Cerdas: Apakah input yang masuk itu Angka (ID) atau Teks (Nama)?
+        if (is_numeric($levelInput)) {
+            // Jika dari JS masuknya ID (contoh: 5)
+            $levelRecord = LevelRisiko::find($levelInput);
+        } else {
+            // Jika sebagai fallback masuknya Nama Text (contoh: 'High')
+            $levelRecord = LevelRisiko::where('nama_level', $levelInput)->first();
+        }
+
         $idLevelTerbaru = $levelRecord ? $levelRecord->id_level : $risk->id_level;
 
-        // Attach Pivot
         $risk->periods()->attach($idLevelTerbaru, [
             'quarter'    => $request->quarter,
             'year'       => $request->year,
@@ -334,7 +330,6 @@ class DepartemenController extends Controller
             'updated_at' => now(),
         ]);
 
-        // Mengubah status parent risk sesuai data terbaru agar sinkron di index
         $risk->update([
             'id_level' => $idLevelTerbaru,
             'value'    => $request->value,
@@ -342,15 +337,12 @@ class DepartemenController extends Controller
             'trend'    => $request->trend,
         ]);
 
-        return redirect()->route('department-risk.show', $id)
-            ->with('success', "Data parameter triwulan {$request->quarter} berhasil ditambahkan.");
+        return redirect()->route('department-risk.show', $id)->with('success', "Data parameter triwulan {$request->quarter} berhasil ditambahkan.");
     }
 
     public function destroyPeriod(string $id, string $pivotId): RedirectResponse
     {
         DB::table('dep_monitoring_periods')->where('id', $pivotId)->delete();
-
-        return redirect()->route('department-risk.show', $id)
-            ->with('success', 'Data riwayat triwulan berhasil dihapus.');
+        return redirect()->route('department-risk.show', $id)->with('success', 'Data riwayat triwulan berhasil dihapus.');
     }
 }
