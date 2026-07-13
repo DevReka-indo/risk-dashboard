@@ -361,21 +361,36 @@ class SmapController extends Controller
     }
 
     public function show(string $id): View
-    {
-        $risk = SmapMonitoring::with(['unitKerja', 'kategoriRisiko', 'levelRisiko', 'detailPeriode.period'])->findOrFail($id);
+{
+    // 1. Ambil data SMAP beserta relasi periodenya
+    $risk = SmapMonitoring::with(['unitKerja', 'kategoriRisiko', 'levelRisiko', 'detailPeriode.period'])->findOrFail($id);
 
-        $periods = Period::orderBy('year', 'desc')->orderBy('quarter', 'asc')->get();
+    // 2. Ambil data master period
+    $periods = Period::orderBy('year', 'desc')->orderBy('quarter', 'asc')->get();
 
-        $historyData = [];
-        if ($risk->detailPeriode) {
-            foreach ($risk->detailPeriode as $history) {
+    // 3. 🔥 Bentuk data riwayat agar memiliki properti ['value']
+    $historyData = [];
+    if ($risk->detailPeriode) {
+        foreach ($risk->detailPeriode as $history) {
+            $qKey = $history->quarter;
 
-                $historyData[$history->year][$history->quarter] = (int) $history->inherent;
+            // Konversi key jika di DB berupa Q1/Q2 atau angka langsung
+            if (str_contains($qKey, 'Q')) {
+                $qKey = str_replace('Q', 'TW', $qKey);
+            } elseif (is_numeric($qKey)) {
+                $qKey = 'TW' . $qKey;
             }
-        }
 
-        return view('smap.show', compact('risk', 'periods', 'historyData'));
+            // Disimpan sebagai objek array yang menampung 'value'
+            $historyData[$history->year][$qKey] = [
+                'value' => (int) $history->value,
+            ];
+        }
     }
+
+    // 4. Kirim historyData ke view
+    return view('smap.show', compact('risk', 'periods', 'historyData'));
+}
 
     public function storeMonitoring(Request $request, $id)
     {
@@ -432,7 +447,7 @@ class SmapController extends Controller
 
         \App\Models\SmapMonitoringPeriod::create([
             'id_smap'          => $parentRisk->id_smap,
-            'quarter'          => $request->quarter, 
+            'quarter'          => $request->quarter,
             'year'             => $request->year,
             'id_level'         => $idLevelTerbaru,
             'id_level_target'  => $idLevelTarget,

@@ -175,7 +175,7 @@
             </form>
         </div>
 
-        {{-- 3. CARD RIWAYAT MONITORING KUARTAL --}}
+        {{-- 3. CARD RIWAYAT MONITORING KUARTAL (Blok Bawah) --}}
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="mb-5">
                 <h3 class="text-base font-bold text-slate-900">Riwayat Monitoring Kuartal</h3>
@@ -190,11 +190,8 @@
                                 <span class="inline-flex rounded-lg bg-slate-900 px-3 py-1 text-xs font-bold text-white">
                                     {{ $history->period->period_name ?? '-' }}
                                 </span>
-                                <span class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">
-                                    Nilai: {{ $history->value ?? 0 }}
-                                </span>
                                 <span class="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
-                                    Current: {{ $history->levelRisiko->nama_level ?? '-' }}
+                                    Current Level: {{ $history->levelRisiko->nama_level ?? '-' }}
                                 </span>
                                 <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
                                     Target Level: {{ \App\Models\LevelRisiko::find($history->id_level_target)->nama_level ?? '-' }}
@@ -210,15 +207,23 @@
                             </form>
                         </div>
 
+                        {{-- 🔥 GRID DIUBAH MENJADI 4 FIELD INTI: INHERENT, VALUE, TARGET, TREND --}}
                         <div class="mt-4 grid gap-4 grid-cols-2 md:grid-cols-4">
                             <div class="rounded-xl bg-white p-3 border border-slate-100">
-                                <div class="text-xs text-slate-400 font-medium">Inherent Current</div>
+                                <div class="text-xs text-slate-400 font-medium">Inherent</div>
                                 <div class="mt-1 text-sm font-bold text-slate-800">{{ $history->inherent ?? 0 }}</div>
                             </div>
+
+                            <div class="rounded-xl bg-white p-3 border border-slate-100">
+                                <div class="text-xs text-slate-400 font-medium">Score current</div>
+                                <div class="mt-1 text-sm font-bold text-slate-800">{{ $history->value ?? 0 }}</div>
+                            </div>
+
                             <div class="rounded-xl bg-indigo-50/30 p-3 border border-indigo-100">
                                 <div class="text-xs text-indigo-400 font-medium">Inherent Target</div>
                                 <div class="mt-1 text-sm font-bold text-indigo-900">{{ $history->inherent_target ?? 0 }}</div>
                             </div>
+
                             <div class="rounded-xl bg-white p-3 border border-slate-100">
                                 <div class="text-xs text-slate-400 font-medium">Trend Terhitung</div>
                                 <div class="mt-1 text-sm font-bold text-slate-800">
@@ -231,15 +236,11 @@
                                     @endif
                                 </div>
                             </div>
-                            <div class="rounded-xl bg-white p-3 border border-slate-100">
-                                <div class="text-xs text-slate-400 font-medium">Waktu Submit</div>
-                                <div class="mt-1 text-sm font-bold text-slate-600">{{ $history->created_at?->translatedFormat('d M Y, H:i') ?? '-' }}</div>
-                            </div>
                         </div>
                     </div>
                 @empty
                     <div class="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
-                        Belum ada riwayat perkembangan kuartal untuk risiko ini.
+                        Belum ada riwayat perkembangan kuartal untuk risiko ini. Silakan tambahkan data di atas.
                     </div>
                 @endforelse
             </div>
@@ -248,5 +249,5 @@
     </div>
 
     {{-- Pemanggilan file logic utama sing wis disinkronisasi --}}
-    <script src="{{ asset('js/otomatisasi-logic.js') }}"></script>
+    <script src="{{ asset('js/smap-logic.js') }}"></script>
 </x-admin-layout>
