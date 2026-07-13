@@ -81,4 +81,6 @@
     @include('smap.partials._chart-pie-risiko', [
             'smapPieData' => $smapPieData
     ])
+
+    @include('smap.partials._chart-pie-penanganan')
 </div>

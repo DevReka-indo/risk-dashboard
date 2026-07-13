@@ -61,7 +61,6 @@
                 <div class="grid gap-5 sm:grid-cols-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
                     <div>
                         <label for="quarter" class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Kuartal</label>
-                        {{-- 🔥 DIKEMBALIKAN VALUE-NYA MENJADI TW1-TW4 SESUAI ATURAN VALIDASI CONTROLLER ANDA --}}
                         <select name="quarter" id="quarter" x-model="quarter" x-on:change="typeof checkInherent === 'function' ? checkInherent() : null" required class="mt-2 w-full rounded-xl border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
                             <option value="">-- Pilih Triwulan --</option>
                             <option value="TW1">Triwulan 1 (TW1)</option>
@@ -112,7 +111,6 @@
 
                             <div>
                                 <label for="inherent" class="block text-xs font-medium text-slate-600">Inherent Score</label>
-                                {{-- 🔥 TAMBAHAN FAILSAFE VALUE JIKA INTEGRASI ALPINE MENGALAMI PENURUNAN SKOR/KOSONG --}}
                                 <input id="inherent" type="number" name="inherent" x-model="inherent" :readonly="inherentReadOnly" required placeholder="0" class="mt-1.5 w-full rounded-xl border-slate-200 px-3 py-2 text-sm shadow-sm transition-colors" :class="inherentReadOnly ? 'bg-slate-100 text-slate-500' : 'bg-white text-slate-800'">
                                 @error('inherent')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -167,6 +165,28 @@
 
                 </div>
 
+                {{-- 🔴 PERBAIKAN BLOK: FORM INPUT STATUS PENANGANAN --}}
+                <div class="rounded-2xl border border-slate-200 bg-slate-50/40 p-5">
+                    <div class="flex items-center gap-2 border-b border-slate-100 pb-2 mb-4">
+                        <span class="h-2.5 w-2.5 rounded-full bg-indigo-500"></span>
+                        <h4 class="text-sm font-bold text-slate-700">Progres Penanganan Risiko</h4>
+                    </div>
+                    <div class="max-w-xs">
+                        <label for="status_penanganan" class="block text-xs font-medium text-slate-600">Status Penanganan</label>
+
+                        {{-- Kita hilangkan x-model jika ada konflik, ganti murni dengan penanganan atribut name & select option lama --}}
+                        <select id="status_penanganan" name="status_penanganan" required class="mt-1.5 w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                            <option value="belum" {{ old('status_penanganan') == 'belum' ? 'selected' : '' }}>🔴 Belum Dimulai</option>
+                            <option value="proses" {{ old('status_penanganan') == 'proses' ? 'selected' : '' }}>🟡 Sedang Berjalan</option>
+                            <option value="selesai" {{ old('status_penanganan') == 'selesai' ? 'selected' : '' }}>🟢 Selesai</option>
+                        </select>
+
+                        @error('status_penanganan')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
                 {{-- KELOMPOK 4: HASIL ANALISIS TREN --}}
                 <div class="rounded-2xl border border-dashed border-slate-200 p-4">
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Hasil Analisis Trend Perubahan</label>
@@ -217,8 +237,7 @@
                             </form>
                         </div>
 
-                        {{-- 🔥 GRID DIUBAH MENJADI 4 FIELD INTI: INHERENT, VALUE, TARGET, TREND --}}
-                        <div class="mt-4 grid gap-4 grid-cols-2 md:grid-cols-4">
+                        <div class="mt-4 grid gap-4 grid-cols-2 md:grid-cols-5">
                             <div class="rounded-xl bg-white p-3 border border-slate-100">
                                 <div class="text-xs text-slate-400 font-medium">Inherent</div>
                                 <div class="mt-1 text-sm font-bold text-slate-800">{{ $history->inherent ?? 0 }}</div>
@@ -243,6 +262,20 @@
                                         <span class="text-emerald-600">↓ Turun</span>
                                     @else
                                         <span class="text-slate-500">→ Stabil</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- 🔥 PERBAIKAN BLOK: STATUS PENANGANAN REAL DARI DATABASE --}}
+                            <div class="rounded-xl bg-white p-3 border border-slate-100">
+                                <div class="text-xs text-slate-400 font-medium">Penanganan</div>
+                                <div class="mt-1 text-xs font-extrabold uppercase">
+                                    @if(trim(strtolower($history->status_penanganan)) === 'selesai')
+                                        <span class="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">🟢 Selesai</span>
+                                    @elseif(trim(strtolower($history->status_penanganan)) === 'proses')
+                                        <span class="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md">🟡 Proses</span>
+                                    @else
+                                        <span class="text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md">🔴 Belum</span>
                                     @endif
                                 </div>
                             </div>

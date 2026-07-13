@@ -18,8 +18,10 @@ class SmapMonitoringPeriod extends Model
             'inherent',
             'inherent_target',
             'id_level',
-            'id_level_target',  
+            'id_level_target',
             'trend',
+            'status_penanganan',
+            'efektif_risiko',
         ];
 
     public function monitoring(): BelongsTo
