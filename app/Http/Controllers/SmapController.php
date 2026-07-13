@@ -26,14 +26,21 @@ class SmapController extends Controller
         return $this->getListView($request, $tab);
     }
 
-    /**
+   /**
      * Logika Khusus untuk Tab Dashboard (Grafik & Ringkasan)
      */
-    protected function getDashboardView(Request $request, string $tab): View
+    protected function getDashboardView(Request $request, string$tab): View
     {
-        $defaultQuarter = ceil(date('n') / 3);
-        $selectedPeriode = (int) $request->query('periode', $defaultQuarter);
-        $selectedYear = (int) $request->query('tahun', date('Y'));
+        $defaultQuarter = ceil(date('n') / 3);$selectedPeriode = (int) $request->query('periode',$defaultQuarter);
+
+        // 🔥 FIX PENGAMAN TAHUN: Ambil tahun dari request. Jika tidak ada di URL,
+        // otomatis ambil tahun terbaru dari data transaksi monitoring agar grafik langsung muncul.
+        $selectedYear =$request->query('tahun');
+        if (!$selectedYear) {
+            $latestData = \App\Models\SmapMonitoringPeriod::latest('year')->first();$selectedYear = $latestData ? (int)$latestData->year : (int)date('Y');
+        } else {
+            $selectedYear = (int)$selectedYear;
+        }
 
         // Mencari record di master periode (tetap dicari jika diperlukan datanya)
         $period = Period::query()
@@ -44,94 +51,90 @@ class SmapController extends Controller
         $totalRisiko = 0;
         $risikoAktif = 0;
 
-        $labels = [];
-        $data = [];
-        $catLabels = [];
-        $catData = [];
+        $labels = [];$data = [];
+        $catLabels = [];$catData = [];
 
         $risksPerDept = [];
-        $risksPerLevel = [];
-        $risksPerCategory = [];
-        $levelDistributionData = [];
-        $maxLevelCount = 0;
+        $risksPerLevel = [];$risksPerCategory = [];
+        $levelDistributionData = [];$maxLevelCount = 0;
 
         $allUnits = TopUnitKerja::orderBy('nama_unit', 'asc')->get();
-        $allLevels = LevelRisiko::orderBy('id_level', 'asc')->get();
-        $allCategories = KategoriRisiko::query()
+        $allLevels = LevelRisiko::orderBy('id_level', 'asc')->get();$allCategories = KategoriRisiko::query()
             ->where('type', 'smap')
             ->orderBy('nama_kategori', 'asc')
             ->get();
 
         $trendLabels = ['Naik', 'Turun', 'Stagnan'];
-        $trendData = [0, 0, 0];
+        $trendData = [0, 0, 0];$chartDatasets = [];
 
-        $chartDatasets = [];
+        // 🔥 FIX FORMAT KUARTAL: Sesuai isi database dari storeMonitoring Anda yang menyimpan format 'TW1', 'TW2', dst.
+        $stringQuarter = 'TW' .$selectedPeriode;
+        $quarterLookups = [$stringQuarter, (int)$selectedPeriode, (string)$selectedPeriode, 'Q' .$selectedPeriode];
 
-        // Definisikan di luar IF agar Intelephense aman dari redline undefined variable
-        $stringQuarter = 'Q' . $selectedPeriode;
+        // ====================================================================
+        // 🔥 QUERY INDEPENDEN (DIKELUARKAN DARI IF PERIOD) AGAR DATA LANGSUNG DIHITUNG
+        // ====================================================================
 
-        if ($period) {
-            // 1. HITUNG TOTAL RISIKO
-            $totalRisiko = \App\Models\SmapMonitoringPeriod::query()
-                ->where('quarter', $stringQuarter)
-                ->where('year', $selectedYear)
-                ->count();
+        // 1. HITUNG TOTAL RISIKO
+        $totalRisiko = \App\Models\SmapMonitoringPeriod::query()
+            ->whereIn('quarter', $quarterLookups)
+            ->where('year', $selectedYear)
+            ->count();
 
-            // 2. HITUNG RISIKO AKTIF
-            $risikoAktif = DB::table('smap_monitoring_periods')
-                ->join('smap_monitoring', 'smap_monitoring_periods.id_smap', '=', 'smap_monitoring.id_smap')
-                ->where('smap_monitoring_periods.quarter', $stringQuarter)
-                ->where('smap_monitoring_periods.year', $selectedYear)
-                ->where('smap_monitoring.status', 1)
-                ->count();
+        // 2. HITUNG RISIKO AKTIF
+        $risikoAktif = DB::table('smap_monitoring_periods')
+            ->join('smap_monitoring', 'smap_monitoring_periods.id_smap', '=', 'smap_monitoring.id_smap')
+            ->whereIn('smap_monitoring_periods.quarter', $quarterLookups)
+            ->where('smap_monitoring_periods.year', $selectedYear)
+            ->where('smap_monitoring.status', 1)
+            ->count();
 
-            // 🔥 3. HITUNG JUMLAH RISIKO PER DEPARTEMEN (Kunci Utama agar Grafik Muncul)
-            $risksPerDept = DB::table('smap_monitoring_periods')
-                ->join('smap_monitoring', 'smap_monitoring_periods.id_smap', '=', 'smap_monitoring.id_smap')
-                ->where('smap_monitoring_periods.quarter', $stringQuarter)
-                ->where('smap_monitoring_periods.year', $selectedYear)
-                ->selectRaw('smap_monitoring.id_unit, count(*) as total')
-                ->groupBy('smap_monitoring.id_unit')
-                ->pluck('total', 'id_unit')
-                ->toArray();
+        // 3. HITUNG JUMLAH RISIKO PER DEPARTEMEN
+        $risksPerDept = DB::table('smap_monitoring_periods')
+            ->join('smap_monitoring', 'smap_monitoring_periods.id_smap', '=', 'smap_monitoring.id_smap')
+            ->whereIn('smap_monitoring_periods.quarter', $quarterLookups)
+            ->where('smap_monitoring_periods.year', $selectedYear)
+            ->selectRaw('smap_monitoring.id_unit, count(*) as total')
+            ->groupBy('smap_monitoring.id_unit')
+            ->pluck('total', 'id_unit')
+            ->toArray();
 
-            // 4. HITUNG JUMLAH RISIKO PER LEVEL
-            $risksPerLevel = \App\Models\SmapMonitoringPeriod::query()
-                ->where('quarter', $stringQuarter)
-                ->where('year', $selectedYear)
-                ->selectRaw('id_level, count(*) as total')
-                ->groupBy('id_level')
-                ->pluck('total', 'id_level')
-                ->toArray();
+        // 4. HITUNG JUMLAH RISIKO PER LEVEL
+        $risksPerLevel = \App\Models\SmapMonitoringPeriod::query()
+            ->whereIn('quarter', $quarterLookups)
+            ->where('year', $selectedYear)
+            ->selectRaw('id_level, count(*) as total')
+            ->groupBy('id_level')
+            ->pluck('total', 'id_level')
+            ->toArray();
 
-            // 🔥 5. HITUNG JUMLAH RISIKO PER KATEGORI (Kunci Utama Grafik Kategori)
-            $risksPerCategory = DB::table('smap_monitoring_periods')
-                ->join('smap_monitoring', 'smap_monitoring_periods.id_smap', '=', 'smap_monitoring.id_smap')
-                ->where('smap_monitoring_periods.quarter', $stringQuarter)
-                ->where('smap_monitoring_periods.year', $selectedYear)
-                ->selectRaw('smap_monitoring.id_kategori, count(*) as total')
-                ->groupBy('smap_monitoring.id_kategori')
-                ->pluck('total', 'id_kategori')
-                ->toArray();
+        // 5. HITUNG JUMLAH RISIKO PER KATEGORI
+        $risksPerCategory = DB::table('smap_monitoring_periods')
+            ->join('smap_monitoring', 'smap_monitoring_periods.id_smap', '=', 'smap_monitoring.id_smap')
+            ->whereIn('smap_monitoring_periods.quarter', $quarterLookups)
+            ->where('smap_monitoring_periods.year', $selectedYear)
+            ->selectRaw('smap_monitoring.id_kategori, count(*) as total')
+            ->groupBy('smap_monitoring.id_kategori')
+            ->pluck('total', 'id_kategori')
+            ->toArray();
 
-            // 6. HITUNG TREND PERUBAHAN
-            $risksPerTrend = \App\Models\SmapMonitoringPeriod::query()
-                ->where('quarter', $stringQuarter)
-                ->where('year', $selectedYear)
-                ->selectRaw('trend, count(*) as total')
-                ->groupBy('trend')
-                ->pluck('total', 'trend')
-                ->toArray();
+        // 6. HITUNG TREND PERUBAHAN
+        $risksPerTrend = \App\Models\SmapMonitoringPeriod::query()
+            ->whereIn('quarter', $quarterLookups)
+            ->where('year', $selectedYear)
+            ->selectRaw('trend, count(*) as total')
+            ->groupBy('trend')
+            ->pluck('total', 'trend')
+            ->toArray();
 
-            $trendData = [
-                (int)($risksPerTrend['naik'] ?? $risksPerTrend['Naik'] ?? 0),
-                (int)($risksPerTrend['turun'] ?? $risksPerTrend['Turun'] ?? 0),
-                (int)($risksPerTrend['stabil'] ?? $risksPerTrend['Stabil'] ?? $risksPerTrend['stagnan'] ?? $risksPerTrend['Stagnan'] ?? 0),
-            ];
-        }
+        $trendData = [
+            (int)($risksPerTrend['naik'] ?? $risksPerTrend['Naik'] ?? 0),
+            (int)($risksPerTrend['turun'] ?? $risksPerTrend['Turun'] ?? 0),
+            (int)($risksPerTrend['stabil'] ?? $risksPerTrend['Stabil'] ?? $risksPerTrend['stagnan'] ?? $risksPerTrend['Stagnan'] ?? 0),
+        ];
 
-        $stackedTemplates = [];
-        $colorMapping = [
+        // LOGIKA PENYUSUNAN DATASET GRAFIK STACKED DEPARTEMEN
+        $stackedTemplates = [];$colorMapping = [
             'High'             => '#FF0100',
             'Moderate to High' => '#FFC000',
             'Moderate'         => '#FFFF00',
@@ -139,7 +142,7 @@ class SmapController extends Controller
             'Low'              => '#03B050'
         ];
 
-        foreach ($allLevels as $level) {
+        foreach ($allLevels as$level) {
             $stackedTemplates[$level->id_level] = [
                 'label' => $level->nama_level,
                 'backgroundColor' => $colorMapping[$level->nama_level] ?? '#cbd5e1',
@@ -147,27 +150,23 @@ class SmapController extends Controller
             ];
         }
 
-        foreach ($allUnits as $unit) {
-            $totalUnitRisks = $risksPerDept[$unit->id_unit] ?? 0;
+        foreach ($allUnits as $unit) {$totalUnitRisks = $risksPerDept[$unit->id_unit] ?? 0;
 
             if ($totalUnitRisks > 0) {
-                $data[] = $totalUnitRisks;
-                $labels[] = $unit->nama_unit;
+                $data[] =$totalUnitRisks;
+                $labels[] =$unit->nama_unit;
 
-                $currentDeptRisks = [];
-                if ($period) {
-                    $currentDeptRisks = DB::table('smap_monitoring_periods')
-                        ->join('smap_monitoring', 'smap_monitoring_periods.id_smap', '=', 'smap_monitoring.id_smap')
-                        ->where('smap_monitoring_periods.quarter', $stringQuarter)
-                        ->where('smap_monitoring_periods.year', $selectedYear)
-                        ->where('smap_monitoring.id_unit', $unit->id_unit)
-                        ->selectRaw('smap_monitoring_periods.id_level, count(*) as total')
-                        ->groupBy('smap_monitoring_periods.id_level')
-                        ->pluck('total', 'id_level')
-                        ->toArray();
-                }
+                $currentDeptRisks = DB::table('smap_monitoring_periods')
+                    ->join('smap_monitoring', 'smap_monitoring_periods.id_smap', '=', 'smap_monitoring.id_smap')
+                    ->whereIn('smap_monitoring_periods.quarter', $quarterLookups)
+                    ->where('smap_monitoring_periods.year', $selectedYear)
+                    ->where('smap_monitoring.id_unit', $unit->id_unit)
+                    ->selectRaw('smap_monitoring_periods.id_level, count(*) as total')
+                    ->groupBy('smap_monitoring_periods.id_level')
+                    ->pluck('total', 'id_level')
+                    ->toArray();
 
-                foreach ($allLevels as $level) {
+                foreach ($allLevels as$level) {
                     $stackedTemplates[$level->id_level]['data'][] = (int)($currentDeptRisks[$level->id_level] ?? 0);
                 }
             }
@@ -177,9 +176,8 @@ class SmapController extends Controller
         $labels = array_values($labels);
         $chartDatasets = array_values($stackedTemplates);
 
-        foreach ($allLevels as $level) {
-            $count = $risksPerLevel[$level->id_level] ?? 0;
-            $maxLevelCount = max($maxLevelCount, $count);
+        foreach ($allLevels as $level) {$count = $risksPerLevel[$level->id_level] ?? 0;
+            $maxLevelCount = max($maxLevelCount,$count);
 
             $levelDistributionData[] = [
                 'name'  => $level->nama_level,
@@ -187,17 +185,17 @@ class SmapController extends Controller
             ];
         }
         foreach ($levelDistributionData as &$item) {
-            $item['percentage'] = $maxLevelCount > 0 ? ($item['count'] / $maxLevelCount) * 100 : 0;
+            $item['percentage'] =$maxLevelCount > 0 ? ($item['count'] /$maxLevelCount) * 100 : 0;
         }
 
-        foreach ($allCategories as $category) {
-            $catLabels[] = $category->nama_kategori;
+        foreach ($allCategories as$category) {
+            $catLabels[] =$category->nama_kategori;
             $catData[] = $risksPerCategory[$category->id_kategori] ?? 0;
         }
         $catLabels = array_values($catLabels);
         $catData = array_values($catData);
 
-        $jumlahDepartemen = $allUnits->count();
+        $jumlahDepartemen =$allUnits->count();
 
         $dashboardData = [
             'summary' => [
@@ -213,18 +211,102 @@ class SmapController extends Controller
             'status_distribution' => [],
         ];
 
+        // LOGIKA AMAN UNTUK 3 PIE CHART SMAP
+        $baseArray = array_fill_keys($allLevels->pluck('id_level')->toArray(), 0);
+
+        $pieInherentOff =$baseArray;
+        $inherentOffData = \App\Models\SmapMonitoringPeriod::where('year',$selectedYear)
+            ->whereIn('quarter', $quarterLookups)
+            ->selectRaw('id_level, count(*) as total')
+            ->groupBy('id_level')
+            ->pluck('total', 'id_level')
+            ->toArray();
+        foreach ($inherentOffData as$lvl => $tot) {$pieInherentOff[$lvl] = (int)$tot; }
+
+        $allowedQuarters = [];
+        for ($i = 1; $i <= $selectedPeriode; $i++) {
+            $allowedQuarters[] = 'TW' .$i;
+            $allowedQuarters[] =$i;
+            $allowedQuarters[] = (string)$i;
+            $allowedQuarters[] = 'Q' .$i;
+        }
+
+
+        $pieInherentOn =$baseArray;
+        $inherentOnData = \App\Models\SmapMonitoringPeriod::where('year',$selectedYear)
+            ->whereIn('quarter', $allowedQuarters)
+            ->selectRaw('id_level, count(*) as total')
+            ->groupBy('id_level')
+            ->pluck('total', 'id_level')
+            ->toArray();
+        foreach ($inherentOnData as$lvl => $tot) {$pieInherentOn[$lvl] = (int)$tot; }
+
+        // --- Pie 2: Current Data ---
+        $pieCurrentOff =$baseArray;
+        foreach ($risksPerLevel as$lvl => $tot) {$pieCurrentOff[$lvl] = (int)$tot; }
+
+        $pieCurrentOn =$baseArray;
+        $currentOnData = \App\Models\SmapMonitoringPeriod::where('year',$selectedYear)
+            ->whereIn('quarter', $allowedQuarters)
+            ->selectRaw('id_level, count(*) as total')
+            ->groupBy('id_level')
+            ->pluck('total', 'id_level')
+            ->toArray();
+        foreach ($currentOnData as$lvl => $tot) {$pieCurrentOn[$lvl] = (int)$tot; }
+
+        // --- Pie 3: Target Data ---
+        $pieTargetOff =$baseArray;
+        $targetOffData = \App\Models\SmapMonitoringPeriod::where('year',$selectedYear)
+            ->whereIn('quarter', $quarterLookups)
+            ->selectRaw('id_level_target, count(*) as total')
+            ->groupBy('id_level_target')
+            ->pluck('total', 'id_level_target')
+            ->toArray();
+        foreach ($targetOffData as $lvl =>$tot) { if($lvl)$pieTargetOff[$lvl] = (int)$tot; }
+
+        $pieTargetOn =$baseArray;
+        $targetOnData = \App\Models\SmapMonitoringPeriod::where('year',$selectedYear)
+            ->whereIn('quarter', $allowedQuarters)
+            ->selectRaw('id_level_target, count(*) as total')
+            ->groupBy('id_level_target')
+            ->pluck('total', 'id_level_target')
+            ->toArray();
+        foreach ($targetOnData as $lvl =>$tot) { if($lvl)$pieTargetOn[$lvl] = (int)$tot; }
+
+        $smapPieData = [
+            'labels'   => array_values($allLevels->pluck('nama_level')->toArray()),
+            'inherent' => [
+                'off' => array_values($pieInherentOff),
+                'on'  => array_values($pieInherentOn),
+            ],
+            'current'  => [
+                'off' => array_values($pieCurrentOff),
+                'on'  => array_values($pieCurrentOn),
+            ],
+            'target'   => [
+                'off' => array_values($pieTargetOff),
+                'on'  => array_values($pieTargetOn),
+            ]
+        ];
+
+        $summary =$dashboardData['summary'];
+        $periodText =$dashboardData['period'];
+
         return view('smap.index', compact(
             'tab',
             'selectedPeriode',
             'selectedYear',
             'dashboardData',
+            'summary',
+            'periodText',
             'labels',
             'data',
             'chartDatasets',
             'catLabels',
             'catData',
             'trendLabels',
-            'trendData'
+            'trendData',
+            'smapPieData'
         ));
     }
 
@@ -361,38 +443,32 @@ class SmapController extends Controller
     }
 
     public function show(string $id): View
-{
-    // 1. Ambil data SMAP beserta relasi periodenya
-    $risk = SmapMonitoring::with(['unitKerja', 'kategoriRisiko', 'levelRisiko', 'detailPeriode.period'])->findOrFail($id);
+    {
+        $risk = SmapMonitoring::with(['unitKerja', 'kategoriRisiko', 'levelRisiko', 'detailPeriode.period'])->findOrFail($id);
 
-    // 2. Ambil data master period
-    $periods = Period::orderBy('year', 'desc')->orderBy('quarter', 'asc')->get();
+        $periods = Period::orderBy('year', 'desc')->orderBy('quarter', 'asc')->get();
 
-    // 3. 🔥 Bentuk data riwayat agar memiliki properti ['value']
-    $historyData = [];
-    if ($risk->detailPeriode) {
-        foreach ($risk->detailPeriode as $history) {
-            $qKey = $history->quarter;
+        $historyData = [];
+        if ($risk->detailPeriode) {
+            foreach ($risk->detailPeriode as $history) {
+                $qKey = $history->quarter;
 
-            // Konversi key jika di DB berupa Q1/Q2 atau angka langsung
-            if (str_contains($qKey, 'Q')) {
-                $qKey = str_replace('Q', 'TW', $qKey);
-            } elseif (is_numeric($qKey)) {
-                $qKey = 'TW' . $qKey;
+                if (str_contains($qKey, 'Q')) {
+                    $qKey = str_replace('Q', 'TW', $qKey);
+                } elseif (is_numeric($qKey)) {
+                    $qKey = 'TW' . $qKey;
+                }
+
+                $historyData[$history->year][$qKey] = [
+                    'value' => (int) $history->value,
+                ];
             }
-
-            // Disimpan sebagai objek array yang menampung 'value'
-            $historyData[$history->year][$qKey] = [
-                'value' => (int) $history->value,
-            ];
         }
+
+        return view('smap.show', compact('risk', 'periods', 'historyData'));
     }
 
-    // 4. Kirim historyData ke view
-    return view('smap.show', compact('risk', 'periods', 'historyData'));
-}
-
-    public function storeMonitoring(Request $request, $id)
+    public function storeMonitoring(Request $request, $id_smap)
     {
         $request->validate([
             'quarter'                 => 'required|in:TW1,TW2,TW3,TW4',
@@ -406,7 +482,6 @@ class SmapController extends Controller
             'calculated_level_target' => 'required|integer|min:1|max:5',
         ]);
 
-        // 🔥 Balik pemetaannya karena inputan yang masuk sekarang berbentuk 'TW'
         $quarterMapping = [
             'TW1' => ['numeric' => '1', 'text' => 'TW1'],
             'TW2' => ['numeric' => '2', 'text' => 'TW2'],
@@ -426,7 +501,7 @@ class SmapController extends Controller
             ]
         );
 
-        $parentRisk = SmapMonitoring::findOrFail($id);
+        $parentRisk = SmapMonitoring::findOrFail($id_smap);
 
         $exists = \App\Models\SmapMonitoringPeriod::query()
             ->where('id_smap', '=', (int) $parentRisk->id_smap)

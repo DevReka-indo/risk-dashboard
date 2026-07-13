@@ -61,13 +61,13 @@
                 <div class="grid gap-5 sm:grid-cols-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
                     <div>
                         <label for="quarter" class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Kuartal</label>
-                        <select id="quarter" name="quarter" x-model="quarter" x-on:change="checkInherent()" required class="mt-2 w-full rounded-xl border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
-                            <option value="">Pilih Kuartal</option>
-                            {{-- 🔥 UBAH VALUE DI BAWAH INI MENJADI TW1, TW2, TW3, TW4 --}}
-                            <option value="TW1">Q1 (Kuartal 1)</option>
-                            <option value="TW2">Q2 (Kuartal 2)</option>
-                            <option value="TW3">Q3 (Kuartal 3)</option>
-                            <option value="TW4">Q4 (Kuartal 4)</option>
+                        {{-- 🔥 DIKEMBALIKAN VALUE-NYA MENJADI TW1-TW4 SESUAI ATURAN VALIDASI CONTROLLER ANDA --}}
+                        <select name="quarter" id="quarter" x-model="quarter" x-on:change="typeof checkInherent === 'function' ? checkInherent() : null" required class="mt-2 w-full rounded-xl border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                            <option value="">-- Pilih Triwulan --</option>
+                            <option value="TW1">Triwulan 1 (TW1)</option>
+                            <option value="TW2">Triwulan 2 (TW2)</option>
+                            <option value="TW3">Triwulan 3 (TW3)</option>
+                            <option value="TW4">Triwulan 4 (TW4)</option>
                         </select>
                         @error('quarter')
                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -76,7 +76,10 @@
 
                     <div>
                         <label for="year" class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Tahun</label>
-                        <input id="year" type="number" name="year" x-model="year" x-on:input="checkInherent()" min="2020" max="2099" required class="mt-2 w-full rounded-xl border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                        <input id="year" type="number" name="year" x-model="year" x-on:input="typeof checkInherent === 'function' ? checkInherent() : null" min="2020" max="2099" required class="mt-2 w-full rounded-xl border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                        @error('year')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
@@ -102,11 +105,18 @@
                             <div>
                                 <label for="value" class="block text-xs font-medium text-slate-600">Value (Score 1-25)</label>
                                 <input id="value" type="number" name="value" x-model="value" min="1" max="25" required placeholder="0" class="mt-1.5 w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-sm shadow-sm">
+                                @error('value')
+                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div>
                                 <label for="inherent" class="block text-xs font-medium text-slate-600">Inherent Score</label>
-                                <input id="inherent" type="number" name="inherent" x-model="inherent" :readonly="inherentReadOnly" required placeholder="0" class="mt-1.5 w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-sm shadow-sm transition-colors" :class="inherentReadOnly ? 'bg-slate-100 text-slate-500' : 'bg-white text-slate-800'">
+                                {{-- 🔥 TAMBAHAN FAILSAFE VALUE JIKA INTEGRASI ALPINE MENGALAMI PENURUNAN SKOR/KOSONG --}}
+                                <input id="inherent" type="number" name="inherent" x-model="inherent" :readonly="inherentReadOnly" required placeholder="0" class="mt-1.5 w-full rounded-xl border-slate-200 px-3 py-2 text-sm shadow-sm transition-colors" :class="inherentReadOnly ? 'bg-slate-100 text-slate-500' : 'bg-white text-slate-800'">
+                                @error('inherent')
+                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
 

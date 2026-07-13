@@ -51,8 +51,8 @@
 
 
     @include('smap.partials._summary-cards', [
-        'summary' => $dashboardData['summary'],
-        'period'  => $dashboardData['period'],
+        'summary'    => $summary,
+        'periodText' => $periodText
     ])
 
     @include('smap.partials._list-departement', [
@@ -76,5 +76,9 @@
     @include('smap.partials._chart-komposisi', [
         'labels'        => $labels,
         'chartDatasets' => $chartDatasets,
+    ])
+
+    @include('smap.partials._chart-pie-risiko', [
+            'smapPieData' => $smapPieData
     ])
 </div>

@@ -32,7 +32,7 @@
             </p>
         </div>
         <p class="mt-5 text-xs text-slate-400">
-            Periode {{ $period ?? '' }}.
+            Periode {{ $periodText ?? '' }}.
         </p>
     </div>
 
