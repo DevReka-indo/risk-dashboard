@@ -159,6 +159,16 @@
                             default => 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
                         };
 
+                        // --- TAMBAHAN: LOGIKA INHERENT LEVEL ---
+                        $inherentVal = (int) ($period->pivot->inherent ?? 0);
+                        $inherentLevel = match(true) {
+                            $inherentVal >= 21 => 'High',
+                            $inherentVal >= 16 => 'Moderate to High',
+                            $inherentVal >= 11 => 'Moderate',
+                            $inherentVal >= 6 => 'Low to Moderate',
+                            default => 'Low',
+                        };
+
                         $targetId = $period->pivot->target_id_level;
                         $targetName = match((int) $targetId) {
                             1 => 'Low', 2 => 'Low Moderate', 3 => 'Moderate', 4 => 'Moderate to High', 5 => 'High',

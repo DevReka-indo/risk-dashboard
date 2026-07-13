@@ -17,7 +17,7 @@ class DepartemenController extends Controller
     {
         $tab = $request->query('tab', 'data');
 
-        // 1. LOGIKA UNTUK TAB DASHBOARD=
+        // 1. LOGIKA UNTUK TAB DASHBOARD
         if ($tab === 'dashboard') {
             // Default 'all' agar saat pertama kali masuk menampilkan Semua Triwulan
             $selectedPeriode = $request->query('periode', 'all');
@@ -156,6 +156,12 @@ class DepartemenController extends Controller
 
             $periodDisplay = $selectedPeriode === 'all' ? "Semua Triwulan - {$selectedYear}" : "Triwulan {$selectedPeriode} - {$selectedYear}";
 
+            // --- TAMBAHAN LOGIKA PIE CHART ---
+            $currentData = $this->getPieChartData($baseDashboardQuery, 'dep_monitoring_periods.id_level');
+            $targetData  = $this->getPieChartData($baseDashboardQuery, 'dep_monitoring_periods.target_id_level');
+            $inherentData = $this->getInherentChartData($baseDashboardQuery);
+            // ---------------------------------
+
             $dashboardData = [
                 'summary' => [
                     'total_risiko'      => $totalRisiko,
@@ -169,7 +175,8 @@ class DepartemenController extends Controller
             return view('departemen.index', compact(
                 'tab', 'selectedPeriode', 'selectedYear', 'dashboardData',
                 'labels', 'data', 'chartDatasets', 'catLabels', 'catData',
-                'trendLabels', 'trendData'
+                'trendLabels', 'trendData',
+                'currentData', 'targetData', 'inherentData' // Variabel dimasukkan ke compact
             ));
         }
 
@@ -375,18 +382,54 @@ class DepartemenController extends Controller
         return redirect()->route('department-risk.show', $id)->with('success', 'Data riwayat triwulan berhasil dihapus.');
     }
 
-    public function getChartData()
+    /**
+     * Fungsi khusus untuk menghitung distribusi Level Inherent dari nilai 1-25
+     */
+    private function getInherentChartData($baseQuery)
     {
-        $data = DepMonitoring::with('levelRisiko')
-            ->select('id_level', DB::raw('count(*) as total'))
-            ->groupBy('id_level')
-            ->get();
+        try {
+            // Ambil semua data inherent
+            $query = clone $baseQuery;
+            $data = $query->select('dep_monitoring_periods.inherent')->get();
 
-        // Format data untuk Chart.js
-        return response()->json([
-            'labels' => $data->pluck('levelRisiko.nama_level'),
-            'values' => $data->pluck('total'),
-            'colors' => ['#FF0000', '#F28C28', '#FFD700', '#90EE90', '#228B22'] // Sesuaikan dengan warna di gambar Anda
-        ]);
-}
+            // Inisialisasi counter: [High, Mod-High, Mod, Low-Mod, Low]
+            $counts = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+
+            foreach ($data as $row) {
+                $val = (int) $row->inherent;
+                // Logika mapping angka 1-25 ke 5 Level (Sesuaikan range ini dengan matrix risiko Anda)
+                if ($val >= 21) $counts[5]++;      // High
+                elseif ($val >= 16) $counts[4]++;  // Moderate to High
+                elseif ($val >= 11) $counts[3]++;  // Moderate
+                elseif ($val >= 6) $counts[2]++;   // Low to Moderate
+                else $counts[1]++;                 // Low
+            }
+
+            return array_values($counts);
+        } catch (\Exception $e) {
+            return [0, 0, 0, 0, 0];
+        }
+    }
+
+    // Pastikan fungsi getPieChartData yang lama tetap ada untuk Current dan Target
+    private function getPieChartData($baseQuery, $columnName)
+    {
+        try {
+            $query = clone $baseQuery;
+            $data = $query->select($columnName, \Illuminate\Support\Facades\DB::raw('count(*) as total'))
+                          ->groupBy($columnName)
+                          ->pluck('total', $columnName);
+
+            return [
+                $data->get(5, 0), // High
+                $data->get(4, 0), // Moderate to High
+                $data->get(3, 0), // Moderate
+                $data->get(2, 0), // Low to Moderate
+                $data->get(1, 0), // Low
+            ];
+        } catch (\Exception $e) {
+            return [0, 0, 0, 0, 0];
+        }
+    }
+
 }

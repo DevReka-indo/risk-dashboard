@@ -24,15 +24,12 @@
 {{-- Memanggil library Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-{{-- Script inisialisasi diletakkan langsung (tanpa @push) untuk memastikan berjalan --}}
 <script>
-    // DOMContentLoaded memastikan script berjalan HANYA SETELAH elemen HTML canvas di atas selesai dirender
     document.addEventListener('DOMContentLoaded', function() {
 
         function initPieChart(canvasId, data) {
             const ctx = document.getElementById(canvasId);
 
-            // Pencegahan error jika ID canvas tidak ditemukan
             if (!ctx) return;
 
             new Chart(ctx, {
@@ -40,6 +37,7 @@
                 data: {
                     labels: ['High', 'Moderate to High', 'Moderate', 'Low to Moderate', 'Low'],
                     datasets: [{
+                        // Menggunakan data dinamis dari parameter fungsi
                         data: data,
                         backgroundColor: [
                             '#FF0000', // High (Merah)
@@ -56,20 +54,22 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom', // Memindahkan legenda ke bawah agar grafik lebih besar
-                            labels: {
-                                boxWidth: 12,
-                                font: { size: 11 }
-                            }
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11 } }
                         }
                     }
                 }
             });
         }
 
-        // Jalankan fungsi untuk ketiga chart dengan data statis
-        initPieChart('chartInherent', [43, 55, 30, 7, 0]);
-        initPieChart('chartCurrent', [32, 30, 9, 39, 25]);
-        initPieChart('chartTarget', [0, 0, 12, 80, 43]);
+        // Variabel dari Controller ditangkap di sini menggunakan json_encode murni
+        const inherentData = {!! json_encode($inherentData ?? [0, 0, 0, 0, 0]) !!};
+        const currentData  = {!! json_encode($currentData ?? [0, 0, 0, 0, 0]) !!};
+        const targetData   = {!! json_encode($targetData ?? [0, 0, 0, 0, 0]) !!};
+
+        // Jalankan render chart
+        initPieChart('chartInherent', inherentData);
+        initPieChart('chartCurrent', currentData);
+        initPieChart('chartTarget', targetData);
     });
 </script>
