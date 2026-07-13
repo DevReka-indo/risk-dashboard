@@ -366,25 +366,37 @@ class SmapController extends Controller
 
         $periods = Period::orderBy('year', 'desc')->orderBy('quarter', 'asc')->get();
 
-        return view('smap.show', compact('risk', 'periods'));
+        $historyData = [];
+        if ($risk->detailPeriode) {
+            foreach ($risk->detailPeriode as $history) {
+
+                $historyData[$history->year][$history->quarter] = (int) $history->inherent;
+            }
+        }
+
+        return view('smap.show', compact('risk', 'periods', 'historyData'));
     }
 
     public function storeMonitoring(Request $request, $id)
     {
         $request->validate([
-            'quarter'           => 'required|in:Q1,Q2,Q3,Q4',
-            'year'              => 'required|numeric|min:2020|max:2099',
-            'value'             => 'required|numeric|min:1|max:25',
-            'inherent'          => 'required|numeric',
-            'status_monitoring' => 'required|in:0,1',
-            'calculated_level'  => 'required|integer|min:1|max:5',
+            'quarter'                 => 'required|in:TW1,TW2,TW3,TW4',
+            'year'                    => 'required|numeric|min:2020|max:2099',
+            'value'                   => 'required|numeric|min:1|max:25',
+            'inherent'                => 'required|numeric',
+            'status_monitoring'       => 'required|in:0,1',
+            'calculated_level'        => 'required|integer|min:1|max:5',
+
+            'inherent_target'         => 'required|numeric|min:1|max:25',
+            'calculated_level_target' => 'required|integer|min:1|max:5',
         ]);
 
+        // 🔥 Balik pemetaannya karena inputan yang masuk sekarang berbentuk 'TW'
         $quarterMapping = [
-            'Q1' => ['numeric' => '1', 'text' => 'TW1'],
-            'Q2' => ['numeric' => '2', 'text' => 'TW2'],
-            'Q3' => ['numeric' => '3', 'text' => 'TW3'],
-            'Q4' => ['numeric' => '4', 'text' => 'TW4'],
+            'TW1' => ['numeric' => '1', 'text' => 'TW1'],
+            'TW2' => ['numeric' => '2', 'text' => 'TW2'],
+            'TW3' => ['numeric' => '3', 'text' => 'TW3'],
+            'TW4' => ['numeric' => '4', 'text' => 'TW4'],
         ];
 
         $selectedQuarter = $quarterMapping[$request->quarter]['numeric'];
@@ -416,15 +428,18 @@ class SmapController extends Controller
         }
 
         $idLevelTerbaru = (int) $request->calculated_level ?: $parentRisk->id_level;
+        $idLevelTarget = (int) $request->calculated_level_target ?: null;
 
         \App\Models\SmapMonitoringPeriod::create([
-            'id_smap'   => $parentRisk->id_smap,
-            'quarter'   => $request->quarter,
-            'year'      => $request->year,
-            'id_level'  => $idLevelTerbaru,
-            'value'     => $request->value,
-            'inherent'  => $request->inherent,
-            'trend'     => $request->calculated_trend,
+            'id_smap'          => $parentRisk->id_smap,
+            'quarter'          => $request->quarter, 
+            'year'             => $request->year,
+            'id_level'         => $idLevelTerbaru,
+            'id_level_target'  => $idLevelTarget,
+            'value'            => $request->value,
+            'inherent'         => $request->inherent,
+            'inherent_target'  => $request->inherent_target,
+            'trend'            => $request->calculated_trend,
         ]);
 
         $parentRisk->update([
@@ -432,7 +447,7 @@ class SmapController extends Controller
         ]);
 
         return redirect()->back()
-            ->with('success', "Berhasil merekam perkembangan risiko untuk periode {$periodName}!");
+            ->with('success', "Berhasil merekam perkembangan & target risiko untuk periode {$periodName}!");
     }
 
     public function destroyMonitoring(int $id_period): RedirectResponse

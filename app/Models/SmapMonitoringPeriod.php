@@ -11,14 +11,16 @@ class SmapMonitoringPeriod extends Model
     protected $primaryKey = 'id_detail';
 
     protected $fillable = [
-        'id_smap',
-        'quarter',
-        'year',
-        'value',
-        'inherent',
-        'id_level',
-        'trend',
-    ];
+            'id_smap',
+            'quarter',
+            'year',
+            'value',
+            'inherent',
+            'inherent_target',
+            'id_level',
+            'id_level_target',  
+            'trend',
+        ];
 
     public function monitoring(): BelongsTo
     {
