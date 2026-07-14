@@ -137,37 +137,46 @@
             </div>
 
             {{-- Tabel Data --}}
-            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-sm">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Risiko
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Kategori
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Unit Kerja
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Inherent
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Target
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Monitoring Terakhir
-                                </th>
-                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Status
-                                </th>
-                                <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
-                                    Aksi
-                                </th>
-                            </tr>
-                        </thead>
+           <div class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-lg">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead>
+                <tr class="bg-indigo-600 text-white">
+
+                    <th class="rounded-tl-[28px] px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                        Risiko
+                    </th>
+
+                    <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                        Kategori
+                    </th>
+
+                    <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                        Unit Kerja
+                    </th>
+
+                    <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                        Inherent
+                    </th>
+
+                    <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                        Target
+                    </th>
+
+                    <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                        Monitoring Terakhir
+                    </th>
+
+                    <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                        Status
+                    </th>
+
+                    <th class="rounded-tr-[28px] px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                        Aksi
+                    </th>
+
+                </tr>
+            </thead>
 
                         <tbody class="divide-y divide-slate-200">
                             @forelse ($smapRisks as $smapRisk)
