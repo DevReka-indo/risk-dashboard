@@ -29,54 +29,37 @@
         const ctxEfektif = document.getElementById('smapChartEfektif');
         if (!ctxEfektif) return;
 
-        let activeChartEfektif = null;
+        // Reset instance Chart.js jika sebelumnya sudah ada
+        if (Chart.getChart(ctxEfektif)) {
+            Chart.getChart(ctxEfektif).destroy();
+        }
 
         // Palette warna sesuai status (Pencatatan, Effective, Mostly Effective, Partially Effective, In-Effective, Unmeasurable)
         const colorsEfektif = ['#3b82f6', '#10b981', '#14b8a6', '#f59e0b', '#ef4444', '#64748b'];
 
-        function renderEfektifChart(isAccumulative) {
-            if (activeChartEfektif) {
-                activeChartEfektif.destroy();
-            }
-
-            const currentData = isAccumulative ? pieData.efektif.on : pieData.efektif.off;
-
-            activeChartEfektif = new Chart(ctxEfektif.getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: pieData.efektif.labels,
-                    datasets: [{
-                        data: currentData,
-                        backgroundColor: colorsEfektif,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 10,
-                                font: { size: 10, weight: '600' }
-                            }
+        new Chart(ctxEfektif.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: pieData.efektif.labels,
+                datasets: [{
+                    data: pieData.efektif.off, // Mengunci langsung pada data triwulan berjalan
+                    backgroundColor: colorsEfektif,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 10,
+                            font: { size: 10, weight: '600' }
                         }
                     }
                 }
-            });
-        }
-
-        // Gambar pertama kali dengan setelan default (Kuartal Berjalan / Accumulative Off)
-        const currentAccumulateState = document.getElementById('accumulateToggle')?.checked ?? false;
-        renderEfektifChart(currentAccumulateState);
-
-        // Pasang event listener ke switch/toggle utama dashboard jika ada
-        const toggleBtn = document.getElementById('accumulateToggle');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('change', function() {
-                renderEfektifChart(this.checked);
-            });
-        }
+            }
+        });
     });
 </script>

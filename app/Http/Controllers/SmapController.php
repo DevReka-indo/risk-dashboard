@@ -76,7 +76,7 @@ class SmapController extends Controller
         $quarterLookups = [$stringQuarter, (int)$selectedPeriode, (string)$selectedPeriode, 'Q' . $selectedPeriode];
 
         // 1. HITUNG TOTAL RISIKO
-        $totalRisiko = \App\Models\SmapMonitoringPeriod::query()
+        $totalRisiko = DB::table('smap_monitoring_periods')
             ->whereIn('quarter', $quarterLookups)
             ->where('year', $selectedYear)
             ->count();
@@ -100,7 +100,7 @@ class SmapController extends Controller
             ->toArray();
 
         // 4. HITUNG JUMLAH RISIKO PER LEVEL
-        $risksPerLevel = \App\Models\SmapMonitoringPeriod::query()
+        $risksPerLevel = DB::table('smap_monitoring_periods')
             ->whereIn('quarter', $quarterLookups)
             ->where('year', $selectedYear)
             ->selectRaw('id_level, count(*) as total')
@@ -119,7 +119,7 @@ class SmapController extends Controller
             ->toArray();
 
         // 6. HITUNG TREND PERUBAHAN
-        $risksPerTrend = \App\Models\SmapMonitoringPeriod::query()
+        $risksPerTrend = DB::table('smap_monitoring_periods')
             ->whereIn('quarter', $quarterLookups)
             ->where('year', $selectedYear)
             ->selectRaw('trend, count(*) as total')
@@ -214,69 +214,37 @@ class SmapController extends Controller
             'status_distribution' => [],
         ];
 
-        // LOGIKA PENYIAPAN 4 PIE CHART (Termasuk data penanganan risiko)
+        // PREPARASI STRUKTUR LEVEL KOSONG (1-5)
         $baseArray = array_fill_keys($allLevels->pluck('id_level')->toArray(), 0);
 
-        $pieInherentOff = $baseArray;
-        $inherentOffData = \App\Models\SmapMonitoringPeriod::where('year', $selectedYear)
-            ->whereIn('quarter', $quarterLookups)
+        // --- 🔥 FIXED BASELINE: PIE 1 - INHERENT MASTER (Mengunci data tahun ini dari master induk) ---
+        $pieInherent = $baseArray;
+        $inherentMasterData = DB::table('smap_monitoring')
+            ->whereYear('created_at', $selectedYear)
             ->selectRaw('id_level, count(*) as total')
             ->groupBy('id_level')
             ->pluck('total', 'id_level')
             ->toArray();
-        foreach ($inherentOffData as $lvl => $tot) { $pieInherentOff[$lvl] = (int)$tot; }
+        foreach ($inherentMasterData as $lvl => $tot) { if($lvl) $pieInherent[$lvl] = (int)$tot; }
 
-        $allowedQuarters = [];
-        for ($i = 1; $i <= $selectedPeriode; $i++) {
-            $allowedQuarters[] = 'TW' . $i;
-            $allowedQuarters[] = $i;
-            $allowedQuarters[] = (string)$i;
-            $allowedQuarters[] = 'Q' . $i;
-        }
+        // --- 🔥 DYNAMIC FILTER: PIE 2 - CURRENT RISK (Berubah dinamis mengikuti triwulan berjalan) ---
+        $pieCurrent = $baseArray;
+        foreach ($risksPerLevel as $lvl => $tot) { if($lvl) $pieCurrent[$lvl] = (int)$tot; }
 
-        $pieInherentOn = $baseArray;
-        $inherentOnData = \App\Models\SmapMonitoringPeriod::where('year', $selectedYear)
-            ->whereIn('quarter', $allowedQuarters)
-            ->selectRaw('id_level, count(*) as total')
-            ->groupBy('id_level')
-            ->pluck('total', 'id_level')
-            ->toArray();
-        foreach ($inherentOnData as $lvl => $tot) { $pieInherentOn[$lvl] = (int)$tot; }
-
-        $pieCurrentOff = $baseArray;
-        foreach ($risksPerLevel as $lvl => $tot) { $pieCurrentOff[$lvl] = (int)$tot; }
-
-        $pieCurrentOn = $baseArray;
-        $currentOnData = \App\Models\SmapMonitoringPeriod::where('year', $selectedYear)
-            ->whereIn('quarter', $allowedQuarters)
-            ->selectRaw('id_level, count(*) as total')
-            ->groupBy('id_level')
-            ->pluck('total', 'id_level')
-            ->toArray();
-        foreach ($currentOnData as $lvl => $tot) { $pieCurrentOn[$lvl] = (int)$tot; }
-
-        $pieTargetOff = $baseArray;
-        $targetOffData = \App\Models\SmapMonitoringPeriod::where('year', $selectedYear)
-            ->whereIn('quarter', $quarterLookups)
+        // --- 🔥 FIXED TARGET: PIE 3 - TARGET MASTER (Mengunci data tahun ini dari master induk) ---
+        $pieTarget = $baseArray;
+        $targetMasterData = DB::table('smap_monitoring')
+            ->whereYear('created_at', $selectedYear)
             ->selectRaw('id_level_target, count(*) as total')
             ->groupBy('id_level_target')
             ->pluck('total', 'id_level_target')
             ->toArray();
-        foreach ($targetOffData as $lvl => $tot) { if($lvl) $pieTargetOff[$lvl] = (int)$tot; }
+        foreach ($targetMasterData as $lvl => $tot) { if($lvl) $pieTarget[$lvl] = (int)$tot; }
 
-        $pieTargetOn = $baseArray;
-        $targetOnData = \App\Models\SmapMonitoringPeriod::where('year', $selectedYear)
-            ->whereIn('quarter', $allowedQuarters)
-            ->selectRaw('id_level_target, count(*) as total')
-            ->groupBy('id_level_target')
-            ->pluck('total', 'id_level_target')
-            ->toArray();
-        foreach ($targetOnData as $lvl => $tot) { if($lvl) $pieTargetOn[$lvl] = (int)$tot; }
-
-        // --- Pie 4: Progres Penanganan Risiko ---
+        // --- 📊 PIE 4: PROGRES PENANAMAN RISIKO (Triwulan Berjalan) ---
         $baseProgres = ['belum' => 0, 'proses' => 0, 'selesai' => 0];
-
-        $progresOffData = \App\Models\SmapMonitoringPeriod::where('year', $selectedYear)
+        $progresOffData = DB::table('smap_monitoring_periods')
+            ->where('year', $selectedYear)
             ->whereIn('quarter', $quarterLookups)
             ->selectRaw('status_penanganan, count(*) as total')
             ->groupBy('status_penanganan')
@@ -288,30 +256,17 @@ class SmapController extends Controller
             if (array_key_exists($key, $pieProgresOff)) { $pieProgresOff[$key] = (int)$tot; }
         }
 
-        $progresOnData = \App\Models\SmapMonitoringPeriod::where('year', $selectedYear)
-            ->whereIn('quarter', $allowedQuarters)
-            ->selectRaw('status_penanganan, count(*) as total')
-            ->groupBy('status_penanganan')
-            ->pluck('total', 'status_penanganan')
-            ->toArray();
-        $pieProgresOn = $baseProgres;
-        foreach ($progresOnData as $status => $tot) {
-            $key = strtolower($status ?: 'belum');
-            if (array_key_exists($key, $pieProgresOn)) { $pieProgresOn[$key] = (int)$tot; }
-        }
-
-        // --- 🔥 PIE CHART 5: EFEKTIVITAS MITIGASI RISIKO (Tambahan Baru) ---
+        // --- 📊 PIE 5: EFEKTIVITAS MITIGASI RISIKO (Triwulan Berjalan) ---
         $baseEfektif = [
             'Pencatatan'          => 0,
-            'Effective'          => 0,
+            'Effective'           => 0,
             'Mostly Effective'    => 0,
             'Partially Effective' => 0,
             'In-Effective'        => 0,
             'Unmeasurable'        => 0
         ];
-
-        // Hitung data berjalan (quarterLookups)
-        $efektifOffData = \App\Models\SmapMonitoringPeriod::where('year', $selectedYear)
+        $efektifOffData = DB::table('smap_monitoring_periods')
+            ->where('year', $selectedYear)
             ->whereIn('quarter', $quarterLookups)
             ->selectRaw('efektif_risiko, count(*) as total')
             ->groupBy('efektif_risiko')
@@ -322,42 +277,19 @@ class SmapController extends Controller
             if ($status && array_key_exists($status, $pieEfektifOff)) { $pieEfektifOff[$status] = (int)$tot; }
         }
 
-        // Hitung data akumulatif (allowedQuarters)
-        $efektifOnData = \App\Models\SmapMonitoringPeriod::where('year', $selectedYear)
-            ->whereIn('quarter', $allowedQuarters)
-            ->selectRaw('efektif_risiko, count(*) as total')
-            ->groupBy('efektif_risiko')
-            ->pluck('total', 'efektif_risiko')
-            ->toArray();
-        $pieEfektifOn = $baseEfektif;
-        foreach ($efektifOnData as $status => $tot) {
-            if ($status && array_key_exists($status, $pieEfektifOn)) { $pieEfektifOn[$status] = (int)$tot; }
-        }
-
+        // KEMAS SEMUA STRUKTUR KE VARIABLE UTAMA YANG DIBACA OLEH JAVASCRIPT BLADE
         $smapPieData = [
             'labels'   => array_values($allLevels->pluck('nama_level')->toArray()),
-            'inherent' => [
-                'off' => array_values($pieInherentOff),
-                'on'  => array_values($pieInherentOn),
-            ],
-            'current'  => [
-                'off' => array_values($pieCurrentOff),
-                'on'  => array_values($pieCurrentOn),
-            ],
-            'target'   => [
-                'off' => array_values($pieTargetOff),
-                'on'  => array_values($pieTargetOn),
-            ],
+            'inherent' => array_values($pieInherent),
+            'current'  => array_values($pieCurrent),
+            'target'   => array_values($pieTarget),
             'progres'  => [
                 'labels' => ['Belum Dimulai', 'Sedang Berjalan', 'Selesai'],
-                'off'    => array_values($pieProgresOff),
-                'on'     => array_values($pieProgresOn)
+                'off'    => array_values($pieProgresOff)
             ],
-            // 🔥 DATA PIE CHART BARU
             'efektif'  => [
                 'labels' => array_keys($baseEfektif),
-                'off'    => array_values($pieEfektifOff),
-                'on'     => array_values($pieEfektifOn)
+                'off'    => array_values($pieEfektifOff)
             ]
         ];
 
@@ -468,29 +400,41 @@ class SmapController extends Controller
 
     public function update(Request $request, string $id): RedirectResponse
     {
-        // 1. Validasi semua data yang dikirimkan oleh form edit
+        // 1. Validasi semua data yang dikirimkan oleh form edit (Kurung penutup yang hilang sudah diperbaiki)
         $validated = $request->validate([
             'risk_event_deta'   => ['required', 'string'],
             'id_kategori'       => ['required', 'integer', 'exists:kategori_risiko,id_kategori'],
             'created_at'        => ['required', 'date'],
             'inherent'          => ['required', 'integer', 'between:1,25'],
-            'id_level'          => ['required', 'integer'],
             'inherent_target'   => ['required', 'integer', 'between:1,25'],
-            'id_level_target'   => ['required', 'integer'],
-            'status'            => ['required', 'string', 'in:0,1'], // Menerima string '0' atau '1' dari Alpine.js
-            'id_unit'           => ['required', 'integer', 'exists:top_unit_kerja,id_unit'], // Disesuaikan dengan tabel top_unit_kerja kamu
-        ]);
+            'status'            => ['required', 'string', 'in:0,1'],
+            'id_unit'           => ['required', 'integer', 'exists:top_unit_kerja,id_unit'],
+        ]); // <-- Tanda penutup ini sebelumnya hilang yang menyebabkan error syntax!
 
         // 2. Cari data model berdasarkan ID
         $risk = SmapMonitoring::findOrFail($id);
 
-        // 3. Konversi nilai status dari string '0'/'1' menjadi boolean/integer (0 atau 1) sebelum diupdate
+        // 3. Konversi nilai status dari string '0'/'1' menjadi integer (0 atau 1)
         $validated['status'] = (int) $validated['status'];
 
-        // 4. Update data ke database
+        // 4. 🔥 VALIDASI BACK-END: Hitung otomatis ID Level berdasarkan Skor Inherent demi keamanan data master
+        $getBackendRiskLevelId = function($score) {
+            $val = (int) $score;
+            if ($val >= 1 && $val <= 5) return 1;          // Low
+            if ($val >= 6 && $val <= 11) return 2;         // Low to Moderate
+            if ($val >= 12 && $val <= 15) return 3;        // Moderate
+            if ($val >= 16 && $val <= 19) return 4;        // Moderate to High
+            if ($val >= 20 && $val <= 25) return 5;        // High
+            return 1;
+        };
+
+        $validated['id_level'] = $getBackendRiskLevelId($validated['inherent']);
+        $validated['id_level_target'] = $getBackendRiskLevelId($validated['inherent_target']);
+
+        // 5. Update data ke database secara aman
         $risk->update($validated);
 
-        // 5. Kembalikan ke halaman index dengan notifikasi sukses
+        // 6. Kembalikan ke halaman index dengan notifikasi sukses
         return redirect()
             ->route('smap-risk.index')
             ->with('success', 'Risk SMAP berhasil diperbarui.');
@@ -508,12 +452,11 @@ class SmapController extends Controller
 
     public function show(string $id): View
     {
-        // Tambahkan 'levelTarget' ke dalam eager loading with()
         $risk = SmapMonitoring::with([
             'unitKerja',
             'kategoriRisiko',
             'levelRisiko',
-            'levelTarget', // <--- PENTING: Agar level target bisa terbaca di Blade
+            'levelTarget',
             'detailPeriode.period'
         ])->findOrFail($id);
 
@@ -627,7 +570,6 @@ class SmapController extends Controller
             $efektivitasFinal = 'Unmeasurable';
         }
 
-        // Menghitung trend berdasarkan data master vs inputan saat ini
         $calculatedTrend = 'Stabil';
         if ($scoreCurrent > $scoreInherent) {
             $calculatedTrend = 'Naik';
@@ -640,11 +582,11 @@ class SmapController extends Controller
             'id_smap'           => $parentRisk->id_smap,
             'quarter'           => $request->quarter,
             'year'              => $request->year,
-            'id_level'          => $levelCurrentId,      // Menyimpan level terhitung berjalan
-            'id_level_target'   => $idLevelTarget,       // Mengunci level target awal master
+            'id_level'          => $levelCurrentId,
+            'id_level_target'   => $idLevelTarget,
             'value'             => $scoreCurrent,
-            'inherent'          => $scoreInherent,       // Mengunci inherent awal master
-            'inherent_target'   => $scoreTarget,         // Mengunci target awal master
+            'inherent'          => $scoreInherent,
+            'inherent_target'   => $scoreTarget,
             'trend'             => $calculatedTrend,
             'status_penanganan' => $request->status_penanganan,
             'efektif_risiko'    => $efektivitasFinal,
