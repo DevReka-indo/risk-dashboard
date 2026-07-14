@@ -83,4 +83,6 @@
     ])
 
     @include('smap.partials._chart-pie-penanganan')
+
+    @include('smap.partials._chart-pie-efektif')
 </div>

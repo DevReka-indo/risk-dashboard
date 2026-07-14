@@ -300,6 +300,40 @@ class SmapController extends Controller
             if (array_key_exists($key, $pieProgresOn)) { $pieProgresOn[$key] = (int)$tot; }
         }
 
+        // --- 🔥 PIE CHART 5: EFEKTIVITAS MITIGASI RISIKO (Tambahan Baru) ---
+        $baseEfektif = [
+            'Pencatatan'          => 0,
+            'Effective'          => 0,
+            'Mostly Effective'    => 0,
+            'Partially Effective' => 0,
+            'In-Effective'        => 0,
+            'Unmeasurable'        => 0
+        ];
+
+        // Hitung data berjalan (quarterLookups)
+        $efektifOffData = \App\Models\SmapMonitoringPeriod::where('year', $selectedYear)
+            ->whereIn('quarter', $quarterLookups)
+            ->selectRaw('efektif_risiko, count(*) as total')
+            ->groupBy('efektif_risiko')
+            ->pluck('total', 'efektif_risiko')
+            ->toArray();
+        $pieEfektifOff = $baseEfektif;
+        foreach ($efektifOffData as $status => $tot) {
+            if ($status && array_key_exists($status, $pieEfektifOff)) { $pieEfektifOff[$status] = (int)$tot; }
+        }
+
+        // Hitung data akumulatif (allowedQuarters)
+        $efektifOnData = \App\Models\SmapMonitoringPeriod::where('year', $selectedYear)
+            ->whereIn('quarter', $allowedQuarters)
+            ->selectRaw('efektif_risiko, count(*) as total')
+            ->groupBy('efektif_risiko')
+            ->pluck('total', 'efektif_risiko')
+            ->toArray();
+        $pieEfektifOn = $baseEfektif;
+        foreach ($efektifOnData as $status => $tot) {
+            if ($status && array_key_exists($status, $pieEfektifOn)) { $pieEfektifOn[$status] = (int)$tot; }
+        }
+
         $smapPieData = [
             'labels'   => array_values($allLevels->pluck('nama_level')->toArray()),
             'inherent' => [
@@ -318,6 +352,12 @@ class SmapController extends Controller
                 'labels' => ['Belum Dimulai', 'Sedang Berjalan', 'Selesai'],
                 'off'    => array_values($pieProgresOff),
                 'on'     => array_values($pieProgresOn)
+            ],
+            // 🔥 DATA PIE CHART BARU
+            'efektif'  => [
+                'labels' => array_keys($baseEfektif),
+                'off'    => array_values($pieEfektifOff),
+                'on'     => array_values($pieEfektifOn)
             ]
         ];
 
@@ -329,7 +369,7 @@ class SmapController extends Controller
             'labels', 'data', 'chartDatasets', 'catLabels', 'catData', 'trendLabels', 'trendData', 'smapPieData'
         ));
     }
-    
+
     /**
      * Logika Khusus untuk Tab List (Tabel, Pencarian, & Filter)
      */
@@ -475,6 +515,7 @@ class SmapController extends Controller
 
     public function storeMonitoring(Request $request, $id_smap)
     {
+        // 1. VALIDASI REQUEST FORM
         $request->validate([
             'quarter'                 => 'required|in:TW1,TW2,TW3,TW4',
             'year'                    => 'required|numeric|min:2020|max:2099',
@@ -484,9 +525,10 @@ class SmapController extends Controller
             'calculated_level'        => 'required|integer|min:1|max:5',
             'inherent_target'         => 'required|numeric|min:1|max:25',
             'calculated_level_target' => 'required|integer|min:1|max:5',
-            'status_penanganan'       => 'required|in:belum,proses,selesai', // 🔥 Tambahan Validasi Kolom Baru
+            'status_penanganan'       => 'required|in:belum,proses,selesai',
         ]);
 
+        // 2. MAPPING PENAMAAN PERIODE KUARTAL
         $quarterMapping = [
             'TW1' => ['numeric' => '1', 'text' => 'TW1'],
             'TW2' => ['numeric' => '2', 'text' => 'TW2'],
@@ -508,6 +550,7 @@ class SmapController extends Controller
 
         $parentRisk = SmapMonitoring::findOrFail($id_smap);
 
+        // 3. CEK PROTEKSI DUPLIKASI INPUT DATA PERIODE
         $exists = \App\Models\SmapMonitoringPeriod::query()
             ->where('id_smap', '=', (int) $parentRisk->id_smap)
             ->where('quarter', '=', $request->quarter)
@@ -523,9 +566,61 @@ class SmapController extends Controller
         }
 
         $idLevelTerbaru = (int) $request->calculated_level ?: $parentRisk->id_level;
-        $idLevelTarget = (int) $request->calculated_level_target ?: null;
+        $idLevelTarget  = (int) $request->calculated_level_target ?: null;
 
-        // 🔥 Menyimpan status_penanganan Baru ke DB
+        // ===================================================================
+        // 🔥 LOGIKA BARU: MATRIKS EFEKTIVITAS BERDASARKAN SKALA LEVEL & SKOR
+        // ===================================================================
+        $scoreCurrent  = (int)$request->value;
+        $scoreInherent = (int)$request->inherent;
+
+        // Fungsi Helper untuk menentukan ID Level berdasarkan Score
+        $determineLevelId = function($score) {
+            if ($score >= 1 && $score <= 5)   return 1; // Low
+            if ($score >= 6 && $score <= 11)  return 2; // Low to Moderate
+            if ($score >= 12 && $score <= 15) return 3; // Moderate
+            if ($score >= 16 && $score <= 19) return 4; // Moderate to High
+            if ($score >= 20 && $score <= 25) return 5; // High
+            return 1;
+        };
+
+        // Dapatkan ID Level murni dari skor
+        $levelInherentId = $determineLevelId($scoreInherent);
+        $levelCurrentId  = $determineLevelId($scoreCurrent);
+
+        // Klasifikasi Kelompok Level
+        $isLevelAman      = in_array($levelCurrentId, [1, 2]);      // Low / Low to Moderate
+        $isLevelBelumAman = in_array($levelCurrentId, [3, 4, 5]);   // Moderate / Moderate to High / High
+
+        $efektivitasFinal = '';
+
+        // -- Kondisi 1: Pencatatan (Skor sama & Level Aman)
+        if ($scoreCurrent === $scoreInherent && $isLevelAman) {
+            $efektivitasFinal = 'Pencatatan';
+        }
+        // -- Kondisi 2: Effective (Skor turun & Level Aman)
+        elseif ($scoreCurrent < $scoreInherent && $isLevelAman) {
+            $efektivitasFinal = 'Effective';
+        }
+        // -- Kondisi 3: Mostly Effective (Skor turun & Level ikut turun ke tingkat lebih rendah)
+        elseif ($scoreCurrent < $scoreInherent && $isLevelBelumAman && $levelCurrentId < $levelInherentId) {
+            $efektivitasFinal = 'Mostly Effective';
+        }
+        // -- Kondisi 4: Partially Effective (Skor turun tapi Levelnya tetap berada di kelas yang sama)
+        elseif ($scoreCurrent < $scoreInherent && $isLevelBelumAman && $levelCurrentId === $levelInherentId) {
+            $efektivitasFinal = 'Partially Effective';
+        }
+        // -- Kondisi 5: In-Effective (Skor sama & Level Belum Aman)
+        elseif ($scoreCurrent === $scoreInherent && $isLevelBelumAman) {
+            $efektivitasFinal = 'In-Effective';
+        }
+        // -- Kondisi 6: Unmeasurable (Catch-All / Jika skor naik atau kondisi lainnya tidak terpenuhi)
+        else {
+            $efektivitasFinal = 'Unmeasurable';
+        }
+        // ===================================================================
+
+        // 4. SIMPAN DATA LENGKAP KE DATABASE
         \App\Models\SmapMonitoringPeriod::create([
             'id_smap'           => $parentRisk->id_smap,
             'quarter'           => $request->quarter,
@@ -537,6 +632,7 @@ class SmapController extends Controller
             'inherent_target'   => $request->inherent_target,
             'trend'             => $request->calculated_trend,
             'status_penanganan' => $request->status_penanganan,
+            'efektif_risiko'    => $efektivitasFinal,
         ]);
 
         $parentRisk->update([
