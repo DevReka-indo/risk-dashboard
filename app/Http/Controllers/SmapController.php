@@ -468,16 +468,29 @@ class SmapController extends Controller
 
     public function update(Request $request, string $id): RedirectResponse
     {
+        // 1. Validasi semua data yang dikirimkan oleh form edit
         $validated = $request->validate([
-            'id_unit'         => ['required', 'integer', 'exists:top_unit_kerja,id_unit'],
-            'id_kategori'     => ['required', 'integer', 'exists:kategori_risiko,id_kategori'],
-            'risk_event_deta' => ['required', 'string'],
+            'risk_event_deta'   => ['required', 'string'],
+            'id_kategori'       => ['required', 'integer', 'exists:kategori_risiko,id_kategori'],
+            'created_at'        => ['required', 'date'],
+            'inherent'          => ['required', 'integer', 'between:1,25'],
+            'id_level'          => ['required', 'integer'],
+            'inherent_target'   => ['required', 'integer', 'between:1,25'],
+            'id_level_target'   => ['required', 'integer'],
+            'status'            => ['required', 'string', 'in:0,1'], // Menerima string '0' atau '1' dari Alpine.js
+            'id_unit'           => ['required', 'integer', 'exists:top_unit_kerja,id_unit'], // Disesuaikan dengan tabel top_unit_kerja kamu
         ]);
 
+        // 2. Cari data model berdasarkan ID
         $risk = SmapMonitoring::findOrFail($id);
-        $validated['status'] = $request->boolean('status');
+
+        // 3. Konversi nilai status dari string '0'/'1' menjadi boolean/integer (0 atau 1) sebelum diupdate
+        $validated['status'] = (int) $validated['status'];
+
+        // 4. Update data ke database
         $risk->update($validated);
 
+        // 5. Kembalikan ke halaman index dengan notifikasi sukses
         return redirect()
             ->route('smap-risk.index')
             ->with('success', 'Risk SMAP berhasil diperbarui.');

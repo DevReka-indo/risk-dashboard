@@ -13,26 +13,30 @@ class SmapMonitoring extends Model
 
     protected $primaryKey = 'id_smap';
 
-    // Tambahkan parent_id dan id_period di sini agar bisa disimpan lewat Controller
+    // 1. TAMBAHKAN inherent_target DAN id_level_target KE FILLABLE AGAR DATA TIDAK DI-BLOCK LARAVEL
     protected $fillable = [
         'parent_id',
         'id_period',
         'id_unit',
         'id_kategori',
         'id_level',
+        'id_level_target', // Tambahkan ini
         'risk_event_deta',
         'value',
         'inherent',
+        'inherent_target', // Tambahkan ini
         'trend',
         'status',
     ];
 
+    // 2. TAMBAHKAN CASTS UNTUK INHERENT TARGET
     protected function casts(): array
     {
         return [
             'status' => 'boolean',
             'value' => 'integer',
             'inherent' => 'integer',
+            'inherent_target' => 'integer', // Tambahkan ini
         ];
     }
 
@@ -80,6 +84,12 @@ class SmapMonitoring extends Model
         return $this->belongsTo(LevelRisiko::class, 'id_level', 'id_level');
     }
 
+    // 3. DAFTARKAN RELASI BARU UNTUK LEVEL TARGET
+    public function levelTarget(): BelongsTo
+    {
+        return $this->belongsTo(LevelRisiko::class, 'id_level_target', 'id_level');
+    }
+
     public function unitKerja(): BelongsTo
     {
         return $this->belongsTo(TopUnitKerja::class, 'id_unit', 'id_unit');
@@ -87,26 +97,20 @@ class SmapMonitoring extends Model
 
     // === TAMBAHAN RELASI UNTUK MONITORING PERIODIK ===
 
-    // Menghubungkan baris monitoring ke master tabel periode
     public function period(): BelongsTo
     {
         return $this->belongsTo(Period::class, 'id_period', 'id_period');
     }
 
-// Di dalam file app/Models/SmapMonitoring.php
+    public function latestPeriode(): HasOne
+    {
+        return $this->hasOne(SmapMonitoringPeriod::class, 'id_smap', 'id_smap')
+                    ->latestOfMany('id_detail');
+    }
 
-// 1. Mengambil hanya 1 data kuartal TERBARU untuk halaman INDEX utama
-public function latestPeriode(): HasOne
-{
-    // Menggunakan 'id_detail' karena itu primary key increment tabel smap_monitoring_periods kita
-    return $this->hasOne(SmapMonitoringPeriod::class, 'id_smap', 'id_smap')
-                ->latestOfMany('id_detail');
-}
-
-// 2. Mengambil semua riwayat kuartal milik risiko ini untuk halaman SHOW detail
-public function detailPeriode(): HasMany
-{
-    return $this->hasMany(SmapMonitoringPeriod::class, 'id_smap', 'id_smap')
-                ->latest('id_detail');
-}
+    public function detailPeriode(): HasMany
+    {
+        return $this->hasMany(SmapMonitoringPeriod::class, 'id_smap', 'id_smap')
+                    ->latest('id_detail');
+    }
 }
