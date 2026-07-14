@@ -427,21 +427,26 @@ class SmapController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        // 1. Tambahkan validasi untuk 4 field baseline baru
         $validated = $request->validate([
             'id_unit'         => ['required', 'integer', 'exists:top_unit_kerja,id_unit'],
             'id_kategori'     => ['required', 'integer', 'exists:kategori_risiko,id_kategori'],
             'risk_event_deta' => ['required', 'string'],
             'status'          => ['required', 'boolean'],
             'created_at'      => ['required', 'date'],
+            // Validasi tambahan
+            'inherent'        => ['required', 'integer', 'min:1', 'max:25'],
+            'id_level'        => ['required', 'integer', 'exists:level_risiko,id_level'],
+            'inherent_target' => ['required', 'integer', 'min:1', 'max:25'],
+            'id_level_target' => ['required', 'integer', 'exists:level_risiko,id_level'],
         ]);
 
         $validated['parent_id']  = null;
         $validated['id_period']  = null;
-        $validated['id_level']   = 1;
         $validated['value']      = 0;
-        $validated['inherent']   = 0;
         $validated['trend']      = 'Stabil';
 
+        // 2. Simpan record master ke database
         SmapMonitoring::create($validated);
 
         return redirect()
@@ -490,7 +495,15 @@ class SmapController extends Controller
 
     public function show(string $id): View
     {
-        $risk = SmapMonitoring::with(['unitKerja', 'kategoriRisiko', 'levelRisiko', 'detailPeriode.period'])->findOrFail($id);
+        // Tambahkan 'levelTarget' ke dalam eager loading with()
+        $risk = SmapMonitoring::with([
+            'unitKerja',
+            'kategoriRisiko',
+            'levelRisiko',
+            'levelTarget', // <--- PENTING: Agar level target bisa terbaca di Blade
+            'detailPeriode.period'
+        ])->findOrFail($id);
+
         $periods = Period::orderBy('year', 'desc')->orderBy('quarter', 'asc')->get();
 
         $historyData = [];
@@ -515,16 +528,14 @@ class SmapController extends Controller
 
     public function storeMonitoring(Request $request, $id_smap)
     {
-        // 1. VALIDASI REQUEST FORM
+        $parentRisk = SmapMonitoring::findOrFail($id_smap);
+
+        // 1. VALIDASI REQUEST FORM (Hapus validasi rentang kalkulasi level dinamis)
         $request->validate([
             'quarter'                 => 'required|in:TW1,TW2,TW3,TW4',
             'year'                    => 'required|numeric|min:2020|max:2099',
             'value'                   => 'required|numeric|min:1|max:25',
-            'inherent'                => 'required|numeric',
             'status_monitoring'       => 'required|in:0,1',
-            'calculated_level'        => 'required|integer|min:1|max:5',
-            'inherent_target'         => 'required|numeric|min:1|max:25',
-            'calculated_level_target' => 'required|integer|min:1|max:5',
             'status_penanganan'       => 'required|in:belum,proses,selesai',
         ]);
 
@@ -548,8 +559,6 @@ class SmapController extends Controller
             ]
         );
 
-        $parentRisk = SmapMonitoring::findOrFail($id_smap);
-
         // 3. CEK PROTEKSI DUPLIKASI INPUT DATA PERIODE
         $exists = \App\Models\SmapMonitoringPeriod::query()
             ->where('id_smap', '=', (int) $parentRisk->id_smap)
@@ -565,72 +574,65 @@ class SmapController extends Controller
                 ]);
         }
 
-        $idLevelTerbaru = (int) $request->calculated_level ?: $parentRisk->id_level;
-        $idLevelTarget  = (int) $request->calculated_level_target ?: null;
+        // Mengunci Inherent dan Target mutlak ke data awal master risiko
+        $scoreInherent   = (int)$parentRisk->inherent;
+        $scoreTarget     = (int)$parentRisk->inherent_target;
+        $idLevelTarget   = $parentRisk->id_level_target;
 
-        // ===================================================================
-        // 🔥 LOGIKA BARU: MATRIKS EFEKTIVITAS BERDASARKAN SKALA LEVEL & SKOR
-        // ===================================================================
-        $scoreCurrent  = (int)$request->value;
-        $scoreInherent = (int)$request->inherent;
+        $scoreCurrent    = (int)$request->value;
 
-        // Fungsi Helper untuk menentukan ID Level berdasarkan Score
+        // Helper untuk menentukan ID Level Current berjalan berdasarkan skor inputan
         $determineLevelId = function($score) {
-            if ($score >= 1 && $score <= 5)   return 1; // Low
-            if ($score >= 6 && $score <= 11)  return 2; // Low to Moderate
-            if ($score >= 12 && $score <= 15) return 3; // Moderate
-            if ($score >= 16 && $score <= 19) return 4; // Moderate to High
-            if ($score >= 20 && $score <= 25) return 5; // High
+            if ($score >= 1 && $score <= 5)   return 1;
+            if ($score >= 6 && $score <= 11)  return 2;
+            if ($score >= 12 && $score <= 15) return 3;
+            if ($score >= 16 && $score <= 19) return 4;
+            if ($score >= 20 && $score <= 25) return 5;
             return 1;
         };
 
-        // Dapatkan ID Level murni dari skor
         $levelInherentId = $determineLevelId($scoreInherent);
         $levelCurrentId  = $determineLevelId($scoreCurrent);
 
-        // Klasifikasi Kelompok Level
-        $isLevelAman      = in_array($levelCurrentId, [1, 2]);      // Low / Low to Moderate
-        $isLevelBelumAman = in_array($levelCurrentId, [3, 4, 5]);   // Moderate / Moderate to High / High
+        // Klasifikasi Kelompok Level untuk Matriks Efektivitas
+        $isLevelAman      = in_array($levelCurrentId, [1, 2]);
+        $isLevelBelumAman = in_array($levelCurrentId, [3, 4, 5]);
 
         $efektivitasFinal = '';
 
-        // -- Kondisi 1: Pencatatan (Skor sama & Level Aman)
         if ($scoreCurrent === $scoreInherent && $isLevelAman) {
             $efektivitasFinal = 'Pencatatan';
-        }
-        // -- Kondisi 2: Effective (Skor turun & Level Aman)
-        elseif ($scoreCurrent < $scoreInherent && $isLevelAman) {
+        } elseif ($scoreCurrent < $scoreInherent && $isLevelAman) {
             $efektivitasFinal = 'Effective';
-        }
-        // -- Kondisi 3: Mostly Effective (Skor turun & Level ikut turun ke tingkat lebih rendah)
-        elseif ($scoreCurrent < $scoreInherent && $isLevelBelumAman && $levelCurrentId < $levelInherentId) {
+        } elseif ($scoreCurrent < $scoreInherent && $isLevelBelumAman && $levelCurrentId < $levelInherentId) {
             $efektivitasFinal = 'Mostly Effective';
-        }
-        // -- Kondisi 4: Partially Effective (Skor turun tapi Levelnya tetap berada di kelas yang sama)
-        elseif ($scoreCurrent < $scoreInherent && $isLevelBelumAman && $levelCurrentId === $levelInherentId) {
+        } elseif ($scoreCurrent < $scoreInherent && $isLevelBelumAman && $levelCurrentId === $levelInherentId) {
             $efektivitasFinal = 'Partially Effective';
-        }
-        // -- Kondisi 5: In-Effective (Skor sama & Level Belum Aman)
-        elseif ($scoreCurrent === $scoreInherent && $isLevelBelumAman) {
+        } elseif ($scoreCurrent === $scoreInherent && $isLevelBelumAman) {
             $efektivitasFinal = 'In-Effective';
-        }
-        // -- Kondisi 6: Unmeasurable (Catch-All / Jika skor naik atau kondisi lainnya tidak terpenuhi)
-        else {
+        } else {
             $efektivitasFinal = 'Unmeasurable';
         }
-        // ===================================================================
+
+        // Menghitung trend berdasarkan data master vs inputan saat ini
+        $calculatedTrend = 'Stabil';
+        if ($scoreCurrent > $scoreInherent) {
+            $calculatedTrend = 'Naik';
+        } elseif ($scoreCurrent < $scoreInherent) {
+            $calculatedTrend = 'Turun';
+        }
 
         // 4. SIMPAN DATA LENGKAP KE DATABASE
         \App\Models\SmapMonitoringPeriod::create([
             'id_smap'           => $parentRisk->id_smap,
             'quarter'           => $request->quarter,
             'year'              => $request->year,
-            'id_level'          => $idLevelTerbaru,
-            'id_level_target'   => $idLevelTarget,
-            'value'             => $request->value,
-            'inherent'          => $request->inherent,
-            'inherent_target'   => $request->inherent_target,
-            'trend'             => $request->calculated_trend,
+            'id_level'          => $levelCurrentId,      // Menyimpan level terhitung berjalan
+            'id_level_target'   => $idLevelTarget,       // Mengunci level target awal master
+            'value'             => $scoreCurrent,
+            'inherent'          => $scoreInherent,       // Mengunci inherent awal master
+            'inherent_target'   => $scoreTarget,         // Mengunci target awal master
+            'trend'             => $calculatedTrend,
             'status_penanganan' => $request->status_penanganan,
             'efektif_risiko'    => $efektivitasFinal,
         ]);

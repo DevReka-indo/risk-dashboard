@@ -139,7 +139,7 @@
             {{-- Tabel Data --}}
             <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
                         <thead class="bg-slate-50">
                             <tr>
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -150,6 +150,12 @@
                                 </th>
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
                                     Unit Kerja
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                                    Inherent
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                                    Target
                                 </th>
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
                                     Monitoring Terakhir
@@ -166,72 +172,111 @@
                         <tbody class="divide-y divide-slate-200">
                             @forelse ($smapRisks as $smapRisk)
                                 @php
-                                    // Mengambil baris record dari tabel smap_monitoring_periods ter-update
                                     $monitoringTerakhir = $smapRisk->latestPeriode;
                                 @endphp
 
                                 <tr class="hover:bg-slate-50">
-                                    {{-- Kolom Risiko --}}
+                                    {{-- 1. Kolom Risiko --}}
                                     <td class="px-6 py-4">
                                         <div class="max-w-md">
-                                            <div class="font-semibold text-slate-900">
+                                            <div class="font-bold text-slate-900">
                                                 {{ $smapRisk->risk_event_deta }}
                                             </div>
                                             <div class="mt-1 text-xs text-slate-500">
-                                                Dibuat: {{ $smapRisk->created_at?->format('d M Y') ?? '-' }}
+                                                Proyek
                                             </div>
                                         </div>
                                     </td>
 
-                                    {{-- Kolom Kategori --}}
-                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
+                                    {{-- 2. Kolom Kategori --}}
+                                    <td class="px-6 py-4 text-slate-600">
                                         {{ $smapRisk->kategoriRisiko->nama_kategori ?? '-' }}
                                     </td>
 
-                                    {{-- Kolom Unit Kerja --}}
-                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
+                                    {{-- 3. Kolom Unit Kerja --}}
+                                    <td class="px-6 py-4 text-slate-600">
                                         {{ $smapRisk->unitKerja->nama_unit ?? '-' }}
                                     </td>
 
-                                    {{-- Kolom Monitoring Terakhir --}}
+                                    {{-- 4. Kolom Inherent --}}
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="space-y-1">
+                                            <span class="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                                                Skor: {{ $smapRisk->inherent ?? 0 }}
+                                            </span>
+                                            <div>
+                                                <span class="text-xs text-slate-500 font-medium">
+                                                    @php
+                                                        $inherentVal = (int)($smapRisk->inherent ?? 0);
+                                                        $levelName = 'Low';
+                                                        if ($inherentVal >= 6 && $inherentVal <= 11) $levelName = 'Low Mod';
+                                                        elseif ($inherentVal >= 12 && $inherentVal <= 15) $levelName = 'Moderate';
+                                                        elseif ($inherentVal >= 16 && $inherentVal <= 19) $levelName = 'Mod High';
+                                                        elseif ($inherentVal >= 20) $levelName = 'High';
+                                                    @endphp
+                                                    {{ $levelName }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {{-- 5. Kolom Target --}}
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="space-y-1">
+                                            <span class="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                                                Skor: {{ $smapRisk->inherent_target ?? $smapRisk->target_value ?? 0 }}
+                                            </span>
+                                            <div>
+                                                <span class="text-xs text-slate-500 font-medium">
+                                                    @php
+                                                        $targetVal = (int)($smapRisk->inherent_target ?? $smapRisk->target_value ?? 0);
+                                                        $targetLevelName = 'Low';
+                                                        if ($targetVal >= 6 && $targetVal <= 11) $targetLevelName = 'Low Mod';
+                                                        elseif ($targetVal >= 12 && $targetVal <= 15) $targetLevelName = 'Moderate';
+                                                        elseif ($targetVal >= 16 && $targetVal <= 19) $targetLevelName = 'Mod High';
+                                                        elseif ($targetVal >= 20) $targetLevelName = 'High';
+                                                    @endphp
+                                                    {{ $targetLevelName }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {{-- 6. Kolom Monitoring Terakhir --}}
                                     <td class="px-6 py-4">
                                         @if ($monitoringTerakhir)
                                             <div class="space-y-1">
-                                                <div class="text-sm font-semibold text-slate-900">
-                                                    {{-- Menampilkan gabungan kolom quarter & year secara langsung --}}
+                                                <div class="text-xs font-bold text-slate-900">
                                                     {{ $monitoringTerakhir->quarter }} {{ $monitoringTerakhir->year }}
                                                 </div>
 
-                                                <div class="flex flex-wrap gap-2">
-                                                    <span class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                                                <div class="flex flex-wrap gap-1 items-center">
+                                                    <span class="inline-flex rounded bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
                                                         Nilai {{ $monitoringTerakhir->value ?? 0 }}
                                                     </span>
 
-                                                    <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                                                        {{-- Membaca level dari baris relasi period --}}
+                                                    <span class="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
                                                         {{ $monitoringTerakhir->levelRisiko->nama_level ?? '-' }}
                                                     </span>
                                                 </div>
 
-                                                <div class="text-xs text-slate-500">
+                                                <div class="text-[11px] text-slate-500">
                                                     Trend:
-                                                    <span class="font-semibold">
-                                                        @if(($monitoringTerakhir->trend ?? '') === 'Naik')
-                                                            <span class="text-rose-600">↑ Naik</span>
-                                                        @elseif(($monitoringTerakhir->trend ?? '') === 'Turun')
-                                                            <span class="text-emerald-600">↓ Turun</span>
-                                                        @else
-                                                            <span class="text-slate-500">→ Stabil</span>
-                                                        @endif
-                                                    </span>
+                                                    @if(($monitoringTerakhir->trend ?? '') === 'Naik')
+                                                        <span class="font-medium text-rose-600">→ Naik</span>
+                                                    @elseif(($monitoringTerakhir->trend ?? '') === 'Turun')
+                                                        <span class="font-medium text-emerald-600">→ Turun</span>
+                                                    @else
+                                                        <span class="font-medium text-slate-500">→ Stabil</span>
+                                                    @endif
                                                 </div>
                                             </div>
                                         @else
-                                            <span class="text-sm text-slate-400">Belum ada monitoring</span>
+                                            <span class="text-xs text-slate-400">Belum ada monitoring</span>
                                         @endif
                                     </td>
 
-                                    {{-- Kolom Status --}}
+                                    {{-- 7. Kolom Status --}}
                                     <td class="whitespace-nowrap px-6 py-4">
                                         @if ($smapRisk->status)
                                             <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
@@ -244,41 +289,41 @@
                                         @endif
                                     </td>
 
-                                    {{-- Kolom Aksi --}}
+                                    {{-- 8. Kolom Aksi --}}
                                     <td class="whitespace-nowrap px-6 py-4 text-right">
-                                       <div class="flex items-center justify-end gap-2">
-                                        {{-- Detail --}}
-                                        <a href="{{ route('smap-risk.show', $smapRisk->id_smap) }}"
-                                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600">
-                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            Detail
-                                        </a>
+                                       <div class="flex items-center justify-end gap-1">
+                                            {{-- Detail --}}
+                                            <a href="{{ route('smap-risk.show', $smapRisk->id_smap) }}"
+                                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50">
+                                                <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                Detail
+                                            </a>
 
-                                        {{-- Edit --}}
-                                        <a href="{{ route('smap-risk.edit', $smapRisk->id_smap) }}"
-                                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
-                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                            Edit
-                                        </a>
+                                            {{-- Edit --}}
+                                            <a href="{{ route('smap-risk.edit', $smapRisk->id_smap) }}"
+                                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50">
+                                                <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                Edit
+                                            </a>
 
-                                        {{-- Hapus --}}
-                                        <form method="POST" action="{{ route('smap-risk.destroy', $smapRisk->id_smap) }}"
-                                            onsubmit="return confirm('Yakin ingin menghapus data Risk SMAP ini?')"
-                                            class="m-0">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="inline-flex items-center gap-1.5 rounded-lg border border-rose-100 bg-white px-3 py-1.5 text-xs font-semibold text-rose-500 shadow-sm transition-all duration-200 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600">
-                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                Hapus
-                                            </button>
-                                        </form>
-                                    </div>
+                                            {{-- Hapus --}}
+                                            <form method="POST" action="{{ route('smap-risk.destroy', $smapRisk->id_smap) }}"
+                                                onsubmit="return confirm('Yakin ingin menghapus data Risk SMAP ini?')"
+                                                class="m-0 inline-block">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                        class="inline-flex items-center gap-1 rounded-lg border border-rose-100 bg-white px-2.5 py-1.5 text-xs font-semibold text-rose-500 shadow-sm transition hover:bg-rose-50 hover:text-rose-600">
+                                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-12 text-center">
+                                    <td colspan="8" class="px-6 py-12 text-center">
                                         <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
                                             <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12V16.5ZM10.29 3.86 1.82 18a2.25 2.25 0 0 0 1.93 3.375h16.5A2.25 2.25 0 0 0 22.18 18L13.71 3.86a2.25 2.25 0 0 0-3.42 0Z" />

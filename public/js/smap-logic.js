@@ -1,15 +1,15 @@
 document.addEventListener('alpine:init', () => {
-    Alpine.data('smapRiskForm', (historyData = {}, currentYear = '') => ({
+    Alpine.data('smapRiskForm', (historyData = {}, currentYear = '', defaultInherent = 0, defaultTarget = 0) => ({
         // ==========================
         // State
         // ==========================
-        quarter: '', // Sengaja dikosongkan awal agar trigger saat dipilih
+        quarter: '',
         year: currentYear,
-        inherent: '',
+        inherent: parseInt(defaultInherent) || 0, // Mengambil nilai default bawaan dari database
         value: '',
-        targetValue: '',
+        targetValue: parseInt(defaultTarget) || 0, // Mengambil nilai target bawaan dari database
 
-        inherentReadOnly: false,
+        inherentReadOnly: true,
         history: historyData,
 
         // ==========================
@@ -17,46 +17,19 @@ document.addEventListener('alpine:init', () => {
         // ==========================
         init() {
             this.checkInherent();
+
+            // Re-kalkulasi jika kuartal diubah oleh user
+            this.$watch('quarter', () => {
+                this.checkInherent();
+            });
         },
 
         // ==========================
         // Inherent Risk Logic
         // ==========================
         checkInherent() {
-            if (!this.quarter) {
-                this.inherentReadOnly = false;
-                return;
-            }
-
-            // TW1 selalu manual (awal tahun)
-            if (this.quarter === 'TW1') {
-                this.inherentReadOnly = false;
-                this.inherent = '';
-                return;
-            }
-
-            // Selain TW1, otomatis mengambil VALUE dari kuartal sebelumnya
-            this.inherentReadOnly = true;
-
-            const previousQuarter = {
-                TW2: 'TW1',
-                TW3: 'TW2',
-                TW4: 'TW3',
-            };
-
-            const prevQuarter = previousQuarter[this.quarter];
-
-            // 🔥 Membaca properti .value dari kuartal sebelumnya sesuai aturan barumu
-            if (
-                this.history &&
-                this.history[this.year] &&
-                this.history[this.year][prevQuarter] !== undefined &&
-                this.history[this.year][prevQuarter] !== null
-            ) {
-                this.inherent = this.history[this.year][prevQuarter].value;
-            } else {
-                this.inherent = 0; // Set 0 jika data kuartal sebelumnya belum ada di DB
-            }
+            // Kunci nilai inherent agar SELALU menggunakan nilai default dari database untuk semua kuartal (TW1 - TW4)
+            this.inherent = parseInt(defaultInherent) || 0;
         },
 
         // ==========================
@@ -64,7 +37,7 @@ document.addEventListener('alpine:init', () => {
         // ==========================
         getRiskLevelId(score) {
             const val = parseInt(score);
-            if (Number.isNaN(val)) return '';
+            if (Number.isNaN(val) || val <= 0) return '';
 
             if (val >= 1 && val <= 5) return 1;
             if (val >= 6 && val <= 11) return 2;
@@ -76,10 +49,39 @@ document.addEventListener('alpine:init', () => {
         },
 
         // ==========================
+        // Helper Translate Level ID ke Teks
+        // ==========================
+        getRiskLevelName(levelId) {
+            const names = {
+                1: 'Low',
+                2: 'Low Moderate',
+                3: 'Moderate',
+                4: 'Moderate to High',
+                5: 'High'
+            };
+            return names[levelId] || 'Menunggu input...';
+        },
+
+        // ==========================
+        // Inherent Risk Level
+        // ==========================
+        get inherentLevel() {
+            return this.getRiskLevelId(this.inherent);
+        },
+
+        get inherentLevelName() {
+            return this.getRiskLevelName(this.inherentLevel);
+        },
+
+        // ==========================
         // Current Risk Level
         // ==========================
         get otomatisLevel() {
             return this.getRiskLevelId(this.value);
+        },
+
+        get otomatisLevelName() {
+            return this.getRiskLevelName(this.otomatisLevel);
         },
 
         // ==========================
@@ -87,6 +89,10 @@ document.addEventListener('alpine:init', () => {
         // ==========================
         get otomatisTargetLevel() {
             return this.getRiskLevelId(this.targetValue);
+        },
+
+        get otomatisTargetLevelName() {
+            return this.getRiskLevelName(this.otomatisTargetLevel);
         },
 
         // ==========================
@@ -106,4 +112,3 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 });
-
