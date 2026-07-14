@@ -179,7 +179,7 @@
             </form>
         </div>
 
-        {{-- 3. RIWAYAT MONITORING KUARTAL --}}
+       {{-- 3. RIWAYAT MONITORING KUARTAL --}}
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="mb-5">
                 <h3 class="text-base font-bold text-slate-900">Riwayat Monitoring Kuartal</h3>
@@ -188,33 +188,56 @@
 
             <div class="space-y-4">
                 @forelse ($risk->detailPeriode as $history)
-                    <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-5 shadow-sm">
+                    <div class="rounded-3xl border border-slate-100 bg-slate-50/40 p-5 shadow-sm space-y-4"
+                         x-data="smapRiskHistoryEdit('{{ old('edit_value_'.$history->id_detail, $history->value) }}', '{{ $risk->inherent ?? 0 }}')">
+
+                        {{-- ATAS: BAR RINGKASAN DENGAN 5 SEGMENT BADGE & TOMBOL HAPUS --}}
                         <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/60 pb-3">
                             <div class="flex flex-wrap items-center gap-2">
+                                {{-- Segmen 1: Periode Waktu --}}
                                 <span class="inline-flex rounded-lg bg-slate-900 px-3 py-1 text-xs font-bold text-white">
-                                    {{ $history->period->period_name ?? '-' }}
+                                    @php
+                                        $displayQ = $history->quarter;
+                                        if (is_numeric($displayQ)) {
+                                            $displayQ = 'TW' . $displayQ;
+                                        } elseif (str_contains($displayQ, 'Q')) {
+                                            $displayQ = str_replace('Q', 'TW', $displayQ);
+                                        }
+                                    @endphp
+                                    {{ $displayQ }} {{ $history->year ?? '-' }}
                                 </span>
+                                {{-- Segmen 2: Inherent Level --}}
+                                <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 border border-slate-200">
+                                    Inherent Level: {{ $risk->levelRisiko->nama_level ?? 'Low' }}
+                                </span>
+                                {{-- Segmen 3: Current Level --}}
                                 <span class="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
                                     Current Level: {{ $history->levelRisiko->nama_level ?? '-' }}
                                 </span>
-                                <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                                {{-- Segmen 4: Target Level --}}
+                                <span class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">
                                     Target Level: {{ \App\Models\LevelRisiko::find($history->id_level_target)->nama_level ?? '-' }}
+                                </span>
+                                {{-- Segmen 5: Status Keaktifan Master Risiko --}}
+                                <span class="inline-flex rounded-full px-3 py-1 text-xs font-bold {{ ($risk->status ?? 1) == 1 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700' }}">
+                                    Status: {{ ($risk->status ?? 1) == 1 ? 'Aktif' : 'Tidak Aktif' }}
                                 </span>
                             </div>
 
                             <form method="POST" action="{{ route('smap-risk.destroy-monitoring', ['id_period' => $history->id_detail]) }}" onsubmit="return confirm('Hapus log riwayat kuartal ini?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50">
+                                <button type="submit" class="rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition shadow-sm">
                                     Hapus
                                 </button>
                             </form>
                         </div>
 
-                        <div class="mt-4 grid gap-4 grid-cols-2 md:grid-cols-5">
+                        {{-- TENGAH: 5 BOX KOTAK INFORMASI UTAMA --}}
+                        <div class="grid gap-4 grid-cols-2 md:grid-cols-5">
                             <div class="rounded-xl bg-white p-3 border border-slate-100">
                                 <div class="text-xs text-slate-400 font-medium">Inherent</div>
-                                <div class="mt-1 text-sm font-bold text-slate-800">{{ $history->inherent ?? 0 }}</div>
+                                <div class="mt-1 text-sm font-bold text-slate-800">{{ $risk->inherent ?? 0 }}</div>
                             </div>
 
                             <div class="rounded-xl bg-white p-3 border border-slate-100">
@@ -224,7 +247,7 @@
 
                             <div class="rounded-xl bg-indigo-50/30 p-3 border border-indigo-100">
                                 <div class="text-xs text-indigo-400 font-medium">Inherent Target</div>
-                                <div class="mt-1 text-sm font-bold text-indigo-900">{{ $history->inherent_target ?? 0 }}</div>
+                                <div class="mt-1 text-sm font-bold text-indigo-900">{{ $risk->inherent_target ?? 0 }}</div>
                             </div>
 
                             <div class="rounded-xl bg-white p-3 border border-slate-100">
@@ -253,6 +276,142 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- BAWAH: ACCORDION PANEL FORM EDIT --}}
+                        <div class="border border-slate-200 rounded-2xl bg-white overflow-hidden shadow-sm">
+                            <button type="button" @click="openEdit = !openEdit"
+                                    class="w-full text-left px-5 py-3 bg-slate-50/60 hover:bg-slate-50 transition flex items-center gap-2 text-xs font-bold text-slate-700 select-none">
+                                <span x-text="openEdit ? '▼' : '▶'"></span>
+                                <span x-text="openEdit ? 'Tutup edit monitoring kuartal ini' : 'Edit monitoring kuartal ini'"></span>
+                            </button>
+
+                            {{-- ISI PANEL FORM EDIT ACCORDION --}}
+                            <div x-show="openEdit" x-transition class="p-6 border-t border-slate-100 space-y-6 bg-white">
+                                <form method="POST" action="{{ route('smap-risk.update-monitoring', $history->id_detail) }}" class="space-y-6">
+                                    @csrf
+                                    @method('PUT')
+
+                                    {{-- LINE 1: EDIT WAKTU KUARTAL, TAHUN & STATUS RISIKO --}}
+                                    <div class="grid gap-5 grid-cols-1 sm:grid-cols-3">
+                                        {{-- Input Kuartal --}}
+                                        <div>
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">Kuartal</label>
+                                            <select name="quarter" required class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-bold text-slate-800">
+                                                @php
+                                                    $currentQ = $history->quarter;
+                                                    if (is_numeric($currentQ)) {
+                                                        $currentQ = 'TW' . $currentQ;
+                                                    } elseif (str_contains($currentQ, 'Q')) {
+                                                        $currentQ = str_replace('Q', 'TW', $currentQ);
+                                                    }
+                                                @endphp
+                                                <option value="TW1" {{ $currentQ == 'TW1' ? 'selected' : '' }}>TW1 (Triwulan 1)</option>
+                                                <option value="TW2" {{ $currentQ == 'TW2' ? 'selected' : '' }}>TW2 (Triwulan 2)</option>
+                                                <option value="TW3" {{ $currentQ == 'TW3' ? 'selected' : '' }}>TW3 (Triwulan 3)</option>
+                                                <option value="TW4" {{ $currentQ == 'TW4' ? 'selected' : '' }}>TW4 (Triwulan 4)</option>
+                                            </select>
+                                        </div>
+
+                                        {{-- Input Tahun --}}
+                                        <div>
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">Tahun</label>
+                                            <input type="number" name="year" min="2020" max="2099" required
+                                                   value="{{ old('edit_year_'.$history->id_detail, $history->year ?? date('Y')) }}"
+                                                   class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-bold text-slate-800">
+                                        </div>
+
+                                        {{-- Input Status Risiko --}}
+                                        <div>
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">Status Risiko</label>
+                                            <select name="status" required class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium text-slate-700">
+                                                <option value="1" {{ ($risk->status ?? 1) == 1 ? 'selected' : '' }}>Aktif</option>
+                                                <option value="0" {{ ($risk->status ?? 1) == 0 ? 'selected' : '' }}>Tidak Aktif</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <hr class="border-slate-100 my-2">
+
+                                    {{-- LINE 2: PERHITUNGAN SCORE CURRENT DAN KORELASINYA --}}
+                                    <div class="grid gap-6 grid-cols-1 md:grid-cols-3">
+                                        {{-- Inherent --}}
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Inherent Score</label>
+                                                <input type="number" readonly value="{{ $risk->inherent ?? 0 }}"
+                                                       class="mt-2 w-full rounded-2xl border-slate-200 bg-slate-50 text-slate-600 px-4 py-3 text-sm font-bold cursor-not-allowed shadow-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Level Inherent (Otomatis)</label>
+                                                <div class="mt-2 w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600 select-none"
+                                                     x-text="getRiskLevelName(inherent)">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Current Value --}}
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Value Current (1-25)</label>
+                                                <input type="number" name="value" x-model="historyValue" min="1" max="25" required
+                                                       class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-bold text-slate-800">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Level Current (Otomatis)</label>
+                                                <div class="mt-2 w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-bold text-slate-800 shadow-sm"
+                                                     x-text="getRiskLevelName(historyValue)">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Target --}}
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-xs font-bold uppercase tracking-wider text-indigo-500">Inherent Target</label>
+                                                <input type="number" readonly value="{{ $risk->inherent_target ?? 0 }}"
+                                                       class="mt-2 w-full rounded-2xl border-indigo-200 bg-slate-50 text-slate-700 px-4 py-3 text-sm font-bold cursor-not-allowed shadow-none">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold uppercase tracking-wider text-indigo-400">Level Target (Otomatis)</label>
+                                                <div class="mt-2 w-full rounded-2xl bg-slate-50 border border-indigo-100 px-4 py-3 text-sm font-bold text-indigo-900 shadow-sm"
+                                                     x-text="getRiskLevelName({{ (int)($risk->inherent_target ?? 0) }})">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr class="border-slate-100 my-2">
+
+                                    {{-- LINE 3: PENANGANAN & TREND --}}
+                                    <div class="grid gap-6 grid-cols-1 md:grid-cols-2">
+                                        <div>
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Progres Penanganan Risiko</label>
+                                            <select name="status_penanganan" required class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium text-slate-700">
+                                                <option value="belum" {{ $history->status_penanganan == 'belum' ? 'selected' : '' }}>🔴 Belum Dimulai</option>
+                                                <option value="proses" {{ $history->status_penanganan == 'proses' ? 'selected' : '' }}>🟡 Sedang Berjalan</option>
+                                                <option value="selesai" {{ $history->status_penanganan == 'selesai' ? 'selected' : '' }}>🟢 Selesai</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Hasil Analisis Trend Perubahan</label>
+                                            <div class="mt-2 flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 shadow-sm">
+                                                <div class="text-base font-black text-slate-800" x-text="getEditTrend()"></div>
+                                                <span class="text-xs text-slate-400 font-medium">(Dihitung otomatis berdasarkan perkembangan skor)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- BUTTON SIMPAN --}}
+                                    <div class="flex justify-end pt-4 border-t border-slate-100">
+                                        <button type="submit" class="w-full sm:w-auto rounded-xl bg-slate-900 px-8 py-3 text-sm font-bold text-white shadow-md hover:bg-slate-800 transition-all duration-200">
+                                            Simpan Perubahan Monitoring
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
                     </div>
                 @empty
                     <div class="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">

@@ -202,6 +202,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/risks/smap/{id}/monitoring', [SmapController::class, 'storeMonitoring'])
         ->middleware('permission:risk.create')
         ->name('smap-risk.store-monitoring');
+    Route::put('/risks/smap/monitoring/{id_detail}', [SmapController::class, 'updateMonitoring'])
+        ->middleware('permission:risk.edit')
+        ->name('smap-risk.update-monitoring');
 
     //Kategori
     Route::get('/kategori-risiko', [KategoriRisikoController::class, 'index'])

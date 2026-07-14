@@ -111,4 +111,52 @@ document.addEventListener('alpine:init', () => {
             return 'Stabil';
         },
     }));
+
+    // ==============================================================
+    // 🔥 DATA KOMPONEN BARU: UNTUK EDIT RIWAYAT MONITORING KUARTAL
+    // ==============================================================
+    Alpine.data('smapRiskHistoryEdit', (initialValue = '', inherentScore = 0) => ({
+        openEdit: false,
+        historyValue: initialValue,
+        inherent: parseInt(inherentScore) || 0,
+
+        // Menggunakan standardisasi range level id yang sama dengan form create
+        getRiskLevelId(score) {
+            const val = parseInt(score);
+            if (Number.isNaN(val) || val <= 0) return '';
+            if (val >= 1 && val <= 5) return 1;
+            if (val >= 6 && val <= 11) return 2;
+            if (val >= 12 && val <= 15) return 3;
+            if (val >= 16 && val <= 19) return 4;
+            if (val >= 20 && val <= 25) return 5;
+            return '';
+        },
+
+        // Menggunakan standardisasi nama teks level yang sama dengan form create
+        getRiskLevelName(score) {
+            const id = this.getRiskLevelId(score);
+            const names = {
+                1: 'Low',
+                2: 'Low Moderate',
+                3: 'Moderate',
+                4: 'Moderate to High',
+                5: 'High'
+            };
+            return names[id] || 'Menunggu input...';
+        },
+
+        // Perhitungan analisis trend perubahan real-time dari form edit kuartal
+        getEditTrend() {
+            const currentRisk = parseInt(this.historyValue);
+            const inherentRisk = parseInt(this.inherent);
+
+            if (Number.isNaN(currentRisk) || Number.isNaN(inherentRisk)) {
+                return 'Stabil';
+            }
+
+            if (currentRisk > inherentRisk) return 'Naik';
+            if (currentRisk < inherentRisk) return 'Turun';
+            return 'Stabil';
+        }
+    }));
 });

@@ -600,6 +600,110 @@ class SmapController extends Controller
             ->with('success', "Berhasil merekam perkembangan & target risiko untuk periode {$periodName}!");
     }
 
+    /**
+     * Memperbarui data log monitoring kuartal tertentu (Inline Edit)
+     */
+    public function updateMonitoring(Request $request, string $id_detail): RedirectResponse
+    {
+        // 1. Validasi input (Kuartal dan Tahun sekarang masuk ke dalam validasi wajib)
+        $validated = $request->validate([
+            'quarter'           => ['required', 'in:TW1,TW2,TW3,TW4'],
+            'year'              => ['required', 'numeric', 'min:2020', 'max:2099'],
+            'value'             => ['required', 'integer', 'between:1,25'],
+            'status_penanganan' => ['required', 'string', 'in:belum,proses,selesai'],
+            'status'            => ['required', 'in:0,1'],
+        ]);
+
+        // 2. Cari data detail periode berdasarkan ID detail
+        $history = SmapMonitoringPeriod::findOrFail($id_detail);
+
+        // 3. MAPPING & MANAJEMEN UPDATE PERIODE (KUARTAL & TAHUN)
+        $quarterMapping = [
+            'TW1' => ['numeric' => '1', 'text' => 'TW1'],
+            'TW2' => ['numeric' => '2', 'text' => 'TW2'],
+            'TW3' => ['numeric' => '3', 'text' => 'TW3'],
+            'TW4' => ['numeric' => '4', 'text' => 'TW4'],
+        ];
+
+        $selectedQuarter = $quarterMapping[$validated['quarter']]['numeric'];
+        $quarterText     = $quarterMapping[$validated['quarter']]['text'];
+        $periodName      = $quarterText . ' ' . $validated['year'];
+
+        // Cari atau buat periode baru jika kombinasi TW + Tahun tersebut belum ada di database
+        $period = Period::firstOrCreate(
+            ['period_name' => $periodName],
+            [
+                'year'    => $validated['year'],
+                'quarter' => $selectedQuarter,
+            ]
+        );
+
+        // 4. Ambil data master risiko induk (SmapMonitoring)
+        $riskMaster = SmapMonitoring::find($history->id_smap);
+        $inherentScore = $riskMaster ? (int)$riskMaster->inherent : 0;
+
+        // 5. Hitung otomatis ID Level berdasarkan Score Current baru
+        $getBackendRiskLevelId = function($score) {
+            $val = (int) $score;
+            if ($val >= 1 && $val <= 5) return 1;          // Low
+            if ($val >= 6 && $val <= 11) return 2;         // Low to Moderate
+            if ($val >= 12 && $val <= 15) return 3;        // Moderate
+            if ($val >= 16 && $val <= 19) return 4;        // Moderate to High
+            if ($val >= 20 && $val <= 25) return 5;        // High
+            return 1;
+        };
+
+        // 6. Hitung otomatis trend perubahan dari skor inherent awal
+        $currentScore = (int) $validated['value'];
+        if ($currentScore > $inherentScore) {
+            $calculatedTrend = 'Naik';
+        } elseif ($currentScore < $inherentScore) {
+            $calculatedTrend = 'Turun';
+        } else {
+            $calculatedTrend = 'Stabil';
+        }
+
+        // 7. Simpan data perkembangan ke tabel detail (smap_monitoring_periods)
+        $history->quarter           = $validated['quarter']; // Update string TW di detail
+        $history->year              = $validated['year'];    // Update angka tahun di detail
+        $history->value             = $currentScore;
+        $history->status_penanganan = $validated['status_penanganan'];
+        $history->id_level          = $getBackendRiskLevelId($currentScore);
+        $history->trend             = $calculatedTrend;
+
+        // Hitung ulang matriks efektivitas mitigasi secara dinamis
+        $levelCurrentId  = $getBackendRiskLevelId($currentScore);
+        $levelInherentId = $getBackendRiskLevelId($inherentScore);
+        $isLevelAman      = in_array($levelCurrentId, [1, 2]);
+        $isLevelBelumAman = in_array($levelCurrentId, [3, 4, 5]);
+        $efektivitasFinal = 'Unmeasurable';
+
+        if ($currentScore === $inherentScore && $isLevelAman) {
+            $efektivitasFinal = 'Pencatatan';
+        } elseif ($currentScore < $inherentScore && $isLevelAman) {
+            $efektivitasFinal = 'Effective';
+        } elseif ($currentScore < $inherentScore && $isLevelBelumAman && $levelCurrentId < $levelInherentId) {
+            $efektivitasFinal = 'Mostly Effective';
+        } elseif ($currentScore < $inherentScore && $isLevelBelumAman && $levelCurrentId === $levelInherentId) {
+            $efektivitasFinal = 'Partially Effective';
+        } elseif ($currentScore === $inherentScore && $isLevelBelumAman) {
+            $efektivitasFinal = 'In-Effective';
+        }
+
+        $history->efektif_risiko = $efektivitasFinal;
+        $history->save();
+
+        // 8. Update status ke master risiko induk (SmapMonitoring)
+        if ($riskMaster) {
+            $riskMaster->status = (int) $validated['status'];
+            $riskMaster->save();
+        }
+
+        return redirect()
+            ->back()
+            ->with('success', 'Riwayat perkembangan kuartal, periode waktu, dan status risiko berhasil diperbarui.');
+    }
+
     public function destroyMonitoring(int $id_period): RedirectResponse
     {
         $monitoring = \App\Models\SmapMonitoringPeriod::findOrFail($id_period);
