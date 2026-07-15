@@ -639,7 +639,7 @@ class SmapController extends Controller
         );
 
         // 4. Ambil data master risiko induk (SmapMonitoring)
-        $riskMaster = SmapMonitoring::find($history->id_smap);
+        $riskMaster = SmapMonitoring::query()->where('id_smap', $history->id_smap ?? null)->first();
         $inherentScore = $riskMaster ? (int)$riskMaster->inherent : 0;
 
         // 5. Hitung otomatis ID Level berdasarkan Score Current baru
@@ -664,8 +664,8 @@ class SmapController extends Controller
         }
 
         // 7. Simpan data perkembangan ke tabel detail (smap_monitoring_periods)
-        $history->quarter           = $validated['quarter']; // Update string TW di detail
-        $history->year              = $validated['year'];    // Update angka tahun di detail
+        $history->quarter           = $validated['quarter'];
+        $history->year              = $validated['year'];    
         $history->value             = $currentScore;
         $history->status_penanganan = $validated['status_penanganan'];
         $history->id_level          = $getBackendRiskLevelId($currentScore);
