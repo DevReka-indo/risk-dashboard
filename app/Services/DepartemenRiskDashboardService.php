@@ -220,6 +220,8 @@ class DepartemenRiskDashboardService
         } catch (\Exception $e) { return [0, 0, 0, 0, 0]; }
     }
 
+
+
     private function getInherentChartData($baseQuery)
     {
         try {

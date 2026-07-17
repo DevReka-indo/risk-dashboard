@@ -1,121 +1,259 @@
 <x-admin-layout>
     <x-slot name="header">
-        <h1 class="text-lg font-bold text-slate-900">Edit Risk Departemen</h1>
-        <p class="hidden text-sm text-slate-500 sm:block">Perbarui data risiko yang sudah ada.</p>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('department-risk.index') }}"
+               class="flex h-7 w-7 items-center justify-center rounded text-slate-800 hover:bg-slate-100 transition">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+            </a>
+            <div>
+                <h1 class="text-base font-bold text-slate-900">Edit Risk Departemen</h1>
+                <p class="text-xs text-slate-500">Perbarui data risiko yang sudah ada</p>
+            </div>
+        </div>
     </x-slot>
 
-    {{-- Notifikasi Error Validasi --}}
-    @if ($errors->any())
-        <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600">
-            <p class="font-bold mb-2">Terjadi kesalahan pengisian data:</p>
-            <ul class="list-disc pl-5 space-y-1">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    <form method="POST" action="{{ route('department-risk.update', $risk->id_monitoring) }}" x-data="smapRiskForm">
+        @csrf
+        @method('PUT')
 
-    <div class="space-y-6">
-        <form method="POST" action="{{ route('department-risk.update', $risk->id_monitoring) }}" class="space-y-6"
-              x-data="smapRiskForm('{{ old('value', $risk->value) }}', '{{ old('inherent', $risk->inherent) }}', '{{ old('trend', $risk->trend) }}')">
-            @csrf
-            @method('PUT')
-
-            {{-- BLOCK 1: INFORMASI UTAMA --}}
-            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-
-                {{-- Risk Event --}}
-                <div>
-                    <label for="risk_event_deta" class="block text-sm font-semibold text-slate-700">Risk Event <span class="text-rose-500">*</span></label>
-                    <textarea id="risk_event_deta" name="risk_event_deta" rows="3" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('risk_event_deta') border-rose-500 @enderror" placeholder="Jelaskan detail risiko...">{{ old('risk_event_deta', $risk->risk_event_deta) }}</textarea>
-                    @error('risk_event_deta') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="grid gap-6 md:grid-cols-2">
-                    {{-- Kategori --}}
-                    <div>
-                        <label for="id_kategori" class="block text-sm font-semibold text-slate-700">Kategori Risiko <span class="text-rose-500">*</span></label>
-                        <select id="id_kategori" name="id_kategori" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('id_kategori') border-rose-500 @enderror">
-                            <option value="">Pilih Kategori</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id_kategori }}" @selected(old('id_kategori', $risk->id_kategori) == $category->id_kategori)>{{ $category->nama_kategori }}</option>
-                            @endforeach
-                        </select>
-                        @error('id_kategori') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
-                    </div>
-
-                    {{-- Type --}}
-                    <div>
-                        <label for="type" class="block text-sm font-semibold text-slate-700">Type <span class="text-rose-500">*</span></label>
-                        <select id="type" name="type" class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('type') border-rose-500 @enderror">
-                            <option value="Proyek" @selected(old('type', $risk->type) === 'Proyek')>Proyek</option>
-                            <option value="Non-Proyek" @selected(old('type', $risk->type) === 'Non-Proyek')>Non-Proyek</option>
-                        </select>
-                        @error('type') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-
-                {{-- Status --}}
-                <div x-data="{ active: {{ old('status', $risk->status) == '1' ? 'true' : 'false' }} }">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Status <span class="text-rose-500">*</span></label>
-
-                    {{-- Input Hidden untuk form submission --}}
-                    <input type="hidden" name="status" :value="active ? '1' : '0'">
-
-                    <div
-                        @click="active = !active"
-                        :class="active ? 'border-indigo-200 bg-indigo-50/40' : 'border-rose-200 bg-rose-50/40'"
-                        class="flex items-start gap-3 rounded-2xl border p-4 shadow-sm cursor-pointer transition select-none"
-                    >
-                        <div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border transition"
-                            :class="active ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-rose-400 bg-rose-400 text-white'">
-                            <svg x-show="active" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
-                            </svg>
-                            <span x-show="!active">X</span>
-                        </div>
-                        <div>
-                            <span class="block text-sm font-semibold text-slate-800" x-text="active ? 'Risiko Aktif' : 'Risiko Tidak Aktif'"></span>
-                            <span class="block text-xs text-slate-500 mt-0.5">Status saat ini menentukan visibilitas di dashboard.</span>
-                        </div>
-                    </div>
-                    @error('status') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
-                </div>
-            </div>
-
-            {{-- BLOCK 2: UNIT KERJA TERKAIT --}}
-            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div>
-                    <h3 class="text-base font-bold text-slate-900">Unit Kerja Terkait</h3>
-                    <p class="mt-1 text-xs text-slate-500">Pilih unit kerja utama yang berkaitan dengan risiko ini.</p>
-                </div>
-
-                <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" x-data="{ selectedUnit: '{{ old('id_unit', $risk->id_unit) }}' }">
-                    @foreach ($units as $unit)
-                        <label
-                            :class="selectedUnit == '{{ $unit->id_unit }}' ? 'border-indigo-600 ring-2 ring-indigo-600/10 bg-indigo-50/10' : 'border-slate-100 bg-white'"
-                            class="relative flex items-center gap-3 rounded-2xl border p-4 shadow-sm cursor-pointer transition hover:bg-slate-50"
-                        >
-                            <input
-                                type="radio"
-                                name="id_unit"
-                                value="{{ $unit->id_unit }}"
-                                x-model="selectedUnit"
-                                class="h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                            >
-                            <span class="text-sm font-medium text-slate-800">{{ $unit->nama_unit }}</span>
-                        </label>
+        {{-- TAMBAHKAN BLOK ERROR INI --}}
+        @if($errors->any())
+            <div style="border:1px solid #fca5a5; background:#fef2f2; border-radius:12px; padding:12px 16px; font-size:13px; color:#991b1b; margin-bottom: 20px;">
+                <p style="font-weight: 700; margin-bottom: 5px;">Gagal menyimpan! Periksa kesalahan berikut:</p>
+                <ul style="margin:0; padding-left:16px;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
                     @endforeach
-                </div>
-                @error('id_unit') <span class="text-xs text-rose-500 mt-3 block">{{ $message }}</span> @enderror
+                </ul>
             </div>
+        @endif
+        {{-- AKHIR BLOK ERROR --}}
 
-            {{-- BUTTON ACTION --}}
-            <div class="flex items-center justify-end gap-3">
-                <a href="{{ route('department-risk.index') }}" class="rounded-2xl border px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Batal</a>
-                <button type="submit" class="rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition">Simpan Perubahan</button>
-            </div>
-        </form>
-    </div>
+        {{-- CARD UTAMA --}}
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+
+            {{-- BARIS ATAS --}}
+            <table style="width:100%; border-collapse:collapse;">
+                <tr>
+                    {{-- KOLOM KIRI --}}
+                    <td style="width:270px; padding:24px; border-right:1px solid #f1f5f9; vertical-align:top; background:#fafbfc;">
+                        <div style="display:flex; flex-direction:column; gap:18px;">
+
+                            {{-- Unit Kerja --}}
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Unit Kerja <span style="color:#ef4444;">*</span></label>
+                                <div style="position:relative;">
+                                    <select name="id_unit"
+                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; cursor:pointer; transition:border-color 0.2s;">
+                                        <option value="" disabled>Pilih Unit Kerja</option>
+                                        @foreach ($units as $unit)
+                                            <option value="{{ $unit->id_unit }}" @selected(old('id_unit', $risk->id_unit) == $unit->id_unit)>{{ $unit->nama_unit }}</option>
+                                        @endforeach
+                                    </select>
+                                    <svg style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; pointer-events:none;" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                    </svg>
+                                </div>
+                                @error('id_unit') <p style="margin-top:4px; font-size:11px; color:#ef4444;">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- Kategori --}}
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Kategori <span style="color:#ef4444;">*</span></label>
+                                <div style="position:relative;">
+                                    <select name="id_kategori"
+                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; cursor:pointer; transition:border-color 0.2s;">
+                                        <option value="" disabled>Pilih Kategori</option>
+                                        @foreach ($categories as $cat)
+                                            <option value="{{ $cat->id_kategori }}" @selected(old('id_kategori', $risk->id_kategori) == $cat->id_kategori)>{{ $cat->nama_kategori }}</option>
+                                        @endforeach
+                                    </select>
+                                    <svg style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; pointer-events:none;" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                    </svg>
+                                </div>
+                                @error('id_kategori') <p style="margin-top:4px; font-size:11px; color:#ef4444;">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- Tanggal Dibuat --}}
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Tanggal Dibuat <span style="color:#ef4444;">*</span></label>
+                                <input type="date" name="created_at"
+                                       value="{{ old('created_at', $risk->created_at?->format('Y-m-d') ?? date('Y-m-d')) }}"
+                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; transition:border-color 0.2s;">
+                            </div>
+
+                            {{-- Tipe --}}
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Tipe <span style="color:#ef4444;">*</span></label>
+                                <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px; background:#fff;">
+                                    <div style="display:flex; flex-direction:column; gap:8px;">
+                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px 0;">
+                                            <input type="radio" name="type" value="Proyek"
+                                                   style="width:16px; height:16px; accent-color:#4F7EF0; cursor:pointer;"
+                                                   @checked(old('type', $risk->type) === 'Proyek')>
+                                            <span style="font-size:13px; color:#475569; font-weight:500;">Proyek</span>
+                                        </label>
+                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px 0;">
+                                            <input type="radio" name="type" value="Non-Proyek"
+                                                   style="width:16px; height:16px; accent-color:#4F7EF0; cursor:pointer;"
+                                                   @checked(old('type', $risk->type) === 'Non-Proyek')>
+                                            <span style="font-size:13px; color:#475569; font-weight:500;">Non-Proyek</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                @error('type') <p style="margin-top:4px; font-size:11px; color:#ef4444;">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- Status --}}
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Status <span style="color:#ef4444;">*</span></label>
+                                <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px; background:#fff;">
+                                    <div style="display:flex; flex-direction:column; gap:8px;">
+                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px 0;">
+                                            <input type="radio" name="status" value="1"
+                                                   style="width:16p x; height:16px; accent-color:#4F7EF0; cursor:pointer;"
+                                                   @checked(old('status', $risk->status ? '1' : '0') === '1')>
+                                            <span style="font-size:13px; color:#475569; font-weight:500;">Aktif</span>
+                                        </label>
+                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px 0;">
+                                            <input type="radio" name="status" value="0"
+                                                   style="width:16px; height:16px; accent-color:#4F7EF0; cursor:pointer;"
+                                                   @checked(old('status', $risk->status ? '1' : '0') === '0')>
+                                            <span style="font-size:13px; color:#475569; font-weight:500;">Non-Aktif</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                @error('status') <p style="margin-top:4px; font-size:11px; color:#ef4444;">{{ $message }}</p> @enderror
+                            </div>
+
+                        </div>
+                    </td>
+
+                    {{-- KOLOM KANAN: Peristiwa Resiko --}}
+                    <td style="padding:24px; vertical-align:top;">
+                        <div style="display:flex; flex-direction:column; height:100%;">
+                            <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Peristiwa Resiko <span style="color:#ef4444;">*</span></label>
+                            <textarea name="risk_event_deta"
+                                      placeholder="Masukkan peristiwa resiko secara detail..."
+                                      style="flex:1; width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:12px; font-size:13px; color:#475569; background:#fff; resize:none; outline:none; min-height:240px; font-family:inherit; transition:border-color 0.2s; line-height:1.6;">{{ old('risk_event_deta', $risk->risk_event_deta) }}</textarea>
+                            <div style="margin-top:6px; font-size:11px; color:#94a3b8; text-align:right;">
+                                <span id="charCount">{{ strlen(old('risk_event_deta', $risk->risk_event_deta)) }}</span> karakter
+                            </div>
+                            @error('risk_event_deta') <p style="margin-top:4px; font-size:11px; color:#ef4444;">{{ $message }}</p> @enderror
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            {{-- DIVIDER --}}
+            <div style="border-top:2px solid #f1f5f9;"></div>
+
+            {{-- BARIS BAWAH: Nilai & Level --}}
+            <table style="width:100%; border-collapse:collapse;">
+                <tr>
+                    <td style="padding:24px;">
+                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px;">
+
+                            {{-- Nilai Inheren --}}
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Nilai Inheren <span style="color:#ef4444;">*</span></label>
+
+                                <input type="number"
+                                    name="inherent"
+                                    x-model="inherent"
+                                    x-init="inherent = '{{ old('inherent', $risk->inherent) }}'"
+                                    min="1" max="25"
+                                    placeholder="1 - 25"
+                                    value="{{ old('inherent', $risk->inherent) }}"
+                                    style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
+
+                                {{-- MENGGUNAKAN inherentLevel --}}
+                                <input type="hidden"
+                                    name="id_level"
+                                    :value="inherentLevel || '{{ old('id_level', $risk->id_level) }}'">
+                            </div>
+
+                            {{-- Level Inheren (auto) --}}
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Level Inheren</label>
+                                <div style="border:2px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#1e293b; background:#f8fafc; text-align:center; height:38px; display:flex; align-items:center; justify-content:center; font-weight:600; box-sizing:border-box;">
+                                    <span x-text="inherentLevelName || ''"></span>
+                                </div>
+                            </div>
+
+                            {{-- Nilai Target --}}
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Nilai Target <span style="color:#ef4444;">*</span></label>
+
+                                {{-- MENGGUNAKAN targetValue --}}
+                               <input type="number"
+                                    name="target_score"
+                                    x-model="targetValue"
+                                    x-init="targetValue = '{{ old('target_score', $risk->target_value) }}'"
+                                    min="1" max="25"
+                                    placeholder="1 - 25"
+                                    value="{{ old('target_score', $risk->target_value) }}"
+                                    style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
+
+                                {{-- MENGGUNAKAN otomatisTargetLevel --}}
+                                <input type="hidden"
+                                    name="id_target_level"
+                                    :value="otomatisTargetLevel || '{{ old('id_target_level', $risk->target_id_level) }}'">
+                            </div>
+
+                            {{-- Level Target (auto) --}}
+                            <div>
+                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Level Target</label>
+                                <div style="border:2px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#1e293b; background:#f8fafc; text-align:center; height:38px; display:flex; align-items:center; justify-content:center; font-weight:600; box-sizing:border-box;">
+                                    <span x-text="otomatisTargetLevelName || ''"></span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+
+        {{-- TOMBOL AKSI --}}
+        <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:12px; padding:0 4px;">
+            <a href="{{ route('department-risk.index') }}"
+               style="border:1px solid #e2e8f0; border-radius:10px; padding:10px 28px; font-size:13px; font-weight:600; color:#475569; background:#fff; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;"
+               onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1';"
+               onmouseout="this.style.background='#fff'; this.style.borderColor='#e2e8f0';">
+                <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Batal
+            </a>
+            <button type="submit"
+                    style="background:#4F7EF0; border:none; border-radius:10px; padding:10px 32px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(79,126,240,0.3);"
+                    onmouseover="this.style.background='#3b66d9'; this.style.boxShadow='0 6px 16px rgba(79,126,240,0.4)';"
+                    onmouseout="this.style.background='#4F7EF0'; this.style.boxShadow='0 4px 12px rgba(79,126,240,0.3)';">
+                <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                Simpan Risk Departemen
+            </button>
+        </div>
+
+    </form>
+
+    <script src="{{ asset('js/otomatisasi-logic.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const textarea = document.querySelector('textarea[name="risk_event_deta"]');
+            const charCount = document.getElementById('charCount');
+            if (textarea && charCount) {
+                charCount.textContent = textarea.value.length;
+                textarea.addEventListener('input', function () {
+                    charCount.textContent = this.value.length;
+                });
+            }
+        });
+    </script>
 </x-admin-layout>

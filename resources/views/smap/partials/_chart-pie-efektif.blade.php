@@ -1,4 +1,4 @@
-<div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+<div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-4">
 
     {{-- Top Header --}}
     <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
@@ -9,7 +9,7 @@
     </div>
 
     {{-- Area Canvas --}}
-    <div class="flex flex-col items-center p-6 bg-slate-50/50 rounded-2xl border border-slate-100 max-w-sm mx-auto">
+    <div class="flex flex-col items-center p-6 bg-slate-50/50 rounded-lg border border-slate-100 max-w-sm mx-auto">
         <h4 class="text-xs font-black text-slate-700 bg-white shadow-sm border border-slate-200 px-3 py-1.5 rounded-xl mb-4 w-full text-center uppercase tracking-wider">
             Matriks Efektivitas
         </h4>

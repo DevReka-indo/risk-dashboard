@@ -1,4 +1,4 @@
-<div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+<div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-4">
 
     {{-- TOP BAR --}}
     <div class="border-b border-slate-100 pb-3">
@@ -7,7 +7,7 @@
     </div>
 
     {{-- AREA CANVAS CHART --}}
-    <div class="flex flex-col items-center p-6 bg-indigo-50/30 rounded-2xl border border-indigo-100/50 max-w-sm mx-auto">
+    <div class="flex flex-col items-center p-6 bg-indigo-50/30 rounded-lg border border-indigo-100/50 max-w-sm mx-auto">
         <h4 class="text-xs font-black text-indigo-950 bg-white shadow-sm border border-indigo-100 px-3 py-1.5 rounded-xl mb-4 w-full text-center uppercase tracking-wider flex justify-center items-center gap-2">
             Status Penanganan Risiko
             <span class="text-[9px] px-1.5 py-0.5 rounded font-extrabold text-white bg-indigo-500">CURRENT TW</span>

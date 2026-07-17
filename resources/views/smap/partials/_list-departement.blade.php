@@ -1,4 +1,4 @@
-<div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+<div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
     <h2 class="text-lg font-bold text-slate-900 mb-6">Grafik Risiko per Departemen</h2>
 
     <div class="relative w-full min-h-[400px]">

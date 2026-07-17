@@ -1,29 +1,29 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
+        <div class="flex flex-col gap-2">
+            <h1 class="text-lg font-bold text-slate-900">
+                Profile
+            </h1>
+            <p class="text-sm text-slate-500">
+                Kelola informasi akun dan keamanan Anda.
+            </p>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-            </div>
+    <div class="space-y-6">
+        {{-- Profile Information --}}
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            @include('profile.partials.update-profile-information-form')
+        </div>
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
+        {{-- Update Password --}}
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            @include('profile.partials.update-password-form')
+        </div>
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
+        {{-- Delete Account --}}
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            @include('profile.partials.delete-user-form')
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

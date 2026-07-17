@@ -1,11 +1,17 @@
 <x-admin-layout>
     <x-slot name="header">
-        <h1 class="text-lg font-bold text-slate-900">
-            Detail Top Risk
-        </h1>
-        <p class="hidden text-sm text-slate-500 sm:block">
-            Detail risiko dan riwayat monitoring bulanan.
-        </p>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('top-risk.index') }}"
+               class="flex h-7 w-7 items-center justify-center rounded text-slate-800 hover:bg-slate-100 transition">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+            </a>
+            <div>
+                <h1 class="text-base font-bold text-slate-900">Detail & Monitoring Top Risk</h1>
+                <p class="text-xs text-slate-500">Kelola input nilai berkala dan riwayat perkembangan risiko</p>
+            </div>
+        </div>
     </x-slot>
 
     @php
@@ -25,604 +31,485 @@
         ];
     @endphp
 
-    <div class="space-y-6">
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                    <div class="mb-3 flex flex-wrap items-center gap-2">
-                        <span class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
-                            {{ $topRisk->kategori->nama_kategori ?? '-' }}
-                        </span>
+    <div class="space-y-5">
 
-                        @if ($topRisk->is_aktif)
-                            <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                Aktif
-                            </span>
+        {{-- Flash --}}
+        @if(session('success'))
+            <div style="border:1px solid #6ee7b7; background:#ecfdf5; border-radius:12px; padding:12px 16px; font-size:13px; color:#065f46; font-weight:600;">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div style="border:1px solid #fca5a5; background:#fef2f2; border-radius:12px; padding:12px 16px; font-size:13px; color:#991b1b; font-weight:600;">{{ session('error') }}</div>
+        @endif
+        @if($errors->any())
+            <div style="border:1px solid #fca5a5; background:#fef2f2; border-radius:12px; padding:12px 16px; font-size:13px; color:#991b1b;">
+                <ul style="margin:0; padding-left:16px;">
+                    @foreach($errors->all() as $e) <li>{{ $e }}</li> @endforeach
+                </ul>
+            </div>
+        @endif
+
+        {{-- ═══════════ CARD 1: Detail Lengkap ═══════════ --}}
+        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+
+            {{-- Header Card 1 --}}
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px;">
+                <div>
+                    <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Detail Lengkap</h2>
+                    <p style="font-size:12px; color:#94a3b8; margin:0;">Seluruh informasi data risiko ini</p>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <a href="{{ route('top-risk.edit', $topRisk) }}"
+                       style="border:1px solid #e2e8f0; border-radius:8px; padding:7px 18px; font-size:13px; font-weight:600; color:#475569; background:#fff; text-decoration:none; display:inline-block; transition:all 0.2s;"
+                       onmouseover="this.style.background='#f8fafc';"
+                       onmouseout="this.style.background='#fff';">
+                        Edit
+                    </a>
+                    <form method="POST" action="{{ route('top-risk.destroy', $topRisk) }}"
+                          onsubmit="return confirm('Yakin hapus?')" style="margin:0;">
+                        @csrf @method('DELETE')
+                        <button type="submit"
+                                style="border:1px solid #fca5a5; border-radius:8px; padding:7px 18px; font-size:13px; font-weight:600; color:#ef4444; background:#fff; cursor:pointer; transition:all 0.2s;"
+                                onmouseover="this.style.background='#fef2f2';"
+                                onmouseout="this.style.background='#fff';">
+                            Hapus
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {{-- Isi Card 1 --}}
+            <div style="display:flex; gap:24px;">
+
+                {{-- Kolom Kiri: 3 Kotak --}}
+                <div style="display:flex; flex-direction:column; gap:12px; flex:1;">
+                    {{-- Kotak 1: Kategori --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Kategori</p>
+                        <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">{{ $topRisk->kategori->nama_kategori ?? '-' }}</p>
+                    </div>
+
+                    {{-- Kotak 2: Unit Kerja --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Unit Kerja</p>
+                        <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">
+                            @foreach ($topRisk->unitKerja as $unit)
+                                <span style="display:inline-block; background:#f1f5f9; border-radius:6px; padding:2px 10px; margin:2px 4px 2px 0; font-size:12px;">{{ $unit->nama_unit }}</span>
+                            @endforeach
+                        </p>
+                    </div>
+
+                    {{-- Kotak 3: Status --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Status</p>
+                        @if($topRisk->is_aktif)
+                            <span style="background:#ecfdf5; color:#10b981; border-radius:9999px; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Aktif</span>
                         @else
-                            <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                Tidak Aktif
-                            </span>
+                            <span style="background:#f1f5f9; color:#94a3b8; border-radius:9999px; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Tidak Aktif</span>
                         @endif
                     </div>
+                </div>
 
-                    <h2 class="max-w-4xl text-xl font-bold leading-8 text-slate-900">
-                        {{ $topRisk->nama_peristiwa_risiko }}
-                    </h2>
-
-                    <p class="mt-2 text-sm text-slate-500">
-                        Tanggal dibuat:
-                        <span class="font-semibold text-slate-700">
-                            {{ optional($topRisk->tanggal_dibuat)->format('d M Y') ?? $topRisk->tanggal_dibuat }}
-                        </span>
-                    </p>
-
-                    <div class="mt-4 flex flex-wrap gap-2">
-                        @foreach ($topRisk->unitKerja as $unit)
-                            <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                                {{ $unit->nama_unit }}
-                            </span>
-                        @endforeach
+                {{-- Kolom Kanan: 1 Kotak Nama Peristiwa Risiko --}}
+                <div style="flex:2;">
+                    <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc; height:100%; display:flex; flex-direction:column;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nama Peristiwa Risiko</p>
+                        <p style="font-size:13px; color:#475569; line-height:1.8; margin:0; text-align:justify; flex:1;">
+                            {{ $topRisk->nama_peristiwa_risiko ?? '-' }}
+                        </p>
+                        <div style="margin-top:12px; padding-top:10px; border-top:1px solid #e2e8f0;">
+                            <p style="font-size:10px; color:#94a3b8; margin:0;">Dibuat : {{ optional($topRisk->tanggal_dibuat)->translatedFormat('d F Y H.i') ?? '-' }}</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap gap-2">
-                    <a
-                        href="{{ route('top-risk.index') }}"
-                        class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                        Kembali
-                    </a>
-
-                    <a
-                        href="{{ route('top-risk.edit', $topRisk) }}"
-                        class="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700">
-                        Edit Risiko
-                    </a>
-                </div>
             </div>
         </div>
 
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="mb-5">
-                <h2 class="text-base font-bold text-slate-900">
-                    Input Monitoring Bulanan
-                </h2>
-                <p class="mt-1 text-sm text-slate-500">
-                    Nilai risiko diisi berdasarkan matrix risiko. Level risiko dan efektivitas akan dihitung otomatis oleh sistem.
-                </p>
-            </div>
+        {{-- ═══════════ CARD 2: Input Monitoring Bulanan ═══════════ --}}
+        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);"
+             x-data="topRiskMonitoring()">
 
-            <form method="POST" action="{{ route('top-risk.monitoring.store', $topRisk) }}" class="grid gap-5 lg:grid-cols-12">
+            <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Input Monitoring Bulanan</h2>
+            <p style="font-size:12px; color:#94a3b8; margin:0 0 20px;">Perbarui nilai, status, dan progres penanganan untuk bulan ini</p>
+
+            <form method="POST" action="{{ route('top-risk.monitoring.store', $topRisk) }}">
                 @csrf
 
-                <div class="lg:col-span-3">
-                    <label for="bulan" class="block text-sm font-semibold text-slate-700">
-                        Bulan
-                    </label>
+                <div style="display:grid; grid-template-columns:200px 1fr; gap:20px; align-items:start;">
 
-                    <select
-                        id="bulan"
-                        name="bulan"
-                        required
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">Pilih bulan</option>
-                        @foreach ($monthNames as $monthNumber => $monthName)
-                            <option value="{{ $monthNumber }}" @selected((int) old('bulan', now()->month) === $monthNumber)>
-                                {{ $monthName }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    @error('bulan')
-                        <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="lg:col-span-3">
-                    <label for="tahun" class="block text-sm font-semibold text-slate-700">
-                        Tahun
-                    </label>
-
-                    <input
-                        id="tahun"
-                        type="number"
-                        name="tahun"
-                        value="{{ old('tahun', now()->year) }}"
-                        required
-                        min="2000"
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-
-                    @error('tahun')
-                        <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="lg:col-span-3">
-                    <label for="nilai" class="block text-sm font-semibold text-slate-700">
-                        Nilai
-                    </label>
-
-                    <input
-                        id="nilai"
-                        type="number"
-                        name="nilai"
-                        value="{{ old('nilai') }}"
-                        required
-                        min="1"
-                        max="25"
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        placeholder="1-25">
-
-                    @error('nilai')
-                        <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="lg:col-span-3">
-                    <label class="block text-sm font-semibold text-slate-700">
-                        Level Risiko
-                    </label>
-
-                    <div
-                        id="level-preview"
-                        class="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600">
-                        Otomatis mengikuti nilai risiko
-                    </div>
-
-                    <p id="level-preview-help" class="mt-2 text-xs text-slate-500">
-                        Masukkan nilai 1 sampai 25 untuk melihat level.
-                    </p>
-                </div>
-
-                <div class="lg:col-span-3">
-                    <label for="status" class="block text-sm font-semibold text-slate-700">
-                        Status Monitoring
-                    </label>
-
-                    <select
-                        id="status"
-                        name="status"
-                        required
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="Aktif" @selected(old('status', 'Aktif') === 'Aktif')>Aktif</option>
-                        <option value="Tidak Aktif" @selected(old('status') === 'Tidak Aktif')>Tidak Aktif</option>
-                    </select>
-
-                    @error('status')
-                        <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="lg:col-span-3">
-                    <label for="progres_belum" class="block text-sm font-semibold text-slate-700">
-                        Progres Belum
-                    </label>
-
-                    <input
-                        id="progres_belum"
-                        type="number"
-                        name="progres_belum"
-                        value="{{ old('progres_belum', 0) }}"
-                        min="0"
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-
-                <div class="lg:col-span-3">
-                    <label for="progres_proses" class="block text-sm font-semibold text-slate-700">
-                        Progres Proses
-                    </label>
-
-                    <input
-                        id="progres_proses"
-                        type="number"
-                        name="progres_proses"
-                        value="{{ old('progres_proses', 0) }}"
-                        min="0"
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-
-                <div class="lg:col-span-3">
-                    <label for="progres_sudah" class="block text-sm font-semibold text-slate-700">
-                        Progres Sudah
-                    </label>
-
-                    <input
-                        id="progres_sudah"
-                        type="number"
-                        name="progres_sudah"
-                        value="{{ old('progres_sudah', 0) }}"
-                        min="0"
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-
-                <div class="lg:col-span-12">
-                    <label for="catatan" class="block text-sm font-semibold text-slate-700">
-                        Catatan
-                    </label>
-
-                    <textarea
-                        id="catatan"
-                        name="catatan"
-                        rows="3"
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        placeholder="Catatan monitoring bulanan">{{ old('catatan') }}</textarea>
-
-                    @error('catatan')
-                        <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="lg:col-span-12">
-                    <button
-                        type="submit"
-                        class="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700">
-                        Simpan Monitoring
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="mb-5">
-                <h2 class="text-base font-bold text-slate-900">
-                    Riwayat Monitoring Bulanan
-                </h2>
-                <p class="mt-1 text-sm text-slate-500">
-                    Data terbaru ditampilkan paling atas.
-                </p>
-            </div>
-
-            <div class="space-y-4">
-                @forelse ($topRisk->monitoringBulanan as $monitoring)
-
-                    @php
-                        $levelUrutan = (int) ($monitoring->level->urutan ?? 0);
-
-                        $levelBadgeClass = match ($levelUrutan) {
-                            1 => 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200',
-                            2 => 'bg-lime-100 text-lime-800 ring-1 ring-lime-200',
-                            3 => 'bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200',
-                            4 => 'bg-orange-100 text-orange-800 ring-1 ring-orange-200',
-                            5 => 'bg-red-100 text-red-800 ring-1 ring-red-200',
-                            default => 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
-                        };
-                    @endphp
-
-                    <div class="rounded-3xl border border-slate-200 bg-white p-5">
-                        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                            <div>
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <span class="inline-flex rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">
-                                        {{ $monthNames[(int) $monitoring->bulan] ?? $monitoring->bulan }} {{ $monitoring->tahun }}
-                                    </span>
-
-                                    <span class="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
-                                        Nilai {{ $monitoring->nilai }}
-                                    </span>
-
-                                    <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $levelBadgeClass }}">
-                                        {{ $monitoring->level->nama_level ?? '-' }}
-                                    </span>
-
-                                    @if ($monitoring->status === 'Aktif')
-                                        <span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                            Aktif
-                                        </span>
-                                    @else
-                                        <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                            Tidak Aktif
-                                        </span>
-                                    @endif
-                                </div>
-
-                                <div class="mt-4 grid gap-3 text-sm sm:grid-cols-4">
-                                    <div class="rounded-2xl bg-slate-50 p-3">
-                                        <div class="text-xs text-slate-500">Belum</div>
-                                        <div class="mt-1 font-bold text-slate-900">{{ $monitoring->progres_belum }}</div>
-                                    </div>
-
-                                    <div class="rounded-2xl bg-slate-50 p-3">
-                                        <div class="text-xs text-slate-500">Proses</div>
-                                        <div class="mt-1 font-bold text-slate-900">{{ $monitoring->progres_proses }}</div>
-                                    </div>
-
-                                    <div class="rounded-2xl bg-slate-50 p-3">
-                                        <div class="text-xs text-slate-500">Sudah</div>
-                                        <div class="mt-1 font-bold text-slate-900">{{ $monitoring->progres_sudah }}</div>
-                                    </div>
-
-                                    <div class="rounded-2xl bg-slate-50 p-3">
-                                        <div class="text-xs text-slate-500">Efektivitas</div>
-                                        <div class="mt-1 font-bold text-slate-900">
-                                            {{ $monitoring->aturanEfektivitas->hasil ?? 'Belum ada pembanding' }}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                @if ($monitoring->catatan)
-                                    <p class="mt-4 text-sm leading-6 text-slate-600">
-                                        {{ $monitoring->catatan }}
-                                    </p>
+                    {{-- Kiri: Informasi Risk (Read Only) --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:12px; padding:16px; background:#fafafa;">
+                        <p style="font-size:12px; font-weight:700; color:#1e293b; margin:0 0 4px;">Informasi Risiko</p>
+                        <p style="font-size:11px; color:#94a3b8; margin:0 0 14px;">Data risiko (Read Only)</p>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
+                                <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Kategori</p>
+                                <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">{{ $topRisk->kategori->nama_kategori ?? '-' }}</p>
+                            </div>
+                            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
+                                <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Unit Kerja</p>
+                                <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">
+                                    @foreach ($topRisk->unitKerja as $unit)
+                                        <span style="display:inline-block; background:#f1f5f9; border-radius:4px; padding:2px 8px; margin:2px 4px 2px 0; font-size:11px;">{{ $unit->nama_unit }}</span>
+                                    @endforeach
+                                </p>
+                            </div>
+                            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
+                                <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Status</p>
+                                @if($topRisk->is_aktif)
+                                    <span style="background:#ecfdf5; color:#10b981; border-radius:6px; padding:2px 10px; font-size:12px; font-weight:600;">Aktif</span>
+                                @else
+                                    <span style="background:#f1f5f9; color:#94a3b8; border-radius:6px; padding:2px 10px; font-size:12px; font-weight:600;">Tidak Aktif</span>
                                 @endif
                             </div>
-
-                            <form method="POST" action="{{ route('top-risk.monitoring.destroy', [$topRisk, $monitoring]) }}" onsubmit="return confirm('Yakin ingin menghapus data monitoring ini?')">
-                                @csrf
-                                @method('DELETE')
-
-                                <button
-                                    type="submit"
-                                    class="inline-flex items-center justify-center rounded-2xl border border-rose-200 px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50">
-                                    Hapus
-                                </button>
-                            </form>
                         </div>
+                    </div>
 
-                        <details class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <summary class="cursor-pointer text-sm font-semibold text-slate-700">
-                                Edit monitoring bulan ini
-                            </summary>
+                    {{-- Kanan: Form Input --}}
+                    <div style="display:flex; flex-direction:column; gap:16px;">
 
-                            <form method="POST" action="{{ route('top-risk.monitoring.update', [$topRisk, $monitoring]) }}" class="mt-5 grid gap-5 lg:grid-cols-12">
-                                @csrf
-                                @method('PUT')
-
-                                <div class="lg:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700">
-                                        Bulan
-                                    </label>
-
-                                    <select
-                                        name="bulan"
-                                        required
-                                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        {{-- Baris 1: Bulan + Tahun --}}
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Bulan</label>
+                                <div style="position:relative;">
+                                    <select name="bulan" x-model="bulan"
+                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none;">
+                                        <option value="">Pilih Bulan</option>
                                         @foreach ($monthNames as $monthNumber => $monthName)
-                                            <option value="{{ $monthNumber }}" @selected((int) $monitoring->bulan === $monthNumber)>
+                                            <option value="{{ $monthNumber }}" @selected((int) old('bulan', now()->month) === $monthNumber)>
                                                 {{ $monthName }}
                                             </option>
                                         @endforeach
                                     </select>
+                                    <svg style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; pointer-events:none;" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
                                 </div>
-
-                                <div class="lg:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700">
-                                        Tahun
-                                    </label>
-
-                                    <input
-                                        type="number"
-                                        name="tahun"
-                                        value="{{ $monitoring->tahun }}"
-                                        required
-                                        min="2000"
-                                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Tahun</label>
+                                <div style="position:relative;">
+                                    <input type="number" name="tahun" x-model="tahun" value="{{ old('tahun', now()->year) }}" min="2000"
+                                           style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box;">
                                 </div>
+                            </div>
+                        </div>
 
-                                <div class="lg:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700">
-                                        Nilai
-                                    </label>
-
-                                    <input
-                                        type="number"
-                                        name="nilai"
-                                        value="{{ $monitoring->nilai }}"
-                                        required
-                                        min="1"
-                                        max="25"
-                                        class="js-edit-nilai mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        {{-- Baris 2: Nilai + Level Risiko (Otomatis) + Status --}}
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Nilai (1-25)</label>
+                                <input type="number" name="nilai" x-model="nilaiInput" min="1" max="25" value="{{ old('nilai') }}"
+                                       placeholder="1 - 25"
+                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Level Risiko</label>
+                                <div style="border:2px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#1e293b; background:#f8fafc; text-align:center; height:38px; display:flex; align-items:center; justify-content:center; font-weight:600; box-sizing:border-box;">
+                                    <span x-text="levelName || 'Otomatis'" 
+                                          :style="levelStyle"></span>
                                 </div>
-
-                                <div class="lg:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700">
-                                        Level Risiko
-                                    </label>
-
-                                    <div
-                                        class="js-edit-level-preview mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600">
-                                        {{ $monitoring->level->nama_level ?? 'Akan dihitung ulang' }}
-                                    </div>
-
-                                    <p class="js-edit-level-help mt-2 text-xs text-slate-500">
-                                        Level akan otomatis mengikuti nilai risiko.
-                                    </p>
-                                </div>
-
-                                <div class="lg:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700">
-                                        Status
-                                    </label>
-
-                                    <select
-                                        name="status"
-                                        required
-                                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                        <option value="Aktif" @selected($monitoring->status === 'Aktif')>Aktif</option>
-                                        <option value="Tidak Aktif" @selected($monitoring->status === 'Tidak Aktif')>Tidak Aktif</option>
+                                <input type="hidden" name="level" :value="levelId">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Status Monitoring</label>
+                                <div style="position:relative;">
+                                    <select name="status"
+                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none;">
+                                        <option value="Aktif" @selected(old('status', 'Aktif') === 'Aktif')>Aktif</option>
+                                        <option value="Tidak Aktif" @selected(old('status') === 'Tidak Aktif')>Tidak Aktif</option>
                                     </select>
+                                    <svg style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; pointer-events:none;" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
                                 </div>
+                            </div>
+                        </div>
 
-                                <div class="lg:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700">
-                                        Progres Belum
-                                    </label>
+                        {{-- Baris 3: Progres Belum + Proses + Sudah --}}
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Progres Belum</label>
+                                <input type="number" name="progres_belum" value="{{ old('progres_belum', 0) }}" min="0"
+                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Progres Proses</label>
+                                <input type="number" name="progres_proses" value="{{ old('progres_proses', 0) }}" min="0"
+                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Progres Sudah</label>
+                                <input type="number" name="progres_sudah" value="{{ old('progres_sudah', 0) }}" min="0"
+                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
+                            </div>
+                        </div>
 
-                                    <input
-                                        type="number"
-                                        name="progres_belum"
-                                        value="{{ $monitoring->progres_belum }}"
-                                        min="0"
-                                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        {{-- Baris 4: Catatan --}}
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Catatan</label>
+                            <textarea name="catatan"
+                                      placeholder="Catatan monitoring bulanan..."
+                                      style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; font-size:13px; color:#475569; background:#fff; resize:none; outline:none; min-height:60px; font-family:inherit; transition:border-color 0.2s; line-height:1.6;">{{ old('catatan') }}</textarea>
+                        </div>
+
+                        {{-- Tombol --}}
+                        <div style="display:flex; justify-content:flex-end; gap:10px; padding-top:4px;">
+                            <button type="reset"
+                                    style="border:1px solid #e2e8f0; border-radius:8px; padding:8px 20px; font-size:13px; font-weight:600; color:#475569; background:#fff; cursor:pointer; transition:all 0.2s;"
+                                    onmouseover="this.style.background='#f8fafc';"
+                                    onmouseout="this.style.background='#fff';">
+                                Batal
+                            </button>
+                            <button type="submit"
+                                    style="background:#4F7EF0; border:none; border-radius:8px; padding:8px 24px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s;"
+                                    onmouseover="this.style.background='#3b66d9';"
+                                    onmouseout="this.style.background='#4F7EF0';">
+                                Simpan Monitoring
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {{-- ═══════════ CARD 3: Riwayat Monitoring Bulanan ═══════════ --}}
+        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+            
+            <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Riwayat Monitoring Bulanan</h2>
+            <p style="font-size:12px; color:#94a3b8; margin:0 0 20px;">Daftar riwayat yang telah dimasukkan untuk risiko ini</p>
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                @forelse ($topRisk->monitoringBulanan as $monitoring)
+                    @php
+                        $levelUrutan = (int) ($monitoring->level->urutan ?? 0);
+                        $lvlStyle = match($levelUrutan) {
+                            1 => 'background:#ecfdf5;color:#10b981;',
+                            2 => 'background:#eff6ff;color:#3b82f6;',
+                            3 => 'background:#fffbeb;color:#f59e0b;',
+                            4 => 'background:#fff7ed;color:#f97316;',
+                            5 => 'background:#fef2f2;color:#ef4444;',
+                            default => 'background:#f1f5f9;color:#64748b;',
+                        };
+                        $statusStyle = ($monitoring->status === 'Aktif') 
+                            ? 'background:#ecfdf5;color:#10b981;' 
+                            : 'background:#fef2f2;color:#ef4444;';
+                    @endphp
+
+                    <div x-data="{ editOpen: false }"
+                        style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+
+                        {{-- Row 1: Badge Info --}}
+                        <div style="padding:12px 20px; border-bottom:1px solid #f1f5f9;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    {{-- Bulan Tahun --}}
+                                    <span style="background:#1e293b; color:#fff; border-radius:20px; padding:4px 14px; font-size:13px; font-weight:700;">
+                                        {{ $monthNames[(int) $monitoring->bulan] ?? $monitoring->bulan }} {{ $monitoring->tahun }}
+                                    </span>
+                                    
+                                    {{-- Nilai --}}
+                                    <span style="background:#eff6ff; color:#4f46e5; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                        Nilai {{ $monitoring->nilai ?? '-' }}
+                                    </span>
+                                    
+                                    {{-- Level --}}
+                                    <span style="{{ $lvlStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                        {{ $monitoring->level->nama_level ?? '-' }}
+                                    </span>
+                                    
+                                    {{-- Status --}}
+                                    <span style="{{ $statusStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                        {{ $monitoring->status }}
+                                    </span>
                                 </div>
-
-                                <div class="lg:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700">
-                                        Progres Proses
-                                    </label>
-
-                                    <input
-                                        type="number"
-                                        name="progres_proses"
-                                        value="{{ $monitoring->progres_proses }}"
-                                        min="0"
-                                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                
+                                {{-- Tombol Edit & Hapus --}}
+                                <div style="display:flex; gap:4px; align-items:center;">
+                                    <button type="button" @click="editOpen = !editOpen"
+                                            style="font-size:12px; font-weight:600; color:#475569; background:none; border:none; cursor:pointer; transition:color 0.2s; padding:4px 8px;"
+                                            onmouseover="this.style.color='#1e293b';"
+                                            onmouseout="this.style.color='#475569';">
+                                        Edit
+                                    </button>
+                                    <form method="POST" action="{{ route('top-risk.monitoring.destroy', [$topRisk, $monitoring]) }}"
+                                        onsubmit="return confirm('Hapus monitoring ini?')" style="margin:0;">
+                                        @csrf @method('DELETE')
+                                        <button type="submit"
+                                                style="font-size:12px; font-weight:600; color:#ef4444; background:none; border:none; cursor:pointer; transition:color 0.2s; padding:4px 8px;"
+                                                onmouseover="this.style.color='#dc2626';"
+                                                onmouseout="this.style.color='#ef4444';">
+                                            Hapus
+                                        </button>
+                                    </form>
                                 </div>
+                            </div>
+                        </div>
 
-                                <div class="lg:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700">
-                                        Progres Sudah
-                                    </label>
+                        {{-- Row 2: 4 Kotak Info --}}
+                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:16px 20px;">
+                            {{-- Kotak 1: Progres Belum --}}
+                            <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                                <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Progres Belum</p>
+                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $monitoring->progres_belum ?? 0 }}</p>
+                            </div>
 
-                                    <input
-                                        type="number"
-                                        name="progres_sudah"
-                                        value="{{ $monitoring->progres_sudah }}"
-                                        min="0"
-                                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            {{-- Kotak 2: Progres Proses --}}
+                            <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                                <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Progres Proses</p>
+                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $monitoring->progres_proses ?? 0 }}</p>
+                            </div>
+
+                            {{-- Kotak 3: Progres Sudah --}}
+                            <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                                <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Progres Sudah</p>
+                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $monitoring->progres_sudah ?? 0 }}</p>
+                            </div>
+
+                            {{-- Kotak 4: Efektivitas --}}
+                            <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                                <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Efektivitas</p>
+                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">
+                                    {{ $monitoring->aturanEfektivitas->hasil ?? 'Belum ada pembanding' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- Row 3: Catatan --}}
+                        @if($monitoring->catatan)
+                            <div style="padding:0 20px 12px 20px;">
+                                <p style="font-size:12px; color:#64748b; margin:0; padding:8px 12px; background:#f8fafc; border-radius:8px; border:1px solid #f1f5f9;">
+                                    📝 {{ $monitoring->catatan }}
+                                </p>
+                            </div>
+                        @endif
+
+                        {{-- Edit Form (collapse) --}}
+                        <div x-show="editOpen" x-transition style="display:none; border-top:1px solid #f1f5f9; padding:16px 20px; background:#fafbfc;">
+                            <form method="POST" action="{{ route('top-risk.monitoring.update', [$topRisk, $monitoring]) }}">
+                                @csrf @method('PUT')
+                                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px;">
+                                    <div>
+                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Bulan</label>
+                                        <select name="bulan" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; background:#fff;">
+                                            @foreach ($monthNames as $monthNumber => $monthName)
+                                                <option value="{{ $monthNumber }}" @selected((int) $monitoring->bulan === $monthNumber)>
+                                                    {{ $monthName }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Tahun</label>
+                                        <input type="number" name="tahun" value="{{ $monitoring->tahun }}" min="2000"
+                                               style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Nilai (1-25)</label>
+                                        <input type="number" name="nilai" value="{{ $monitoring->nilai }}" min="1" max="25"
+                                               style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff; font-weight:700;">
+                                    </div>
                                 </div>
-
-                                <div class="lg:col-span-12">
-                                    <label class="block text-sm font-semibold text-slate-700">
-                                        Catatan
-                                    </label>
-
-                                    <textarea
-                                        name="catatan"
-                                        rows="3"
-                                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ $monitoring->catatan }}</textarea>
+                                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px;">
+                                    <div>
+                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Status</label>
+                                        <select name="status" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; background:#fff;">
+                                            <option value="Aktif" @selected($monitoring->status === 'Aktif')>Aktif</option>
+                                            <option value="Tidak Aktif" @selected($monitoring->status === 'Tidak Aktif')>Tidak Aktif</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Progres Belum</label>
+                                        <input type="number" name="progres_belum" value="{{ $monitoring->progres_belum }}" min="0"
+                                               style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Progres Proses</label>
+                                        <input type="number" name="progres_proses" value="{{ $monitoring->progres_proses }}" min="0"
+                                               style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    </div>
                                 </div>
-
-                                <div class="lg:col-span-12">
-                                    <button
-                                        type="submit"
-                                        class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700">
-                                        Simpan Perubahan Monitoring
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                                    <div>
+                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Progres Sudah</label>
+                                        <input type="number" name="progres_sudah" value="{{ $monitoring->progres_sudah }}" min="0"
+                                               style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Catatan</label>
+                                        <input type="text" name="catatan" value="{{ $monitoring->catatan }}"
+                                               style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
+                                    </div>
+                                </div>
+                                <div style="display:flex; justify-content:flex-end;">
+                                    <button type="submit"
+                                            style="background:#4F7EF0; border:none; border-radius:8px; padding:8px 22px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s;"
+                                            onmouseover="this.style.background='#3b66d9';"
+                                            onmouseout="this.style.background='#4F7EF0';">
+                                        Simpan Perubahan
                                     </button>
                                 </div>
                             </form>
-                        </details>
-                    </div>
-                @empty
-                    <div class="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
-                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-white text-slate-400">
-                            <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h3.75C8.496 12 9 12.504 9 13.125v6.75C9 20.496 8.496 21 7.875 21h-3.75A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 4.125C9.75 3.504 10.254 3 10.875 3h2.25c.621 0 1.125.504 1.125 1.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125ZM15 8.625C15 8.004 15.504 7.5 16.125 7.5h3.75c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-3.75A1.125 1.125 0 0 1 15 19.875V8.625Z" />
-                            </svg>
                         </div>
 
-                        <h3 class="mt-3 text-sm font-semibold text-slate-900">
-                            Belum ada data monitoring
-                        </h3>
-
-                        <p class="mt-1 text-sm text-slate-500">
-                            Tambahkan monitoring bulanan pertama untuk risiko ini.
-                        </p>
+                    </div>
+                @empty
+                    <div style="border:1px dashed #e2e8f0; border-radius:14px; padding:32px; text-align:center; color:#94a3b8; font-size:13px;">
+                        Belum ada riwayat monitoring bulanan.
                     </div>
                 @endforelse
             </div>
         </div>
+
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const defaultClass = 'mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600';
-
-            const levelClasses = {
-                low: 'mt-2 rounded-2xl border border-emerald-300 bg-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-200',
-                lowModerate: 'mt-2 rounded-2xl border border-lime-300 bg-lime-100 px-4 py-3 text-sm font-semibold text-lime-800 ring-1 ring-lime-200',
-                moderate: 'mt-2 rounded-2xl border border-yellow-300 bg-yellow-100 px-4 py-3 text-sm font-semibold text-yellow-800 ring-1 ring-yellow-200',
-                moderateHigh: 'mt-2 rounded-2xl border border-orange-300 bg-orange-100 px-4 py-3 text-sm font-semibold text-orange-800 ring-1 ring-orange-200',
-                high: 'mt-2 rounded-2xl border border-red-300 bg-red-100 px-4 py-3 text-sm font-semibold text-red-800 ring-1 ring-red-200',
-                invalid: 'mt-2 rounded-2xl border border-rose-300 bg-rose-100 px-4 py-3 text-sm font-semibold text-rose-800 ring-1 ring-rose-200',
-            };
-
-            function resolveLevelByNilai(nilai) {
-                if (nilai >= 20 && nilai <= 25) {
-                    return {
-                        label: 'High',
-                        className: levelClasses.high,
-                        help: 'Nilai 20 - 25 termasuk level High.',
-                    };
-                }
-
-                if (nilai >= 16 && nilai <= 19) {
-                    return {
-                        label: 'Moderate to High',
-                        className: levelClasses.moderateHigh,
-                        help: 'Nilai 16 - 19 termasuk level Moderate to High.',
-                    };
-                }
-
-                if (nilai >= 11 && nilai <= 15) {
-                    return {
-                        label: 'Moderate',
-                        className: levelClasses.moderate,
-                        help: 'Nilai 11 - 15 termasuk level Moderate.',
-                    };
-                }
-
-                if (nilai >= 6 && nilai <= 10) {
-                    return {
-                        label: 'Low to Moderate',
-                        className: levelClasses.lowModerate,
-                        help: 'Nilai 6 - 10 termasuk level Low to Moderate.',
-                    };
-                }
-
-                if (nilai >= 1 && nilai <= 5) {
-                    return {
-                        label: 'Low',
-                        className: levelClasses.low,
-                        help: 'Nilai 1 - 5 termasuk level Low.',
-                    };
-                }
-
-                return {
-                    label: 'Nilai tidak valid',
-                    className: levelClasses.invalid,
-                    help: 'Nilai risiko harus berada pada rentang 1 sampai 25.',
-                };
-            }
-
-            function bindLevelPreview(nilaiInput, levelPreview, levelHelp) {
-                if (!nilaiInput || !levelPreview || !levelHelp) {
-                    return;
-                }
-
-                function updateLevelPreview() {
-                    const nilai = Number(nilaiInput.value);
-
-                    if (!nilaiInput.value) {
-                        levelPreview.className = defaultClass;
-                        levelPreview.textContent = 'Otomatis mengikuti nilai risiko';
-                        levelHelp.textContent = 'Masukkan nilai 1 sampai 25 untuk melihat level.';
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('topRiskMonitoring', () => ({
+                nilaiInput: '',
+                levelName: 'Otomatis',
+                levelId: '',
+                levelStyle: '',
+                bulan: '',
+                tahun: '',
+                init() {
+                    this.$watch('nilaiInput', (value) => {
+                        this.updateLevel(value);
+                    });
+                },
+                updateLevel(value) {
+                    const val = parseInt(value);
+                    if (isNaN(val) || val < 1 || val > 25) {
+                        this.levelName = 'Otomatis';
+                        this.levelId = '';
+                        this.levelStyle = '';
                         return;
                     }
-
-                    const level = resolveLevelByNilai(nilai);
-
-                    levelPreview.className = level.className;
-                    levelPreview.textContent = level.label;
-                    levelHelp.textContent = level.help;
+                    
+                    let levelData = {
+                        name: '',
+                        id: '',
+                        color: '',
+                        bg: ''
+                    };
+                    
+                    if (val >= 1 && val <= 5) {
+                        levelData = { name: 'Low', id: 1, color: '#10b981', bg: '#ecfdf5' };
+                    } else if (val >= 6 && val <= 10) {
+                        levelData = { name: 'Low to Moderate', id: 2, color: '#3b82f6', bg: '#eff6ff' };
+                    } else if (val >= 11 && val <= 15) {
+                        levelData = { name: 'Moderate', id: 3, color: '#f59e0b', bg: '#fffbeb' };
+                    } else if (val >= 16 && val <= 19) {
+                        levelData = { name: 'Moderate to High', id: 4, color: '#f97316', bg: '#fff7ed' };
+                    } else if (val >= 20 && val <= 25) {
+                        levelData = { name: 'High', id: 5, color: '#ef4444', bg: '#fef2f2' };
+                    }
+                    
+                    this.levelName = levelData.name;
+                    this.levelId = levelData.id;
+                    this.levelStyle = `background:${levelData.bg}; color:${levelData.color}; padding:4px 12px; border-radius:6px; font-weight:700;`;
                 }
-
-                nilaiInput.addEventListener('input', updateLevelPreview);
-                updateLevelPreview();
-            }
-
-            bindLevelPreview(
-                document.getElementById('nilai'),
-                document.getElementById('level-preview'),
-                document.getElementById('level-preview-help')
-            );
-
-            document.querySelectorAll('form').forEach(function (form) {
-                bindLevelPreview(
-                    form.querySelector('.js-edit-nilai'),
-                    form.querySelector('.js-edit-level-preview'),
-                    form.querySelector('.js-edit-level-help')
-                );
-            });
+            }));
         });
     </script>
 
+    <script src="{{ asset('js/otomatisasi-logic.js') }}?v={{ time() }}"></script>
 </x-admin-layout>

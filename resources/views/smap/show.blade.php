@@ -42,6 +42,7 @@
                 </ul>
             </div>
         @endif
+
 {{-- ═══════════ CARD 1: Detail Lengkap ═══════════ --}}
 <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
 
@@ -178,21 +179,13 @@
                             </div>
                         </div>
 
-                        {{-- Baris 2: Nilai saat ini + Status Penanganan + Status Monitoring --}}
+                        {{-- Baris 2: Nilai saat ini (input number) + Status Penanganan + Status Monitoring --}}
                         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
                             <div>
-                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Nilai saat ini</label>
-                                <div style="position:relative;">
-                                    <select name="value_select" x-model="value"
-                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#94a3b8; background:#fff; outline:none;">
-                                        <option value="">Masukkan nilai 1-25</option>
-                                        @for($i = 1; $i <= 25; $i++)
-                                            <option value="{{ $i }}">{{ $i }}</option>
-                                        @endfor
-                                    </select>
-                                    <input type="hidden" name="value" :value="value">
-                                    <svg style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; pointer-events:none;" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-                                </div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Nilai saat ini (1-25)</label>
+                                <input type="number" name="value" x-model="value" min="1" max="25"
+                                       placeholder="1 - 25"
+                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
                             </div>
                             <div>
                                 <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Status Penanganan</label>
@@ -269,191 +262,213 @@
             </form>
         </div>
 
-          {{-- ═══════════ CARD 3: Riwayat monitoring Triwulan ═══════════ --}}
-        <div>
-            <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Riwayat monitoring Triwulan</h2>
-            <p style="font-size:12px; color:#94a3b8; margin:0 0 16px;">Daftar riwayat yang telah dimasukkan untuk risiko ini</p>
+         {{-- ═══════════ CARD 3: Riwayat monitoring Triwulan ═══════════ --}}
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+    
+    <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Riwayat monitoring Triwulan</h2>
+    <p style="font-size:12px; color:#94a3b8; margin:0 0 20px;">Daftar riwayat yang telah dimasukkan untuk risiko ini</p>
 
-            <div style="display:flex; flex-direction:column; gap:16px;">
-                @forelse($risk->detailPeriode as $history)
-                    @php
-                        $lvl = strtolower($history->levelRisiko->nama_level ?? $history->levelRisiko->level ?? '');
-                        $lvlStyle = match($lvl) {
-                            'high' => 'background:#fef2f2;color:#ef4444;',
-                            'moderate to high' => 'background:#fff7ed;color:#f97316;',
-                            'moderate' => 'background:#fffbeb;color:#f59e0b;',
-                            'low to moderate' => 'background:#eff6ff;color:#3b82f6;',
-                            'low' => 'background:#ecfdf5;color:#10b981;',
-                            default => 'background:#f1f5f9;color:#64748b;',
-                        };
-                        $pen = $history->status_penanganan ?? 'Belum';
-                        $penDisplay = match($pen) {
-                            'selesai' => 'Selesai',
-                            'proses' => 'Proses',
-                            default => 'Belum',
-                        };
-                        $penStyle = match($pen) {
-                            'selesai' => 'background:#ecfdf5;color:#10b981;',
-                            'proses' => 'background:#eff6ff;color:#3b82f6;',
-                            default => 'background:#f1f5f9;color:#64748b;',
-                        };
-                    @endphp
+    <div style="display:flex; flex-direction:column; gap:12px;">
+        @forelse($risk->detailPeriode as $history)
+            @php
+                $lvl = strtolower($history->levelRisiko->nama_level ?? $history->levelRisiko->level ?? '');
+                $lvlStyle = match($lvl) {
+                    'high' => 'background:#fef2f2;color:#ef4444;',
+                    'moderate to high' => 'background:#fff7ed;color:#f97316;',
+                    'moderate' => 'background:#fffbeb;color:#f59e0b;',
+                    'low to moderate' => 'background:#eff6ff;color:#3b82f6;',
+                    'low' => 'background:#ecfdf5;color:#10b981;',
+                    default => 'background:#f1f5f9;color:#64748b;',
+                };
+                $pen = $history->status_penanganan ?? 'Belum';
+                $penDisplay = match($pen) {
+                    'selesai' => 'Selesai',
+                    'proses' => 'Proses',
+                    default => 'Belum',
+                };
+                $penStyle = match($pen) {
+                    'selesai' => 'background:#ecfdf5;color:#10b981;',
+                    'proses' => 'background:#eff6ff;color:#3b82f6;',
+                    default => 'background:#f1f5f9;color:#64748b;',
+                };
+                $statusStyle = ($risk->status ?? 1) == 1 
+                    ? 'background:#ecfdf5;color:#10b981;' 
+                    : 'background:#fef2f2;color:#ef4444;';
+                
+                $trend = $history->trend ?? 'Stabil';
+                $trendIcon = match($trend) {
+                    'Naik' => '↑',
+                    'Turun' => '↓',
+                    default => '→',
+                };
+                $trendColor = match($trend) {
+                    'Naik' => '#ef4444',
+                    'Turun' => '#10b981',
+                    default => '#94a3b8',
+                };
+            @endphp
 
-                    <div x-data="{ editOpen: false }"
-                        style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div x-data="{ editOpen: false }"
+                style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
 
-                        {{-- Header Card --}}
-                        <div style="padding:16px 20px; border-bottom:1px solid #f1f5f9;">
-                            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                                    <span style="background:#1e293b; color:#fff; border-radius:20px; padding:4px 14px; font-size:13px; font-weight:700;">
-                                        @php
-                                            $displayQ = $history->quarter;
-                                            if (is_numeric($displayQ)) {
-                                                $displayQ = 'TW' . $displayQ;
-                                            } elseif (str_contains($displayQ, 'Q')) {
-                                                $displayQ = str_replace('Q', 'TW', $displayQ);
-                                            }
-                                        @endphp
-                                        {{ $displayQ }} {{ $history->year }}
-                                    </span>
-                                    <span style="background:#eff6ff; color:#4f46e5; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">Nilai {{ $history->value ?? '-' }}</span>
-                                    <span style="{{ $lvlStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">{{ ucfirst($history->levelRisiko->nama_level ?? $history->levelRisiko->level ?? '-') }}</span>
-                                    <span style="{{ $penStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">{{ $penDisplay }}</span>
+                {{-- Row 1: Badge Info --}}
+                <div style="padding:12px 20px; border-bottom:1px solid #f1f5f9;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            {{-- TW --}}
+                            <span style="background:#1e293b; color:#fff; border-radius:20px; padding:4px 14px; font-size:13px; font-weight:700;">
+                                @php
+                                    $displayQ = $history->quarter;
+                                    if (is_numeric($displayQ)) {
+                                        $displayQ = 'TW' . $displayQ;
+                                    } elseif (str_contains($displayQ, 'Q')) {
+                                        $displayQ = str_replace('Q', 'TW', $displayQ);
+                                    }
+                                @endphp
+                                {{ $displayQ }} {{ $history->year }}
+                            </span>
+                            
+                            {{-- Nilai --}}
+                            <span style="background:#eff6ff; color:#4f46e5; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                Nilai {{ $history->value ?? '-' }}
+                            </span>
+                            
+                            {{-- Level --}}
+                            <span style="{{ $lvlStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                {{ ucfirst($history->levelRisiko->nama_level ?? $history->levelRisiko->level ?? '-') }}
+                            </span>
+                            
+                            {{-- Penanganan --}}
+                            <span style="{{ $penStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                {{ $penDisplay }}
+                            </span>
 
-                                    {{-- Badge Tambahan Status Keaktifan Master Risiko --}}
-                                    <span style="{{ ($risk->status ?? 1) == 1 ? 'background:#ecfdf5;color:#10b981;' : 'background:#fef2f2;color:#ef4444;' }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
-                                        Status: {{ ($risk->status ?? 1) == 1 ? 'Aktif' : 'Tidak Aktif' }}
-                                    </span>
-                                </div>
-                                <div style="display:flex; gap:8px; align-items:center;">
-                                    <button type="button" @click="editOpen = !editOpen"
-                                            style="font-size:12px; font-weight:600; color:#475569; background:none; border:none; cursor:pointer; transition:color 0.2s; padding:4px 8px;"
-                                            onmouseover="this.style.color='#1e293b';"
-                                            onmouseout="this.style.color='#475569';">
-                                        Edit
-                                    </button>
-                                    <form method="POST" action="{{ route('smap-risk.destroy-monitoring', $history->id_detail) }}"
-                                        onsubmit="return confirm('Hapus periode ini?')" style="margin:0;">
-                                        @csrf @method('DELETE')
-                                        <button type="submit"
-                                                style="font-size:12px; font-weight:600; color:#ef4444; background:none; border:none; cursor:pointer; transition:color 0.2s; padding:4px 8px;"
-                                                onmouseover="this.style.color='#dc2626';"
-                                                onmouseout="this.style.color='#ef4444';">
-                                            Hapus
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
+                            {{-- Status --}}
+                            <span style="{{ $statusStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                Status: {{ ($risk->status ?? 1) == 1 ? 'Aktif' : 'Tidak Aktif' }}
+                            </span>
                         </div>
-
-                        {{-- Body: 4 Kotak Info --}}
-                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:16px 20px;">
-                            {{-- Kotak 1: Nilai Inheren --}}
-                            <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
-                                <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nilai Inheren</p>
-                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->inherent ?? '-' }}</p>
-                            </div>
-
-                            {{-- Kotak 2: Nilai Target --}}
-                            <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
-                                <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nilai Target</p>
-                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->inherent_target ?? '-' }}</p>
-                            </div>
-
-                            {{-- Kotak 3: Penanganan --}}
-                            <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
-                                <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Penanganan</p>
-                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $penDisplay }}</p>
-                            </div>
-
-                            {{-- Kotak 4: Tren Perubahan --}}
-                            <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
-                                <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Tren Perubahan</p>
-                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">
-                                    @if(($history->trend ?? '') === 'Naik')
-                                        <span style="color:#ef4444;">↑ Naik</span>
-                                    @elseif(($history->trend ?? '') === 'Turun')
-                                        <span style="color:#10b981;">↓ Turun</span>
-                                    @else
-                                        <span style="color:#94a3b8;">→ Stabil</span>
-                                    @endif
-                                </p>
-                            </div>
-                        </div>
-
-                        {{-- Edit Form (collapse) --}}
-                        <div x-show="editOpen" x-transition style="display:none; border-top:1px solid #f1f5f9; padding:16px 20px; background:#fafbfc;">
-                            <form method="POST" action="{{ route('smap-risk.update-monitoring', $history->id_detail) }}">
-                                @csrf @method('PUT')
-                                {{-- Mengubah grid-template-columns menjadi repeat(5,1fr) agar muat berjejer seimbang --}}
-                                <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:12px;">
-                                    <div>
-                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Kuartal</label>
-                                        <select name="quarter" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; background:#fff; font-weight:600;">
-                                            @php
-                                                $currentQ = $history->quarter;
-                                                if (is_numeric($currentQ)) {
-                                                    $currentQ = 'TW' . $currentQ;
-                                                } elseif (str_contains($currentQ, 'Q')) {
-                                                    $currentQ = str_replace('Q', 'TW', $currentQ);
-                                                }
-                                            @endphp
-                                            <option value="TW1" {{ $currentQ == 'TW1' ? 'selected' : '' }}>TW1</option>
-                                            <option value="TW2" {{ $currentQ == 'TW2' ? 'selected' : '' }}>TW2</option>
-                                            <option value="TW3" {{ $currentQ == 'TW3' ? 'selected' : '' }}>TW3</option>
-                                            <option value="TW4" {{ $currentQ == 'TW4' ? 'selected' : '' }}>TW4</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Tahun</label>
-                                        <input type="number" name="year" min="2020" max="2099"
-                                            value="{{ old('edit_year_'.$history->id_detail, $history->year ?? date('Y')) }}"
-                                            style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff; font-weight:600;">
-                                    </div>
-                                    <div>
-                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Nilai Current</label>
-                                        <input type="number" name="value" min="1" max="25"
-                                            value="{{ old('edit_value_'.$history->id_detail, $history->value) }}"
-                                            style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff; font-weight:700;">
-                                    </div>
-                                    <div>
-                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Penanganan</label>
-                                        <select name="status_penanganan" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; background:#fff;">
-                                            <option value="belum" @selected(($history->status_penanganan ?? 'belum') == 'belum')> Belum</option>
-                                            <option value="proses" @selected(($history->status_penanganan ?? '') == 'proses')> Proses</option>
-                                            <option value="selesai" @selected(($history->status_penanganan ?? '') == 'selesai')> Selesai</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Status Risiko</label>
-                                        <select name="status" required style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; background:#fff;">
-                                            <option value="1" {{ ($risk->status ?? 1) == 1 ? 'selected' : '' }}> Aktif</option>
-                                            <option value="0" {{ ($risk->status ?? 1) == 0 ? 'selected' : '' }}> Tidak Aktif</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div style="display:flex; justify-content:flex-end;">
-                                    <button type="submit"
-                                            style="background:#4F7EF0; border:none; border-radius:8px; padding:8px 22px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s;"
-                                            onmouseover="this.style.background='#3b66d9';"
-                                            onmouseout="this.style.background='#4F7EF0';">
-                                        Simpan Perubahan
-                                    </button>
-                                </div>
+                        
+                        {{-- Tombol Edit & Hapus --}}
+                        <div style="display:flex; gap:4px; align-items:center;">
+                            <button type="button" @click="editOpen = !editOpen"
+                                    style="font-size:12px; font-weight:600; color:#475569; background:none; border:none; cursor:pointer; transition:color 0.2s; padding:4px 8px;"
+                                    onmouseover="this.style.color='#1e293b';"
+                                    onmouseout="this.style.color='#475569';">
+                                Edit
+                            </button>
+                            <form method="POST" action="{{ route('smap-risk.destroy-monitoring', $history->id_detail) }}"
+                                onsubmit="return confirm('Hapus periode ini?')" style="margin:0;">
+                                @csrf @method('DELETE')
+                                <button type="submit"
+                                        style="font-size:12px; font-weight:600; color:#ef4444; background:none; border:none; cursor:pointer; transition:color 0.2s; padding:4px 8px;"
+                                        onmouseover="this.style.color='#dc2626';"
+                                        onmouseout="this.style.color='#ef4444';">
+                                    Hapus
+                                </button>
                             </form>
                         </div>
+                    </div>
+                </div>
 
+                {{-- Row 2: 4 Kotak Info --}}
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:16px 20px;">
+                    {{-- Kotak 1: Nilai Inheren --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nilai Inheren</p>
+                        <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->inherent ?? '-' }}</p>
                     </div>
-                @empty
-                    <div style="border:1px dashed #e2e8f0; border-radius:14px; padding:32px; text-align:center; color:#94a3b8; font-size:13px;">
-                        Belum ada riwayat triwulan.
+
+                    {{-- Kotak 2: Nilai Target --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nilai Target</p>
+                        <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->inherent_target ?? '-' }}</p>
                     </div>
-                @endforelse
+
+                    {{-- Kotak 3: Penanganan --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Penanganan</p>
+                        <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $penDisplay }}</p>
+                    </div>
+
+                    {{-- Kotak 4: Tren Perubahan --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Tren Perubahan</p>
+                        <p style="font-size:16px; font-weight:700; color:{{ $trendColor }}; margin:0;">
+                            {{ $trendIcon }} {{ $trend }}
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Edit Form (collapse) --}}
+                <div x-show="editOpen" x-transition style="display:none; border-top:1px solid #f1f5f9; padding:16px 20px; background:#fafbfc;">
+                    <form method="POST" action="{{ route('smap-risk.update-monitoring', $history->id_detail) }}">
+                        @csrf @method('PUT')
+                        <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:12px;">
+                            <div>
+                                <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Kuartal</label>
+                                <select name="quarter" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; background:#fff; font-weight:600;">
+                                    @php
+                                        $currentQ = $history->quarter;
+                                        if (is_numeric($currentQ)) {
+                                            $currentQ = 'TW' . $currentQ;
+                                        } elseif (str_contains($currentQ, 'Q')) {
+                                            $currentQ = str_replace('Q', 'TW', $currentQ);
+                                        }
+                                    @endphp
+                                    <option value="TW1" {{ $currentQ == 'TW1' ? 'selected' : '' }}>TW1</option>
+                                    <option value="TW2" {{ $currentQ == 'TW2' ? 'selected' : '' }}>TW2</option>
+                                    <option value="TW3" {{ $currentQ == 'TW3' ? 'selected' : '' }}>TW3</option>
+                                    <option value="TW4" {{ $currentQ == 'TW4' ? 'selected' : '' }}>TW4</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Tahun</label>
+                                <input type="number" name="year" min="2020" max="2099"
+                                    value="{{ old('edit_year_'.$history->id_detail, $history->year ?? date('Y')) }}"
+                                    style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff; font-weight:600;">
+                            </div>
+                            <div>
+                                <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Nilai</label>
+                                <input type="number" name="value" min="1" max="25"
+                                    value="{{ old('edit_value_'.$history->id_detail, $history->value) }}"
+                                    style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff; font-weight:700;">
+                            </div>
+                            <div>
+                                <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Penanganan</label>
+                                <select name="status_penanganan" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; background:#fff;">
+                                    <option value="belum" @selected(($history->status_penanganan ?? 'belum') == 'belum')>Belum</option>
+                                    <option value="proses" @selected(($history->status_penanganan ?? '') == 'proses')>Proses</option>
+                                    <option value="selesai" @selected(($history->status_penanganan ?? '') == 'selesai')>Selesai</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Status Risiko</label>
+                                <select name="status" required style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; background:#fff;">
+                                    <option value="1" {{ ($risk->status ?? 1) == 1 ? 'selected' : '' }}>Aktif</option>
+                                    <option value="0" {{ ($risk->status ?? 1) == 0 ? 'selected' : '' }}>Tidak Aktif</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display:flex; justify-content:flex-end;">
+                            <button type="submit"
+                                    style="background:#4F7EF0; border:none; border-radius:8px; padding:8px 22px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s;"
+                                    onmouseover="this.style.background='#3b66d9';"
+                                    onmouseout="this.style.background='#4F7EF0';">
+                                Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
             </div>
-        </div>
-
+        @empty
+            <div style="border:1px dashed #e2e8f0; border-radius:14px; padding:32px; text-align:center; color:#94a3b8; font-size:13px;">
+                Belum ada riwayat triwulan.
+            </div>
+        @endforelse
     </div>
+</div>
 
     <script src="{{ asset('js/smap-logic.js') }}?v={{ time() }}"></script>
 </x-admin-layout>

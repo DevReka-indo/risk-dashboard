@@ -1,247 +1,453 @@
 <x-admin-layout>
     <x-slot name="header">
-        <h1 class="text-lg font-bold text-slate-900">Detail Monitoring Risiko Departemen</h1>
-        <p class="hidden text-sm text-slate-500 sm:block">Manajemen parameter, target, penanganan, dan riwayat triwulan risiko.</p>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('department-risk.index') }}"
+               class="flex h-7 w-7 items-center justify-center rounded text-slate-800 hover:bg-slate-100 transition">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+            </a>
+            <div>
+                <h1 class="text-base font-bold text-slate-900">Detail & Monitoring Risk Departemen</h1>
+                <p class="text-xs text-slate-500">Kelola input nilai berkala dan riwayat perkembangan risiko</p>
+            </div>
+        </div>
     </x-slot>
 
-    {{-- Data untuk Alpine.js --}}
     @php
         $historyData = [];
         foreach($risk->periods as $p) {
             $historyData[$p->pivot->year][$p->pivot->quarter] = $p->pivot->value;
         }
+        $targetId = $risk->target_id_level ?? null;
+        $targetName = match((int) $targetId) {
+            1 => 'Low', 2 => 'Low to Moderate', 3 => 'Moderate', 4 => 'Moderate to High', 5 => 'High',
+            default => '-'
+        };
     @endphp
 
-    <div class="space-y-6">
-        {{-- Alerts Success / Error Session --}}
-        @if (session('success'))
-            <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-semibold flex items-center gap-2">
-                <span>{{ session('success') }}</span>
-            </div>
-        @endif
-        @if (session('error'))
-            <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 font-semibold flex items-center gap-2">
-                <span>{{ session('error') }}</span>
-            </div>
-        @endif
+    <div class="space-y-5">
 
-        {{-- Jaring Pengaman --}}
-        @if ($errors->any())
-            <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
-                <p class="font-bold mb-2">Gagal menyimpan data karena alasan berikut:</p>
-                <ul class="list-disc pl-5 space-y-1 font-medium">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
+        {{-- Flash --}}
+        @if(session('success'))
+            <div style="border:1px solid #6ee7b7; background:#ecfdf5; border-radius:12px; padding:12px 16px; font-size:13px; color:#065f46; font-weight:600;">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div style="border:1px solid #fca5a5; background:#fef2f2; border-radius:12px; padding:12px 16px; font-size:13px; color:#991b1b; font-weight:600;">{{ session('error') }}</div>
+        @endif
+        @if($errors->any())
+            <div style="border:1px solid #fca5a5; background:#fef2f2; border-radius:12px; padding:12px 16px; font-size:13px; color:#991b1b;">
+                <ul style="margin:0; padding-left:16px;">
+                    @foreach($errors->all() as $e) <li>{{ $e }}</li> @endforeach
                 </ul>
             </div>
         @endif
 
-        {{-- Detail Informasi Utama --}}
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h2 class="text-base font-bold text-slate-900">Detail Lengkap</h2>
-                <a href="{{ route('department-risk.index') }}" class="rounded-2xl border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Kembali</a>
+        {{-- ═══════════ CARD 1: Detail Lengkap ═══════════ --}}
+        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+
+            {{-- Header Card 1 --}}
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px;">
+                <div>
+                    <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Detail Lengkap</h2>
+                    <p style="font-size:12px; color:#94a3b8; margin:0;">Seluruh informasi data risiko ini</p>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <a href="{{ route('department-risk.edit', $risk->id_monitoring) }}"
+                       style="border:1px solid #e2e8f0; border-radius:8px; padding:7px 18px; font-size:13px; font-weight:600; color:#475569; background:#fff; text-decoration:none; display:inline-block; transition:all 0.2s;"
+                       onmouseover="this.style.background='#f8fafc';"
+                       onmouseout="this.style.background='#fff';">
+                        Edit
+                    </a>
+                    <form method="POST" action="{{ route('department-risk.destroy', $risk->id_monitoring) }}"
+                          onsubmit="return confirm('Yakin hapus?')" style="margin:0;">
+                        @csrf @method('DELETE')
+                        <button type="submit"
+                                style="border:1px solid #fca5a5; border-radius:8px; padding:7px 18px; font-size:13px; font-weight:600; color:#ef4444; background:#fff; cursor:pointer; transition:all 0.2s;"
+                                onmouseover="this.style.background='#fef2f2';"
+                                onmouseout="this.style.background='#fff';">
+                            Hapus
+                        </button>
+                    </form>
+                </div>
             </div>
-            <div class="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <div><span class="block text-xs font-semibold text-slate-400">Unit Kerja</span> <span class="block text-sm font-bold">{{ $risk->unitKerja->nama_unit ?? '-' }}</span></div>
-                <div><span class="block text-xs font-semibold text-slate-400">Kategori</span> <span class="block text-sm font-bold">{{ $risk->kategoriRisiko->nama_kategori ?? '-' }}</span></div>
-                <div><span class="block text-xs font-semibold text-slate-400">Type</span> <span class="inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium">{{ $risk->type }}</span></div>
-            </div>
-        </div>
 
-        {{-- Form Monitoring (Alpine.js Component) --}}
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
-            x-data="smapRiskForm(@js($historyData), '{{ old('year', date('Y')) }}')">
+            {{-- Isi Card 1 --}}
+            <div style="display:flex; gap:24px;">
 
-            <div class="mb-6 border-b border-slate-100 pb-4">
-                <h3 class="text-base font-bold text-slate-900">Input Monitoring Kuartal</h3>
-                <p class="mt-1 text-sm text-slate-500">Nilai inherent otomatis terisi berdasarkan kuartal sebelumnya.</p>
-            </div>
-
-            <form method="POST" action="{{ route('department-risk.update-period', $risk->id_monitoring) }}" class="space-y-6">
-                @csrf
-                @method('PUT')
-
-                {{-- Baris Input --}}
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    {{-- Kuartal & Tahun --}}
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700">Kuartal</label>
-                        <select name="quarter" x-model="quarter" @change="checkInherent()" required class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="TW1">TW1</option>
-                            <option value="TW2">TW2</option>
-                            <option value="TW3">TW3</option>
-                            <option value="TW4">TW4</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700">Tahun</label>
-                        <input type="number" name="year" x-model="year" @change="checkInherent()" required class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700">Skor Inherent (Awal)</label>
-                        <input type="number" name="inherent" x-model="inherent" :readonly="inherentReadOnly" :class="inherentReadOnly ? 'bg-slate-50 text-slate-500' : 'bg-white'" required class="mt-2 w-full rounded-2xl border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700">Status Penanganan</label>
-                        <select name="penanganan" required class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="Belum">Belum</option>
-                            <option value="Proses">Proses</option>
-                            <option value="Sudah">Sudah</option>
-                        </select>
+                {{-- Kolom Kiri: 3 Kotak --}}
+                <div style="display:flex; flex-direction:column; gap:12px; flex:1;">
+                    {{-- Kotak 1: Unit Kerja --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Unit Kerja</p>
+                        <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->unitKerja->nama_unit ?? '-' }}</p>
                     </div>
 
-                    {{-- Skor & Level --}}
-                    <div class="sm:col-span-2 lg:col-span-1">
-                        <label class="block text-sm font-semibold text-slate-700">Skor Current (1-25)</label>
-                        <input type="number" name="value" x-model="value" required class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div class="sm:col-span-2 lg:col-span-1">
-                        <label class="block text-sm font-semibold text-slate-700">Level Current</label>
-                        <div class="mt-2 w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600"
-                            x-text="{1: 'Low', 2: 'Low Moderate', 3: 'Moderate', 4: 'Moderate to High', 5: 'High'}[otomatisLevel] || '-'">
-                        </div>
-                        <input type="hidden" name="calculated_level" :value="otomatisLevel">
-                    </div>
-                    <div class="sm:col-span-2 lg:col-span-1">
-                        <label class="block text-sm font-semibold text-slate-700">Skor Target (1-25)</label>
-                        <input type="number" name="target" x-model="targetValue" required class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div class="sm:col-span-2 lg:col-span-1">
-                        <label class="block text-sm font-semibold text-slate-700">Level Target</label>
-                        <div class="mt-2 w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600"
-                            x-text="{1: 'Low', 2: 'Low to Moderate', 3: 'Moderate', 4: 'Moderate to High', 5: 'High'}[otomatisTargetLevel] || '-'">
-                        </div>
-                        <input type="hidden" name="calculated_target_level" :value="otomatisTargetLevel">
+                    {{-- Kotak 2: Kategori --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Kategori</p>
+                        <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->kategoriRisiko->nama_kategori ?? '-' }}</p>
                     </div>
 
-                    {{-- Baris Status & Trend --}}
-                    <div class="sm:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700">Status Monitoring</label>
-                        <select name="status_monitoring" required class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="1">Aktif</option>
-                            <option value="0">Tidak Aktif</option>
-                        </select>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700">Trend Perubahan</label>
-                        <div class="mt-2 w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600" x-text="otomatisTrend || '-'"></div>
-                        <input type="hidden" name="calculated_trend" :value="otomatisTrend">
+                    {{-- Kotak 3: Status --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Status</p>
+                        @if($risk->status)
+                            <span style="background:#ecfdf5; color:#10b981; border-radius:9999px; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Aktif</span>
+                        @else
+                            <span style="background:#f1f5f9; color:#94a3b8; border-radius:9999px; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Tidak Aktif</span>
+                        @endif
                     </div>
                 </div>
 
-                {{-- Footer Form --}}
-                <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
-                    <button type="reset" class="px-6 py-3 text-sm font-semibold text-slate-600 hover:text-slate-900 transition">Reset</button>
-                    <button type="submit" class="rounded-2xl bg-indigo-600 px-12 py-3 text-sm font-bold text-white hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 transition shadow-sm">
-                        Simpan Monitoring
-                    </button>
+                {{-- Kolom Kanan: 1 Kotak Peristiwa Resiko --}}
+                <div style="flex:2;">
+                    <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc; height:100%; display:flex; flex-direction:column;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Peristiwa Resiko</p>
+                        <p style="font-size:13px; color:#475569; line-height:1.8; margin:0; text-align:justify; flex:1;">
+                            {{ $risk->risk_event_deta ?? '-' }}
+                        </p>
+                        <div style="margin-top:12px; padding-top:10px; border-top:1px solid #e2e8f0;">
+                            <p style="font-size:10px; color:#94a3b8; margin:0;">Dibuat : {{ $risk->created_at?->translatedFormat('d F Y H.i') ?? '-' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ═══════════ CARD 2: Input Parameter Risiko Per Triwulan ═══════════ --}}
+        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);"
+             x-data="smapRiskForm(@js($historyData), '{{ old('year', date('Y')) }}', '{{ $risk->inherent }}', '{{ $risk->target_value }}')">
+
+            <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Input Parameter Risiko Per Triwulan</h2>
+            <p style="font-size:12px; color:#94a3b8; margin:0 0 20px;">Perbarui nilai Current, Status, dan Penanganan untuk Triwulan ini</p>
+
+            <form method="POST" action="{{ route('department-risk.update-period', $risk->id_monitoring) }}">
+                @csrf @method('PUT')
+
+                <div style="display:grid; grid-template-columns:200px 1fr; gap:20px; align-items:start;">
+
+                    {{-- Kiri: Parameter Awal & Target (Read Only) --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:12px; padding:16px; background:#fafafa;">
+                        <p style="font-size:12px; font-weight:700; color:#1e293b; margin:0 0 4px;">Parameter Awal dan Target</p>
+                        <p style="font-size:11px; color:#94a3b8; margin:0 0 14px;">Acuan perkembangan statistik (Read Only)</p>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
+                                <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Nilai Inheren</p>
+                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->inherent ?? '-' }}</p>
+                            </div>
+                            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
+                                <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Level Inheren</p>
+                                <p style="font-size:14px; font-weight:700; color:#f59e0b; margin:0;" x-text="inherentLevelName || '-'"></p>
+                            </div>
+                            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
+                                <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Nilai Target</p>
+                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->target_value ?? '-' }}</p>
+                            </div>
+                            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
+                                <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Level Target</p>
+                                <p style="font-size:14px; font-weight:700; color:#f59e0b; margin:0;" x-text="otomatisTargetLevelName || '-'"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Kanan: Form Input --}}
+                    <div style="display:flex; flex-direction:column; gap:16px;">
+
+                        {{-- Baris 1: Triwulan + Tahun --}}
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Triwulan</label>
+                                <div style="position:relative;">
+                                    <select name="quarter" x-model="quarter"
+                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none;">
+                                        <option value="TW1">TW1</option>
+                                        <option value="TW2">TW2</option>
+                                        <option value="TW3">TW3</option>
+                                        <option value="TW4">TW4</option>
+                                    </select>
+                                    <svg style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; pointer-events:none;" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Tahun</label>
+                                <div style="position:relative;">
+                                    <input type="number" name="year" x-model="year"
+                                           style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box;">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Baris 2: Nilai saat ini (input number) + Status Penanganan + Status Monitoring --}}
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Nilai saat ini (1-25)</label>
+                                <input type="number" name="value" x-model="value" min="1" max="25"
+                                       placeholder="1 - 25"
+                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Status Penanganan</label>
+                                <div style="position:relative;">
+                                    <select name="penanganan"
+                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none;">
+                                        <option value="Belum">Belum</option>
+                                        <option value="Proses">Proses</option>
+                                        <option value="Sudah">Sudah</option>
+                                    </select>
+                                    <svg style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; pointer-events:none;" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Status Monitoring</label>
+                                <div style="position:relative;">
+                                    <select name="status_monitoring"
+                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none;">
+                                        <option value="1">Aktif</option>
+                                        <option value="0">Tidak Aktif</option>
+                                    </select>
+                                    <svg style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; pointer-events:none;" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Baris 3: Nilai saat ini (level badge) + Trend --}}
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Nilai saat ini</label>
+                                <div style="border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; min-height:40px; background:#fff; display:flex; align-items:center;">
+                                    <span x-show="otomatisLevel" style="display:none;">
+                                        <span x-text="{1:'Low',2:'Low to Moderate',3:'Moderate',4:'Moderate to High',5:'High'}[otomatisLevel]"
+                                              :style="{
+                                                1:'background:#ecfdf5;color:#10b981',
+                                                2:'background:#eff6ff;color:#3b82f6',
+                                                3:'background:#fffbeb;color:#f59e0b',
+                                                4:'background:#fff7ed;color:#f97316',
+                                                5:'background:#fef2f2;color:#ef4444'
+                                              }[otomatisLevel]"
+                                              style="border-radius:6px; padding:3px 10px; font-size:12px; font-weight:700;"></span>
+                                    </span>
+                                    <input type="hidden" name="calculated_level" :value="otomatisLevel">
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Trend Perubahan</label>
+                                <div style="border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; min-height:40px; background:#fff; display:flex; align-items:center;">
+                                    <span x-text="otomatisTrend || ''"
+                                          :style="otomatisTrend === 'Naik' ? 'color:#10b981;font-weight:700;font-size:14px;' : otomatisTrend === 'Turun' ? 'color:#ef4444;font-weight:700;font-size:14px;' : 'color:#94a3b8;font-size:13px;'"></span>
+                                    <input type="hidden" name="calculated_trend" :value="otomatisTrend">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Tombol --}}
+                        <div style="display:flex; justify-content:flex-end; gap:10px; padding-top:4px;">
+                            <button type="reset"
+                                    style="border:1px solid #e2e8f0; border-radius:8px; padding:8px 20px; font-size:13px; font-weight:600; color:#475569; background:#fff; cursor:pointer; transition:all 0.2s;"
+                                    onmouseover="this.style.background='#f8fafc';"
+                                    onmouseout="this.style.background='#fff';">
+                                Batal
+                            </button>
+                            <button type="submit"
+                                    style="background:#4F7EF0; border:none; border-radius:8px; padding:8px 24px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s;"
+                                    onmouseover="this.style.background='#3b66d9';"
+                                    onmouseout="this.style.background='#4F7EF0';">
+                                Simpan
+                            </button>
+                        </div>
+
+                    </div>
                 </div>
             </form>
         </div>
 
-        {{-- Riwayat Parameter Triwulan --}}
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="mb-5">
-                <h2 class="text-base font-bold text-slate-900">Riwayat Parameter Triwulan</h2>
-            </div>
-            <div class="space-y-4">
-                @forelse ($risk->periods as $period)
-                    @php
-                        $level = strtolower($period->nama_level ?? $period->level ?? '');
-                        $levelBadgeClass = match ($level) {
-                            'high' => 'bg-red-100 text-red-800 ring-1 ring-red-200',
-                            'moderate to high' => 'bg-orange-100 text-orange-800 ring-1 ring-orange-200',
-                            'moderate' => 'bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200',
-                            'low to moderate' => 'bg-blue-100 text-blue-800 ring-1 ring-blue-200',
-                            'low' => 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200',
-                            default => 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
-                        };
+       {{-- ═══════════ CARD 3: Riwayat Monitoring Triwulan ═══════════ --}}
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+    
+    <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Riwayat monitoring Triwulan</h2>
+    <p style="font-size:12px; color:#94a3b8; margin:0 0 20px;">Daftar riwayat yang telah dimasukkan untuk risiko ini</p>
 
-                        // --- TAMBAHAN: LOGIKA INHERENT LEVEL ---
-                        $inherentVal = (int) ($period->pivot->inherent ?? 0);
-                        $inherentLevel = match(true) {
-                            $inherentVal >= 21 => 'High',
-                            $inherentVal >= 16 => 'Moderate to High',
-                            $inherentVal >= 11 => 'Moderate',
-                            $inherentVal >= 6 => 'Low to Moderate',
-                            default => 'Low',
-                        };
+    <div style="display:flex; flex-direction:column; gap:12px;">
+        @forelse($risk->periods as $period)
+            @php
+                $lvl = strtolower($period->nama_level ?? $period->level ?? '');
+                $lvlStyle = match($lvl) {
+                    'high' => 'background:#fef2f2;color:#ef4444;',
+                    'moderate to high' => 'background:#fff7ed;color:#f97316;',
+                    'moderate' => 'background:#fffbeb;color:#f59e0b;',
+                    'low to moderate' => 'background:#eff6ff;color:#3b82f6;',
+                    'low' => 'background:#ecfdf5;color:#10b981;',
+                    default => 'background:#f1f5f9;color:#64748b;',
+                };
+                $pen = $period->pivot->penanganan ?? 'Belum';
+                $penDisplay = match($pen) {
+                    'Sudah' => 'Selesai',
+                    'Proses' => 'Proses',
+                    default => 'Belum',
+                };
+                $penStyle = match($pen) {
+                    'Sudah' => 'background:#ecfdf5;color:#10b981;',
+                    'Proses' => 'background:#eff6ff;color:#3b82f6;',
+                    default => 'background:#f1f5f9;color:#64748b;',
+                };
+                $statusStyle = ($risk->status ?? 1) == 1 
+                    ? 'background:#ecfdf5;color:#10b981;' 
+                    : 'background:#fef2f2;color:#ef4444;';
+                
+                $trend = $period->pivot->trend ?? 'Stabil';
+                $trendIcon = match($trend) {
+                    'Naik' => '↑',
+                    'Turun' => '↓',
+                    default => '→',
+                };
+                $trendColor = match($trend) {
+                    'Naik' => '#10b981',
+                    'Turun' => '#ef4444',
+                    default => '#94a3b8',
+                };
+            @endphp
 
-                        $targetId = $period->pivot->target_id_level;
-                        $targetName = match((int) $targetId) {
-                            1 => 'Low', 2 => 'Low Moderate', 3 => 'Moderate', 4 => 'Moderate to High', 5 => 'High',
-                            default => 'N/A'
-                        };
-                        $targetBadgeClass = match((int) $targetId) {
-                            5 => 'bg-red-100 text-red-800 ring-1 ring-red-200',
-                            4 => 'bg-orange-100 text-orange-800 ring-1 ring-orange-200',
-                            3 => 'bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200',
-                            2 => 'bg-blue-100 text-blue-800 ring-1 ring-blue-200',
-                            1 => 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200',
-                            default => 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
-                        };
-                        $penanganan = $period->pivot->penanganan ?? 'Belum';
-                        $penangananBadge = match($penanganan) {
-                            'Sudah' => 'bg-emerald-100 text-emerald-700',
-                            'Proses' => 'bg-blue-100 text-blue-700',
-                            default => 'bg-slate-100 text-slate-600'
-                        };
-                    @endphp
+            <div x-data="{ editOpen: false }"
+                style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
 
-                    <div class="rounded-3xl border border-slate-200 bg-white p-5 hover:border-indigo-100 transition shadow-sm">
-                        <div class="flex flex-wrap items-center justify-between gap-4">
-                            <div class="flex flex-wrap items-center gap-3">
-                                <span class="inline-flex rounded-full bg-slate-900 px-4 py-1.5 text-xs font-bold text-white shadow-sm">
-                                    {{ $period->pivot->quarter }} {{ $period->pivot->year }}
-                                </span>
-                                <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold {{ $penangananBadge }}">
-                                    {{ $penanganan }}
-                                </span>
-                            </div>
-                            <form action="{{ route('department-risk.destroy-period', [$risk->id_monitoring, $period->pivot->id]) }}" method="POST" onsubmit="return confirm('Hapus data periode ini?')">
+                {{-- Row 1: Badge Info --}}
+                <div style="padding:12px 20px; border-bottom:1px solid #f1f5f9;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            {{-- TW --}}
+                            <span style="background:#1e293b; color:#fff; border-radius:20px; padding:4px 14px; font-size:13px; font-weight:700;">
+                                {{ $period->pivot->quarter }} {{ $period->pivot->year }}
+                            </span>
+                            
+                            {{-- Nilai --}}
+                            <span style="background:#eff6ff; color:#4f46e5; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                Nilai {{ $period->pivot->value ?? '-' }}
+                            </span>
+                            
+                            {{-- Level --}}
+                            <span style="{{ $lvlStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                {{ ucfirst($period->nama_level ?? $period->level ?? '-') }}
+                            </span>
+                            
+                            {{-- Penanganan --}}
+                            <span style="{{ $penStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                {{ $penDisplay }}
+                            </span>
+
+                            {{-- Status --}}
+                            <span style="{{ $statusStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                Status: {{ ($risk->status ?? 1) == 1 ? 'Aktif' : 'Tidak Aktif' }}
+                            </span>
+                        </div>
+                        
+                        {{-- Tombol Edit & Hapus --}}
+                        <div style="display:flex; gap:4px; align-items:center;">
+                            <button type="button" @click="editOpen = !editOpen"
+                                    style="font-size:12px; font-weight:600; color:#475569; background:none; border:none; cursor:pointer; transition:color 0.2s; padding:4px 8px;"
+                                    onmouseover="this.style.color='#1e293b';"
+                                    onmouseout="this.style.color='#475569';">
+                                Edit
+                            </button>
+                            <form method="POST" action="{{ route('department-risk.destroy-period', [$risk->id_monitoring, $period->pivot->id]) }}"
+                                onsubmit="return confirm('Hapus periode ini?')" style="margin:0;">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="text-rose-600 border border-rose-200 rounded-full px-4 py-1.5 text-xs font-bold hover:bg-rose-50 transition">Hapus</button>
+                                <button type="submit"
+                                        style="font-size:12px; font-weight:600; color:#ef4444; background:none; border:none; cursor:pointer; transition:color 0.2s; padding:4px 8px;"
+                                        onmouseover="this.style.color='#dc2626';"
+                                        onmouseout="this.style.color='#ef4444';">
+                                    Hapus
+                                </button>
                             </form>
                         </div>
-                        <div class="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                            <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                                <div class="text-xs font-semibold text-slate-500">Inherent Score</div>
-                                <div class="mt-2 text-lg font-bold text-slate-900">{{ $period->pivot->inherent ?? '-' }}</div>
+                    </div>
+                </div>
+
+                {{-- Row 2: 4 Kotak Info --}}
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:16px 20px;">
+                    {{-- Kotak 1: Nilai Inheren --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nilai Inheren</p>
+                        <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $period->pivot->inherent ?? $risk->inherent ?? '-' }}</p>
+                    </div>
+
+                    {{-- Kotak 2: Nilai Target --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nilai Target</p>
+                        <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $period->pivot->target_value ?? $risk->target_value ?? '-' }}</p>
+                    </div>
+
+                    {{-- Kotak 3: Penanganan --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Penanganan</p>
+                        <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $penDisplay }}</p>
+                    </div>
+
+                    {{-- Kotak 4: Tren Perubahan --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Tren Perubahan</p>
+                        <p style="font-size:16px; font-weight:700; color:{{ $trendColor }}; margin:0;">
+                            {{ $trendIcon }} {{ $trend }}
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Edit Form (collapse) --}}
+                <div x-show="editOpen" x-transition style="display:none; border-top:1px solid #f1f5f9; padding:16px 20px; background:#fafbfc;">
+                    <form method="POST" action="{{ route('department-risk.update-existing-period', [$risk->id_monitoring, $period->pivot->id]) }}">
+                        @csrf @method('PUT')
+                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:12px;">
+                            <div>
+                                <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Kuartal</label>
+                                <select name="quarter" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; background:#fff;">
+                                    <option value="TW1" {{ $period->pivot->quarter == 'TW1' ? 'selected' : '' }}>TW1</option>
+                                    <option value="TW2" {{ $period->pivot->quarter == 'TW2' ? 'selected' : '' }}>TW2</option>
+                                    <option value="TW3" {{ $period->pivot->quarter == 'TW3' ? 'selected' : '' }}>TW3</option>
+                                    <option value="TW4" {{ $period->pivot->quarter == 'TW4' ? 'selected' : '' }}>TW4</option>
+                                </select>
                             </div>
-                            <div class="rounded-2xl border border-indigo-50 bg-indigo-50/30 p-4">
-                                <div class="text-xs font-semibold text-slate-500">Current Score</div>
-                                <div class="mt-2 flex items-center gap-2">
-                                    <span class="text-lg font-bold text-slate-900">{{ $period->pivot->value ?? '-' }}</span>
-                                    <span class="inline-flex rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider {{ $levelBadgeClass }}">
-                                        {{ $period->nama_level ?? $period->level ?? 'No Level' }}
-                                    </span>
-                                </div>
+                            <div>
+                                <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Tahun</label>
+                                <input type="number" name="year" min="2020" max="2099"
+                                    value="{{ old('edit_year_'.$period->pivot->id, $period->pivot->year ?? date('Y')) }}"
+                                    style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
                             </div>
-                            <div class="rounded-2xl border border-emerald-50 bg-emerald-50/30 p-4">
-                                <div class="text-xs font-semibold text-slate-500">Target Score</div>
-                                <div class="mt-2 flex items-center gap-2">
-                                    <span class="text-lg font-bold text-slate-900">{{ $period->pivot->target_value ?? '-' }}</span>
-                                    <span class="inline-flex rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider {{ $targetBadgeClass }}">
-                                        {{ $targetName }}
-                                    </span>
-                                </div>
+                            <div>
+                                <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Nilai</label>
+                                <input type="number" name="value" min="1" max="25"
+                                    value="{{ old('edit_value_'.$period->pivot->id, $period->pivot->value) }}"
+                                    style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; box-sizing:border-box; background:#fff;">
                             </div>
-                            <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                                <div class="text-xs font-semibold text-slate-500">Trend</div>
-                                <div class="mt-2 font-bold text-slate-900">{{ $period->pivot->trend ?? '-' }}</div>
+                            <div>
+                                <label style="font-size:12px; font-weight:600; color:#1e293b; display:block; margin-bottom:5px;">Penanganan</label>
+                                <select name="penanganan" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:13px; outline:none; background:#fff;">
+                                    <option value="Belum" {{ ($period->pivot->penanganan ?? 'Belum') == 'Belum' ? 'selected' : '' }}>Belum</option>
+                                    <option value="Proses" {{ ($period->pivot->penanganan ?? '') == 'Proses' ? 'selected' : '' }}>Proses</option>
+                                    <option value="Sudah" {{ ($period->pivot->penanganan ?? '') == 'Sudah' ? 'selected' : '' }}>Sudah</option>
+                                </select>
                             </div>
                         </div>
-                    </div>
-                @empty
-                    <div class="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center text-slate-400 text-sm">
-                        Belum ada data riwayat triwulan.
-                    </div>
-                @endforelse
+                        <input type="hidden" name="calculated_level" :value="otomatisLevel">
+                        <input type="hidden" name="calculated_trend" :value="otomatisTrend">
+                        <div style="display:flex; justify-content:flex-end;">
+                            <button type="submit"
+                                    style="background:#4F7EF0; border:none; border-radius:8px; padding:8px 22px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s;"
+                                    onmouseover="this.style.background='#3b66d9';"
+                                    onmouseout="this.style.background='#4F7EF0';">
+                                Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
             </div>
-        </div>
+        @empty
+            <div style="border:1px dashed #e2e8f0; border-radius:14px; padding:32px; text-align:center; color:#94a3b8; font-size:13px;">
+                Belum ada riwayat triwulan.
+            </div>
+        @endforelse
     </div>
+</div>
 
     <script src="{{ asset('js/otomatisasi-logic.js') }}?v={{ time() }}"></script>
 </x-admin-layout>

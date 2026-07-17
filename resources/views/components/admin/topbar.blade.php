@@ -31,7 +31,7 @@
         <div class="relative" x-data="{ userMenuOpen: false }">
             <button
                 type="button"
-                class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-2 py-1.5 shadow-sm transition hover:bg-slate-50"
+                class="flex items-center gap-3 rounded-2xl px-2 py-1.5 transition hover:bg-slate-100"
                 @click="userMenuOpen = !userMenuOpen"
                 @click.outside="userMenuOpen = false"
                 @keydown.escape.window="userMenuOpen = false">

@@ -4,56 +4,77 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\DepMonitoring;
+use App\Models\SmapMonitoring;
+use App\Models\TopRisiko;
 use App\Models\KategoriRisiko;
 use App\Models\LevelRisiko;
 use Illuminate\View\View;
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index(): View
     {
-        // Mencari id_level untuk tingkat "High" atau "Tinggi" berdasarkan nama_level asli Anda
-        $highLevelId = LevelRisiko::where('nama_level', 'High')
-            ->orWhere('nama_level', 'Tinggi')
-            ->value('id_level');
+        // 1. Dapatkan ID Level untuk kategori bahaya (High & Moderate to High)
+        $highLevelIds = LevelRisiko::whereIn('nama_level', ['High', 'Tinggi', 'Moderate to High'])
+            ->pluck('id_level')
+            ->toArray();
 
+        // 2. Kumpulkan Statistik KPI
         $stats = [
-            'total_risks' => DepMonitoring::count(),
+            'total_risks' => DepMonitoring::count() + SmapMonitoring::whereNull('parent_id')->count() + TopRisiko::count(),
 
-            'total_users' => User::count(),
+            // Total Risiko Kritis (Merah)
+            'high_risks' => DepMonitoring::whereIn('id_level', $highLevelIds)->count()
+                          + SmapMonitoring::whereIn('id_level', $highLevelIds)->whereNull('parent_id')->count(),
 
-            'high_risks' => DepMonitoring::where('id_level', $highLevelId)->count(),
+            // Menunggu Tindakan (Belum atau Proses)
+            'pending_actions' => DepMonitoring::whereIn('penanganan', ['Belum', 'Proses'])->count(),
 
-            'active_risks' => DepMonitoring::where('status', true)->count(),
-
-            'inactive_risks' => DepMonitoring::where('status', false)->count(),
+            // Rincian per Modul
+            'total_dep' => DepMonitoring::count(),
+            'total_smap' => SmapMonitoring::whereNull('parent_id')->count(),
+            'total_top' => TopRisiko::count(),
         ];
 
-        // Risk by Category — Menggunakan model KategoriRisiko dan relasi depMonitorings
+        // 3. Data Distribusi Level Risiko (Untuk Donut Chart)
+        $levelDistribution = DB::table('level_risiko')
+            ->leftJoin('dep_monitoring', 'level_risiko.id_level', '=', 'dep_monitoring.id_level')
+            ->select('level_risiko.nama_level', DB::raw('count(dep_monitoring.id_monitoring) as total'))
+            ->groupBy('level_risiko.id_level', 'level_risiko.nama_level')
+            ->pluck('total', 'nama_level')
+            ->toArray();
+
+        // 4. Data Kategori Teratas (Untuk Bar Chart)
         $riskCategories = KategoriRisiko::withCount('depMonitorings')
             ->having('dep_monitorings_count', '>', 0)
             ->orderByDesc('dep_monitorings_count')
+            ->take(6) // Ambil 6 besar agar grafik rapi
             ->get()
-            ->map(fn (KategoriRisiko $cat) => [
+            ->map(fn ($cat) => [
                 'name' => $cat->nama_kategori,
                 'total' => $cat->dep_monitorings_count,
             ]);
 
-        // User by Role
-        $roleStatistics = Role::withCount('users')
-            ->orderBy('name')
-            ->get()
-            ->map(fn ($role) => [
-                'name' => ucfirst($role->name),
-                'total' => $role->users_count,
-            ]);
+        // 5. Tabel Top 5 High Risks (Fokus Perhatian)
+        $topHighRisks = DepMonitoring::with(['unitKerja', 'levelRisiko'])
+            ->whereIn('id_level', $highLevelIds)
+            ->orderByDesc('value') // Urutkan dari skor tertinggi
+            ->take(5)
+            ->get();
+
+        // 6. Tabel Update Terakhir (Log Aktivitas)
+        $recentUpdates = DepMonitoring::with(['unitKerja'])
+            ->orderByDesc('updated_at') // Urutkan dari yang paling baru diupdate
+            ->take(5)
+            ->get();
 
         return view('dashboard', compact(
             'stats',
+            'levelDistribution',
             'riskCategories',
-            'roleStatistics',
-            'highLevelId',
+            'topHighRisks',
+            'recentUpdates'
         ));
     }
 }

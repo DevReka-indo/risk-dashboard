@@ -1,19 +1,19 @@
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center">
+    <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col items-center">
         <h3 class="text-center font-bold text-slate-800 mb-4">Risiko Inherent</h3>
         <div class="relative w-full h-56 md:h-64 flex justify-center">
             <canvas id="chartInherent"></canvas>
         </div>
     </div>
 
-    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center">
+    <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col items-center">
         <h3 class="text-center font-bold text-slate-800 mb-4">Risiko Current</h3>
         <div class="relative w-full h-56 md:h-64 flex justify-center">
             <canvas id="chartCurrent"></canvas>
         </div>
     </div>
 
-    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center">
+    <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col items-center">
         <h3 class="text-center font-bold text-slate-800 mb-4">Risiko Target</h3>
         <div class="relative w-full h-56 md:h-64 flex justify-center">
             <canvas id="chartTarget"></canvas>

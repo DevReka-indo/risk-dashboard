@@ -1,4 +1,4 @@
-<div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+<div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
     <div class="mb-5">
         <h2 class="text-base font-bold text-slate-900">
             Jumlah Status Risiko
@@ -10,7 +10,7 @@
 
     <div class="grid gap-4 sm:grid-cols-2">
         @foreach ($items as $item)
-            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-5">
                 <div class="text-sm font-medium text-slate-500">
                     {{ $item['label'] }}
                 </div>

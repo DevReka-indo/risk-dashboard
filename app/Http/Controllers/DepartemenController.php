@@ -32,11 +32,18 @@ class DepartemenController extends Controller
 
         // 1. Tab Dashboard
         if ($tab === 'dashboard') {
-            $dashboardData = $this->dashboardService->getDashboardData(
-                $request->query('periode', 'all'),
-                (int) $request->query('tahun', date('Y'))
-            );
-            return view('departemen.index', array_merge(['tab' => $tab], $dashboardData));
+            // TANGKAP VARIABEL DARI URL
+            $selectedPeriode = $request->query('periode', 'all');
+            $selectedYear    = (int) $request->query('tahun', date('Y'));
+
+            $dashboardData = $this->dashboardService->getDashboardData($selectedPeriode, $selectedYear);
+
+            // KIRIM VARIABELNYA KE VIEW (Tambahkan di dalam array_merge)
+            return view('departemen.index', array_merge([
+                'tab' => $tab,
+                'selectedPeriode' => $selectedPeriode, // <--- INI OBATNYA
+                'selectedYear' => $selectedYear        // <--- INI OBATNYA
+            ], $dashboardData));
         }
 
         // 2. Tab Data

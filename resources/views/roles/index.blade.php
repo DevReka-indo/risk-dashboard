@@ -57,33 +57,32 @@
             </div>
         </div>
 
-        <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-lg">
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                <table class="min-w-full border-collapse">
+                    <thead>
+                        <tr class="bg-indigo-600 text-white">
+                            <th class="rounded-tl-[28px] px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide border-r border-slate-300">
                                 Role
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide border-r border-slate-300">
                                 Guard
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide border-r border-slate-300">
                                 Permission
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide border-r border-slate-300">
                                 User
                             </th>
-                            <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <th class="rounded-tr-[28px] px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
                                 Aksi
                             </th>
                         </tr>
                     </thead>
-
-                    <tbody class="divide-y divide-slate-200">
+                    <tbody>
                         @forelse ($roles as $role)
-                            <tr class="hover:bg-slate-50">
-                                <td class="whitespace-nowrap px-6 py-4">
+                            <tr class="hover:bg-slate-50 transition border-b border-slate-300">
+                                <td class="whitespace-nowrap px-6 py-4 border-r border-slate-300">
                                     <div class="flex items-center gap-3">
                                         <div class="flex h-10 w-10 items-center justify-center rounded-2xl {{ $role->name === 'superadmin' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-600' }}">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -105,46 +104,42 @@
                                     </div>
                                 </td>
 
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600 border-r border-slate-300">
                                     {{ $role->guard_name }}
                                 </td>
 
-                                <td class="whitespace-nowrap px-6 py-4">
+                                <td class="whitespace-nowrap px-6 py-4 border-r border-slate-300">
                                     <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                                         {{ $role->permissions_count }} permission
                                     </span>
                                 </td>
 
-                                <td class="whitespace-nowrap px-6 py-4">
+                                <td class="whitespace-nowrap px-6 py-4 border-r border-slate-300">
                                     <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                                         {{ $role->users_count }} user
                                     </span>
                                 </td>
 
-                                <td class="whitespace-nowrap px-6 py-4 text-right">
-                                    <div class="flex items-center justify-end gap-2">
+                                <td class="whitespace-nowrap px-6 py-4 text-center">
+                                    <div class="flex items-center justify-center gap-2">
                                         @can('role.edit')
                                             <a href="{{ route('roles.edit', $role) }}"
-                                               class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
-                                                </svg>
+                                               class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                 Edit
                                             </a>
                                         @endcan
 
                                         @can('role.delete')
                                             @if ($role->name !== 'superadmin')
-                                                <form method="POST" action="{{ route('roles.destroy', $role) }}" onsubmit="return confirm('Yakin ingin menghapus role ini?')">
+                                                <form method="POST" action="{{ route('roles.destroy', $role) }}" 
+                                                      onsubmit="return confirm('Yakin ingin menghapus role ini?')"
+                                                      class="m-0">
                                                     @csrf
                                                     @method('DELETE')
-
-                                                    <button
-                                                        type="submit"
-                                                        class="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50">
-                                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166M19.228 5.79 18.16 19.673A2.25 2.25 0 0 1 15.916 21.75H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                                        </svg>
+                                                    <button type="submit"
+                                                            class="inline-flex items-center gap-1.5 rounded-lg border border-rose-100 bg-white px-3 py-1.5 text-xs font-semibold text-rose-500 shadow-sm transition-all duration-200 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600">
+                                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                         Hapus
                                                     </button>
                                                 </form>
@@ -155,7 +150,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-12 text-center">
+                                <td colspan="5" class="px-6 py-12 text-center border-b border-slate-300">
                                     <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
                                         <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />

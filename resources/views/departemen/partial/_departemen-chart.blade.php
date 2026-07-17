@@ -1,4 +1,4 @@
-<div class="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
+<div class="rounded-lg border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
     <h2 class="text-xl font-bold text-slate-900 mb-8">Grafik Risiko per Departemen</h2>
 
     <div class="relative w-full h-[500px] min-h-[500px] flex items-center justify-center" id="chartContainer">

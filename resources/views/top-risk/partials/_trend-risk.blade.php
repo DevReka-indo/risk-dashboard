@@ -1,4 +1,4 @@
-<div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+<div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
     <div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
             <h2 class="text-base font-bold text-slate-900">
@@ -62,12 +62,12 @@
                 $maxValue = max((int) $trendValues->max('value'), 1);
             @endphp
 
-            <div class="rounded-3xl border p-5 {{ $trendStyle['card'] }}">
+            <div class="rounded-lg border p-5 {{ $trendStyle['card'] }}">
                 <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                     <div class="min-w-0 flex-1">
                         <div class="flex items-start gap-3">
                             <div
-                                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl {{ $trendStyle['icon'] }}">
+                                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg {{ $trendStyle['icon'] }}">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $trendIconPath }}" />
@@ -109,7 +109,7 @@
                     </div>
 
                     <div class="w-full shrink-0 xl:w-[420px]">
-                        <div class="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
+                        <div class="rounded-lg border border-white/70 bg-white/90 p-5 shadow-sm">
                             <div class="mb-5 flex items-center justify-between gap-4">
                                 <div class="text-xs font-bold uppercase tracking-wide text-slate-500">
                                     Riwayat Nilai
@@ -173,7 +173,7 @@
         @endforelse
     </div>
 
-    <div class="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+    <div class="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-5">
         <h3 class="text-sm font-bold text-slate-900">
             Logika Trend
         </h3>

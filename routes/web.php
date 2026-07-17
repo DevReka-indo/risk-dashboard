@@ -12,7 +12,9 @@ use App\Http\Controllers\TopRiskController;
 use App\Http\Controllers\UnitKerjaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\KategoriRisikoController;
+use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/sso/redirect', SsoRedirectController::class)->name('sso.redirect');
@@ -173,6 +175,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/risks/department/{id}/period/{pivotId}', [DepartemenController::class, 'destroyPeriod'])
         ->middleware('permission:risk.delete')
         ->name('department-risk.destroy-period');
+    Route::put('/risks/department/{id}/period/{pivotId}', [DepartemenController::class, 'updateExistingPeriod'])
+        ->middleware('permission:risk.edit')
+        ->name('department-risk.update-existing-period');
 
     // Risk Register - SMAP Risk
    Route::get('/risks/smap', [SmapController::class, 'index'])
@@ -229,6 +234,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('permission:kategori-risiko.delete')
         ->name('kategori-risiko.destroy');
 
+   // Route untuk menerima pesan dari widget AI (Diarahkan ke Controller)
+    Route::post('/chat/ask', [ChatController::class, 'ask'])->name('chat.ask');
+    Route::get('/cek-model', [\App\Http\Controllers\ChatController::class, 'cekModel']);
 
     Route::get('/settings', function () {
         return 'Halaman Pengaturan';

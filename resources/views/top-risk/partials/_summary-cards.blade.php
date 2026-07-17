@@ -1,5 +1,5 @@
 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div class="text-sm font-medium text-slate-500">
             Total Risiko
         </div>
@@ -11,7 +11,7 @@
         </p>
     </div>
 
-    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div class="text-sm font-medium text-slate-500">
             Risiko Aktif
         </div>
@@ -23,7 +23,7 @@
         </p>
     </div>
 
-    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div class="text-sm font-medium text-slate-500">
             Rata-rata Nilai Risiko
         </div>
@@ -35,7 +35,7 @@
         </p>
     </div>
 
-    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div class="text-sm font-medium text-slate-500">
             Tren
         </div>

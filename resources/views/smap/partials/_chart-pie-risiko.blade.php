@@ -1,4 +1,4 @@
-<div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+<div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-6">
 
     {{-- TOP BAR: JUDUL (TOMBOL TOGGLE DIHAPUS BERSIH) --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
@@ -15,7 +15,7 @@
     <div class="grid gap-6 md:grid-cols-3">
 
         {{-- Pie 1: Inherent (Selalu Tetap / Baseline Master) --}}
-        <div class="flex flex-col items-center p-5 bg-slate-50/50 rounded-2xl border border-slate-100">
+        <div class="flex flex-col items-center p-5 bg-slate-50/50 rounded-lg border border-slate-100">
             <h4 class="text-xs font-black text-slate-700 bg-white shadow-sm border border-slate-200/60 px-3 py-1.5 rounded-xl mb-6 w-full text-center uppercase tracking-wider flex justify-center items-center gap-2">
                 Jumlah Risiko Inherent
                 <span class="text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-slate-800 text-white">FIXED BASELINE</span>
@@ -26,7 +26,7 @@
         </div>
 
         {{-- Pie 2: Current (Dinamis Berubah Mengikuti Filter Kuartal) --}}
-        <div class="flex flex-col items-center p-5 bg-amber-50/20 rounded-2xl border border-amber-100/60">
+        <div class="flex flex-col items-center p-5 bg-amber-50/20 rounded-lg border border-amber-100/60">
             <h4 class="text-xs font-black text-amber-900 bg-white shadow-sm border border-amber-200/60 px-3 py-1.5 rounded-xl mb-6 w-full text-center uppercase tracking-wider flex justify-center items-center gap-2">
                 Jumlah Risiko Current
                 <span class="text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-amber-600 text-white">DYNAMIC FILTER</span>
@@ -37,8 +37,8 @@
         </div>
 
         {{-- Pie 3: Target (Selalu Tetap / Baseline Master) --}}
-        <div class="flex flex-col items-center p-5 bg-indigo-50/30 rounded-2xl border border-indigo-100/50">
-            <h4 class="text-xs font-black text-indigo-950 bg-white shadow-sm border border-indigo-100 px-3 py-1.5 rounded-xl mb-6 w-full text-center uppercase tracking-wider flex justify-center items-center gap-2">
+        <div class="flex flex-col items-center p-5 bg-indigo-50/30 rounded-lg border border-indigo-100/50">
+            <h4 class="text-xs font-black text-indigo-950 bg-white shadow-sm border border-indigo-100 px-3 py-1.5 rounded mb-6 w-full text-center uppercase tracking-wider flex justify-center items-center gap-2">
                 Jumlah Risiko Target
                 <span class="text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-indigo-600 text-white">FIXED TARGET</span>
             </h4>

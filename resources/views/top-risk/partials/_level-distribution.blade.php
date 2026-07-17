@@ -2,7 +2,7 @@
     $maxTotal = max((int) $items->max('total'), 1);
 @endphp
 
-<div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+<div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
     <div class="mb-5">
         <h2 class="text-base font-bold text-slate-900">
             Distribusi Level Risiko
