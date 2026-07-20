@@ -38,11 +38,11 @@ class DepartemenController extends Controller
 
             $dashboardData = $this->dashboardService->getDashboardData($selectedPeriode, $selectedYear);
 
-            // KIRIM VARIABELNYA KE VIEW (Tambahkan di dalam array_merge)
+            // KIRIM VARIABELNYA KE VIEW
             return view('departemen.index', array_merge([
                 'tab' => $tab,
-                'selectedPeriode' => $selectedPeriode, // <--- INI OBATNYA
-                'selectedYear' => $selectedYear        // <--- INI OBATNYA
+                'selectedPeriode' => $selectedPeriode,
+                'selectedYear' => $selectedYear
             ], $dashboardData));
         }
 
@@ -142,7 +142,7 @@ class DepartemenController extends Controller
             (int) $request->value, (int) $risk->inherent, (int) $idLevelTerbaru, (int) $risk->id_level
         );
 
-        // Simpan Data
+        // Simpan Data ke Pivot
         $this->riskRepo->attachPeriod($id, $idLevelTerbaru, [
             'quarter'         => $reqQuarter,
             'year'            => $reqYear,
@@ -151,18 +151,23 @@ class DepartemenController extends Controller
             'trend'           => $request->calculated_trend,
             'target_value'    => $risk->target_value,
             'target_id_level' => $risk->target_id_level,
-            'penanganan'      => $request->penanganan,
+            'progres_belum'   => $request->progres_belum ?? 0,
+            'progres_proses'  => $request->progres_proses ?? 0,
+            'progres_sudah'   => $request->progres_sudah ?? 0,
             'efektif_risiko'  => $efektifRisiko,
             'created_at'      => now(),
             'updated_at'      => now(),
         ]);
 
+        // Update Data Terbaru ke Tabel Utama
         $this->riskRepo->update($id, [
-            'id_level'   => $idLevelTerbaru,
-            'value'      => $request->value,
-            'trend'      => $request->calculated_trend,
-            'penanganan' => $request->penanganan,
-            'status'     => $request->has('status_monitoring') ? $request->status_monitoring : $risk->status,
+            'id_level'       => $idLevelTerbaru,
+            'value'          => $request->value,
+            'trend'          => $request->calculated_trend,
+            'progres_belum'  => $request->progres_belum ?? 0,
+            'progres_proses' => $request->progres_proses ?? 0,
+            'progres_sudah'  => $request->progres_sudah ?? 0,
+            'status'         => $request->has('status_monitoring') ? $request->status_monitoring : $risk->status,
         ]);
 
         return redirect()->route('department-risk.show', $id)
@@ -183,11 +188,14 @@ class DepartemenController extends Controller
             (int) $request->value, (int) $pivot->inherent, (int) $idLevelTerbaru, (int) $risk->id_level
         );
 
+        // Update Data Terdaftar di Pivot
         $this->riskRepo->updatePivotPeriod($pivotId, [
             'id_level'       => $idLevelTerbaru,
             'value'          => $request->value,
             'trend'          => $request->calculated_trend,
-            'penanganan'     => $request->penanganan,
+            'progres_belum'  => $request->progres_belum ?? 0,
+            'progres_proses' => $request->progres_proses ?? 0,
+            'progres_sudah'  => $request->progres_sudah ?? 0,
             'efektif_risiko' => $efektifRisiko,
             'updated_at'     => now(),
         ]);

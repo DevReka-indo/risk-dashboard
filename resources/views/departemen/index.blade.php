@@ -262,25 +262,26 @@
                                 {{-- Risiko --}}
                                 <td class="px-6 py-4">
                                     <div class="max-w-md">
-                                        <div class="mb-1">
-                                            <span class="inline-block rounded px-3 py-0.5 text-xs font-medium
-                                                {{ $isProyek ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-600' }}">
+                                        <div class="mb-2 flex flex-wrap items-center gap-2">
+                                            <span class="inline-block rounded px-3 py-0.5 text-xs font-medium {{ $isProyek ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-600' }}">
                                                 {{ $risk->type ?? '-' }}
                                             </span>
-                                {{-- Aktif - Non-Aktif --}}
-                                    @if ($risk->status)
-                                        <span class="inline-flex rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                            Aktif
-                                        </span>
-                                    @else
-                                        <span class="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                            Tidak Aktif
-                                        </span>
-                                    @endif
+                                            
+                                            {{-- Aktif / Non-Aktif --}}
+                                            @if ($risk->status)
+                                                <span class="inline-flex rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                                    Aktif
+                                                </span>
+                                            @else
+                                                <span class="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                                    Tidak Aktif
+                                                </span>
+                                            @endif
                                         </div>
-                                    {{-- Proyek --}}
-                                        <div class="font-semibold text-slate-900">
-                                            {{ $risk->risk_event_deta }}
+                                        
+                                        {{-- Detail Risiko --}}
+                                        <div class="font-semibold text-slate-900 leading-tight">
+                                            {{ $risk->risk_event_detail ?? $risk->risk_event_deta }}
                                         </div>
                                         <div class="mt-1 text-xs text-slate-500">
                                             Dibuat: {{ $risk->created_at?->format('d M Y') ?? '-' }}
@@ -297,16 +298,16 @@
                                 <td class="px-6 py-4">
                                     <div class="flex max-w-xs flex-wrap gap-2">
                                         <span class="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                                            {{ $unit->nama_unit }}
+                                            {{ $unit->nama_unit ?? '-' }}
                                         </span>
                                     </div>
                                 </td>
 
-                                {{-- Inheren & Target (Hitung Manual) --}}
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                {{-- Inheren (Hitung Manual) --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <div class="space-y-1">
                                         <span class="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                                            Skor: {{ $risk->inherent ?? 0 }}
+                                            Skala: {{ $risk->inherent ?? 0 }}
                                         </span>
                                         <div>
                                             <span class="text-xs text-slate-500 font-medium">
@@ -323,10 +324,12 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+
+                                {{-- Target (Hitung Manual) --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <div class="space-y-1">
                                         <span class="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                                            Skor: {{ $risk->target_value ?? 0 }}
+                                            Skala: {{ $risk->target_value ?? 0 }}
                                         </span>
                                         <div>
                                             <span class="text-xs text-slate-500 font-medium">
@@ -344,47 +347,48 @@
                                     </div>
                                 </td>
 
-                                {{-- Monitoring Terakhir --}}
+                                        {{-- Monitoring Terakhir --}}
                                 <td class="px-6 py-4">
                                     @if ($latestPeriod && isset($latestPeriod->pivot))
                                         @php
                                             $lvlName   = $latestPeriod->nama_level ?? $latestPeriod->level ?? '-';
                                             $lvlLower  = strtolower($lvlName);
                                             $isHighLvl = str_contains($lvlLower, 'high');
-                                            $isLowLvl  = $lvlLower === 'low';
-                                            $lvlClass  = $isHighLvl
-                                                ? 'bg-rose-100 text-rose-700'
-                                                : ($isLowLvl ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700');
+                                            $isLowLvl  = str_contains($lvlLower, 'low');
+                                            $lvlClass  = $isHighLvl ? 'bg-rose-100 text-rose-700' : ($isLowLvl ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700');
+                                            
                                             $trendVal   = $latestPeriod->pivot->trend ?? '';
-                                            $trendColor = $trendVal === 'Turun' ? 'text-rose-600'
-                                                        : ($trendVal === 'Naik'  ? 'text-amber-600' : 'text-slate-500');
-                                            $trendIcon = $trendVal === 'Turun' ? '↓' : ($trendVal === 'Naik' ? '↑' : '→');
+                                            // Penyelarasan warna trend risiko: Naik = Merah (risiko meningkat), Turun = Hijau (risiko membaik)
+                                            $trendColor = $trendVal === 'Naik' ? 'text-rose-600' : ($trendVal === 'Turun' ? 'text-emerald-600' : 'text-slate-500');
+                                            $trendIcon  = $trendVal === 'Naik' ? '↑' : ($trendVal === 'Turun' ? '↓' : '→');
                                         @endphp
-                                        <div class="space-y-1">
 
-                                            <div class="flex flex-wrap gap-2">
-                                                <span class="inline-flex rounded bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                                        <div class="space-y-1.5">
+                                            {{-- Badge Nilai & Level Risiko --}}
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="inline-flex rounded bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
                                                     Nilai {{ $latestPeriod->pivot->value ?? 0 }}
                                                 </span>
-                                                <span class="inline-flex rounded px-3 py-1 text-xs font-semibold {{ $lvlClass }}">
+                                                <span class="inline-flex rounded px-2.5 py-1 text-xs font-semibold {{ $lvlClass }}">
                                                     {{ $lvlName }}
                                                 </span>
                                             </div>
-                                            <div class="text-xs font-semibold text-slate-900">
+
+                                            {{-- Periode Quarter & Tahun --}}
+                                            <div class="text-xs font-bold text-slate-900">
                                                 {{ $latestPeriod->pivot->quarter ?? '-' }} {{ $latestPeriod->pivot->year ?? '' }}
                                             </div>
 
-                                            <div class="text-xs text-slate-500">
-                                                <div>
-                                                    Trend:
-                                                </div>
-                                                <span class="font-semibold {{ $trendColor }}">
+                                            {{-- Indikator Trend --}}
+                                            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                                                <span>Trend:</span>
+                                                <span class="inline-flex items-center gap-0.5 font-semibold {{ $trendColor }}">
                                                     {{ $trendIcon }} {{ $trendVal ?: '-' }}
                                                 </span>
                                             </div>
                                         </div>
                                     @else
-                                        <span class="text-xs text-slate-400">Belum ada monitoring</span>
+                                        <span class="text-xs font-medium italic text-slate-400">Belum ada monitoring</span>
                                     @endif
                                 </td>
 
@@ -420,7 +424,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-12 text-center border-b border-slate-300">
+                                {{-- PERBAIKAN: colspan diubah menjadi 7 untuk menyesuaikan jumlah <th> --}}
+                                <td colspan="7" class="px-6 py-12 text-center border-b border-slate-300">
                                     <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
                                         <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12V16.5ZM10.29 3.86 1.82 18a2.25 2.25 0 0 0 1.93 3.375h16.5A2.25 2.25 0 0 0 22.18 18L13.71 3.86a2.25 2.25 0 0 0-3.42 0Z" />

@@ -212,6 +212,21 @@
                                 </div>
                             </div>
 
+                            {{-- TOMBOL AKSI --}}
+                            <div class="flex items-center justify-end gap-2 pt-1">
+                                {{-- Tombol Batal --}}
+                                <button type="reset"
+                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
+                                    Batal
+                                </button>
+
+                                {{-- Tombol Simpan --}}
+                                <button type="submit"
+                                        class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
+                                    Simpan
+                                </button>
+                            </div>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -219,29 +234,7 @@
 
         </div>
 
-        {{-- TOMBOL AKSI --}}
-        <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:12px; padding:0 4px;">
-            <a href="{{ route('department-risk.index') }}"
-               style="border:1px solid #e2e8f0; border-radius:10px; padding:10px 28px; font-size:13px; font-weight:600; color:#475569; background:#fff; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;"
-               onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1';"
-               onmouseout="this.style.background='#fff'; this.style.borderColor='#e2e8f0';">
-                <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Batal
-            </a>
-            <button type="submit"
-                    style="background:#4F7EF0; border:none; border-radius:10px; padding:10px 32px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(79,126,240,0.3);"
-                    onmouseover="this.style.background='#3b66d9'; this.style.boxShadow='0 6px 16px rgba(79,126,240,0.4)';"
-                    onmouseout="this.style.background='#4F7EF0'; this.style.boxShadow='0 4px 12px rgba(79,126,240,0.3)';">
-                <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-                Simpan Risk Departemen
-            </button>
-        </div>
 
-    </form>
 
     <script src="{{ asset('js/otomatisasi-logic.js') }}"></script>
     <script>

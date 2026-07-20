@@ -181,6 +181,7 @@ class DepartemenRiskDashboardService
             'targetData' => $this->getPieChartData($baseQuery, 'dep_monitoring_periods.target_id_level'),
             'inherentData' => $this->getInherentChartData($baseQuery),
             'progresData' => $this->getProgresPenangananData($baseQuery),
+            'progresPerUnit' => $this->getProgresPerUnitData($baseQuery, $allUnits),
         ];
     }
 
@@ -238,12 +239,60 @@ class DepartemenRiskDashboardService
     private function getProgresPenangananData($baseQuery)
     {
         try {
-            $data = (clone $baseQuery)->select('dep_monitoring_periods.penanganan as status_penanganan', DB::raw('count(*) as total'))
-                ->groupBy('dep_monitoring_periods.penanganan')->pluck('total', 'status_penanganan')->toArray();
+            // Gunakan SUM untuk menjumlahkan angka di masing-masing kolom progres
+            $data = (clone $baseQuery)->select(
+                DB::raw('SUM(dep_monitoring_periods.progres_belum) as total_belum'),
+                DB::raw('SUM(dep_monitoring_periods.progres_proses) as total_proses'),
+                DB::raw('SUM(dep_monitoring_periods.progres_sudah) as total_sudah')
+            )->first();
 
+            // Masukkan hasilnya secara berurutan ke dalam array
             return [
-                (int) ($data['Belum'] ?? 0), (int) ($data['Proses'] ?? 0), (int) ($data['Sudah'] ?? 0),
+                (int) ($data->total_belum ?? 0),
+                (int) ($data->total_proses ?? 0),
+                (int) ($data->total_sudah ?? 0),
             ];
-        } catch (\Exception $e) { return [0, 0, 0]; }
+        } catch (\Exception $e) {
+            // Boleh tambahkan dd($e->getMessage()); sementara di sini jika grafik masih kosong untuk melihat error aslinya
+            return [0, 0, 0];
+        }
+    }
+
+    private function getProgresPerUnitData($baseQuery, $allUnits)
+    {
+        try {
+            // Kelompokkan data progres berdasarkan id_unit
+            $data = (clone $baseQuery)->select(
+                'dep_monitoring.id_unit',
+                DB::raw('SUM(dep_monitoring_periods.progres_belum) as total_belum'),
+                DB::raw('SUM(dep_monitoring_periods.progres_proses) as total_proses'),
+                DB::raw('SUM(dep_monitoring_periods.progres_sudah) as total_sudah')
+            )
+            ->groupBy('dep_monitoring.id_unit')
+            ->get()
+            ->keyBy('id_unit');
+
+            $result = [];
+            foreach ($allUnits as $unit) {
+                $unitData = $data->get($unit->id_unit);
+                $belum  = (int) ($unitData->total_belum ?? 0);
+                $proses = (int) ($unitData->total_proses ?? 0);
+                $sudah  = (int) ($unitData->total_sudah ?? 0);
+
+                // Tampilkan hanya unit yang memiliki data progres > 0 (Opsional, agar tabel tidak terlalu panjang)
+                if ($belum > 0 || $proses > 0 || $sudah > 0) {
+                    $result[] = [
+                        'nama_unit' => $unit->nama_unit,
+                        'belum'     => $belum,
+                        'proses'    => $proses,
+                        'sudah'     => $sudah
+                    ];
+                }
+            }
+
+            return $result;
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 }

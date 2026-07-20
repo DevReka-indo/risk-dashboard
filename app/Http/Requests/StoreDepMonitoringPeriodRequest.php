@@ -17,7 +17,9 @@ class StoreDepMonitoringPeriodRequest extends FormRequest
             'quarter'          => ['required', 'in:TW1,TW2,TW3,TW4'],
             'year'             => ['required', 'integer', 'min:2020', 'max:2099'],
             'value'            => ['required', 'numeric', 'min:1', 'max:25'],
-            'penanganan'       => ['required', 'in:Belum,Proses,Sudah'],
+            'progres_belum' => 'nullable|integer|min:0',
+            'progres_proses' => 'nullable|integer|min:0',
+            'progres_sudah' => 'nullable|integer|min:0',
             'calculated_trend' => ['required', 'string'],
             'calculated_level' => ['required'],
 

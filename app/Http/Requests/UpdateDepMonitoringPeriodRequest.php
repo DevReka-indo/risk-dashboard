@@ -15,40 +15,31 @@ class UpdateDepMonitoringPeriodRequest extends FormRequest
     }
 
     /**
-     * Aturan validasi yang diterapkan ke request saat proses Update/Edit.
+     * Aturan validasi untuk memperbarui data triwulan yang sudah ada.
      */
     public function rules(): array
     {
         return [
-            'id_unit'         => ['required', 'integer', 'exists:top_unit_kerja,id_unit'],
-            'id_kategori'     => ['required', 'integer', 'exists:kategori_risiko,id_kategori'],
-            'created_at'      => ['required', 'date'],
-            'risk_event_deta' => ['required', 'string'],
-            'status'          => ['required', 'in:0,1'],
-            'type'            => ['required', 'in:Proyek,Non-Proyek'],
-
-            // Validasi Inheren
-            'inherent'        => ['required', 'numeric', 'min:1', 'max:25'],
-            'id_level'        => ['required'],
-
-            // Validasi Target (Sudah disesuaikan dengan form baru)
-            'target_value'    => ['required', 'numeric', 'min:1', 'max:25'],
-            'target_id_level' => ['required'],
+            'value'            => ['required', 'numeric', 'min:1', 'max:25'],
+            'progres_belum'    => ['nullable', 'integer', 'min:0'],
+            'progres_proses'   => ['nullable', 'integer', 'min:0'],
+            'progres_sudah'    => ['nullable', 'integer', 'min:0'],
+            'calculated_trend' => ['required', 'string'],
+            'calculated_level' => ['required'],
         ];
     }
 
     /**
-     * (Opsional) Custom pesan error jika validasi gagal
+     * Custom pesan error jika validasi gagal
      */
     public function messages(): array
     {
         return [
-            'id_unit.required'         => 'Unit Kerja wajib diisi.',
-            'id_kategori.required'     => 'Kategori wajib diisi.',
-            'risk_event_deta.required' => 'Peristiwa resiko wajib diisi.',
-            'inherent.required'        => 'Nilai Inheren wajib diisi.',
-            'target_value.required'    => 'Nilai Target wajib diisi.',
-            'target_id_level.required' => 'Level Target wajib diisi.',
+            'value.required'            => 'Nilai saat ini wajib diisi.',
+            'value.min'                 => 'Nilai minimal 1.',
+            'value.max'                 => 'Nilai maksimal 25.',
+            'calculated_trend.required' => 'Trend perubahan wajib diisi.',
+            'calculated_level.required' => 'Level saat ini wajib diisi.',
         ];
     }
 }

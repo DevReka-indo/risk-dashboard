@@ -11,7 +11,7 @@ class DepMonitoring extends Model
 
     protected $primaryKey = 'id_monitoring';
 
-    // 👇 1. UPDATE DI SINI: Tambahkan kolom baru ke fillable 👇
+    // 👇 1. UPDATE: 'penanganan' dihapus dari fillable 👇
     protected $fillable = [
         'id_unit',
         'id_kategori',
@@ -23,7 +23,6 @@ class DepMonitoring extends Model
         'status',
         'type',
         'id_period',
-        'penanganan',
         'target_value',
         'target_id_level',
     ];
@@ -34,7 +33,7 @@ class DepMonitoring extends Model
             'status' => 'boolean',
             'value' => 'integer',
             'inherent' => 'integer',
-            'target_value' => 'integer', // Boleh ditambahkan agar konsisten sebagai angka
+            'target_value' => 'integer',
         ];
     }
 
@@ -103,7 +102,7 @@ class DepMonitoring extends Model
             'id_monitoring',
             'id_level'
         )
-        // 👇 2. UPDATE DI SINI: Tambahkan kolom baru ke withPivot 👇
+        // 👇 2. UPDATE: 'penanganan' dihapus, dan 3 kolom progres ditambahkan 👇
         ->withPivot(
             'id',
             'quarter',
@@ -111,7 +110,9 @@ class DepMonitoring extends Model
             'value',
             'inherent',
             'trend',
-            'penanganan',
+            'progres_belum',
+            'progres_proses',
+            'progres_sudah',
             'target_value',
             'target_id_level'
         )
