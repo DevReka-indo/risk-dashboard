@@ -162,48 +162,60 @@
         {{-- Jarak antara toolbar dan tabel --}}
         <div class="mt-6"></div>
 
-        {{-- Table Section --}}
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
-            <div class="overflow-x-auto">
-                <table class="min-w-full border-collapse">
-                    <thead>
-                        <tr class="bg-indigo-600 text-white">
-                            <th class="rounded-tl-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
-                                Nama Kategori
-                            </th>
-                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
-                                Tipe (Alokasi)
-                            </th>
-                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
-                                Keterangan
-                            </th>
-                            <th class="rounded-tr-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
-                                Aksi
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($categories as $category)
-                            <tr class="hover:bg-slate-50 transition border-b border-slate-300"
-                                data-category-row
-                                data-name="{{ strtolower($category->nama_kategori) }}"
-                                data-type="{{ strtolower($category->type) }}">
-                                <td class="px-6 py-4 text-left">
-                                    <div class="font-semibold text-slate-900">
-                                        {{ $category->nama_kategori }}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-left">
-                                    <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold 
-                                        {{ $category->type === 'smap' ? 'bg-purple-50 text-purple-700' : 
-                                           ($category->type === 'departemen' ? 'bg-blue-50 text-blue-700' : 
-                                           'bg-slate-100 text-slate-600') }}">
-                                        {{ ucfirst($category->type) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-left text-sm text-slate-600">
-                                    {{ $category->keterangan ?? '-' }}
-                                </td>
+ {{-- Table Section --}}
+<div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+    <div class="overflow-x-auto">
+        <table class="min-w-full border-collapse">
+            <thead>
+                <tr class="bg-indigo-600 text-white">
+                    {{-- PERBAIKAN: Alignment disesuaikan ke text-left agar sejajar dengan isi data --}}
+                    <th class="rounded-tl-lg px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
+                        Nama Kategori
+                    </th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
+                        Tipe (Alokasi)
+                    </th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
+                        Keterangan
+                    </th>
+                    <th class="rounded-tr-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                        Aksi
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($categories as $category)
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-300"
+                        data-category-row
+                        data-name="{{ strtolower($category->nama_kategori) }}"
+                        data-type="{{ strtolower($category->type) }}">
+                        
+                        {{-- Nama Kategori --}}
+                        <td class="px-6 py-4 text-left">
+                            <div class="font-semibold text-slate-900">
+                                {{ $category->nama_kategori }}
+                            </div>
+                        </td>
+
+                        {{-- Tipe (Alokasi) --}}
+                        <td class="px-6 py-4 text-left">
+                            @php
+                                $typeLower = strtolower($category->type ?? '');
+                                $badgeClass = match($typeLower) {
+                                    'smap' => 'bg-purple-50 text-purple-700 border border-purple-100',
+                                    'departemen' => 'bg-blue-50 text-blue-700 border border-blue-100',
+                                    default => 'bg-slate-100 text-slate-600 border border-slate-200',
+                                };
+                            @endphp
+                            <span class="inline-flex rounded-md px-2.5 py-1 text-xs font-semibold {{ $badgeClass }}">
+                                {{ ucfirst($category->type ?? '-') }}
+                            </span>
+                        </td>
+
+                        {{-- Keterangan --}}
+                        <td class="px-6 py-4 text-left text-sm text-slate-600">
+                            {{ $category->keterangan ?? '-' }}
+                        </td>
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-2">
                                         <a

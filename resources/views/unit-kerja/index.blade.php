@@ -155,16 +155,17 @@
                 <table class="min-w-full border-collapse">
                     <thead>
                         <tr class="bg-indigo-600 text-white">
-                            <th class="rounded-tl-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide ">
+                            {{-- PERBAIKAN: Alignment disesuaikan ke text-left agar sejajar dengan isi data --}}
+                            <th class="rounded-tl-lg px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
                                 Unit Kerja
                             </th>
-                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide ">
+                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
                                 Keterangan
                             </th>
-                            <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide ">
+                            <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
                                 Risiko Terkait
                             </th>
-                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide ">
+                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
                                 Dibuat
                             </th>
                             <th class="rounded-tr-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
@@ -178,9 +179,11 @@
                                 data-unit-row
                                 data-name="{{ strtolower($unit->nama_unit) }}"
                                 data-keterangan="{{ strtolower($unit->keterangan ?? '') }}">
-                                <td class="whitespace-nowrap px-6 py-4 ">
+                                
+                                {{-- Unit Kerja --}}
+                                <td class="whitespace-nowrap px-6 py-4 text-left">
                                     <div class="flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded bg-indigo-50 text-indigo-600">
+                                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-indigo-50 text-indigo-600">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M8.25 7.5h1.5m-1.5 3h1.5m-1.5 3h1.5m4.5-6h1.5m-1.5 3h1.5m-1.5 3h1.5" />
                                             </svg>
@@ -197,25 +200,29 @@
                                     </div>
                                 </td>
 
-                                <td class="px-6 py-4 text-sm text-slate-600 ">
+                                {{-- Keterangan --}}
+                                <td class="px-6 py-4 text-left text-sm text-slate-600">
                                     {{ $unit->keterangan ?: '-' }}
                                 </td>
 
-                                <td class="whitespace-nowrap px-6 py-4 text-center ">
-                                    <span class="inline-flex rounded-lg bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                                {{-- Risiko Terkait --}}
+                                <td class="whitespace-nowrap px-6 py-4 text-center">
+                                    <span class="inline-flex rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 border border-slate-200">
                                         {{ $unit->risiko_count ?? 0 }} risiko
                                     </span>
                                 </td>
 
-                                <td class="whitespace-nowrap px-6 py-4 text-xs text-slate-600 ">
+                                {{-- Dibuat --}}
+                                <td class="whitespace-nowrap px-6 py-4 text-left text-xs text-slate-600">
                                     {{ $unit->created_at?->format('d M Y H:i') ?? '-' }}
                                 </td>
 
+                                {{-- Aksi --}}
                                 <td class="whitespace-nowrap px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-2">
                                         {{-- Detail --}}
                                         <a href="{{ route('unit-kerja.show', $unit) }}"
-                                           class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600">
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             Detail
                                         </a>
@@ -223,7 +230,7 @@
                                         @can('unit-kerja.edit')
                                         {{-- Edit --}}
                                         <a href="{{ route('unit-kerja.edit', $unit) }}"
-                                           class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                             Edit
                                         </a>
@@ -232,8 +239,8 @@
                                         @can('unit-kerja.delete')
                                         {{-- Hapus --}}
                                         <form method="POST" action="{{ route('unit-kerja.destroy', $unit) }}" 
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus unit kerja ini?')"
-                                              class="m-0">
+                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus unit kerja ini?')"
+                                            class="m-0">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"

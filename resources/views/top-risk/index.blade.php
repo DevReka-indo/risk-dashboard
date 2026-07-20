@@ -260,46 +260,48 @@
                                         @endforelse
                                     </div>
                                 </td>
-
+                                
+                                {{-- Monitoring Terakhir --}}
                                 <td class="px-6 py-4">
                                     @if ($monitoringTerakhir)
-                                        <div class="space-y-1">
-                                            <div class="flex flex-wrap gap-2">
-                                                <span class="inline-flex rounded bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
-                                                    Nilai {{ $monitoringTerakhir->nilai }}
+                                        <div class="space-y-1.5">
+                                            {{-- Badge Nilai & Level Risiko --}}
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="inline-flex rounded bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                                                    Nilai {{ $monitoringTerakhir->nilai ?? 0 }}
                                                 </span>
 
-                                                <span class="inline-flex rounded px-3 py-1 text-xs font-semibold {{ $levelBadgeClass }}">
+                                                <span class="inline-flex rounded px-2.5 py-1 text-xs font-semibold {{ $levelBadgeClass }}">
                                                     {{ $monitoringTerakhir->level->nama_level ?? '-' }}
                                                 </span>
                                             </div>
-                                            <div class="text-sm font-semibold text-slate-900">
-                                                {{ str_pad((string) $monitoringTerakhir->bulan, 2, '0', STR_PAD_LEFT) }}/{{ $monitoringTerakhir->tahun }}
+
+                                            {{-- Periode Bulan/Tahun --}}
+                                            <div class="text-xs font-bold text-slate-900">
+                                                {{ str_pad((string) ($monitoringTerakhir->bulan ?? ''), 2, '0', STR_PAD_LEFT) }}/{{ $monitoringTerakhir->tahun ?? '' }}
                                             </div>
 
-
-
-                                            <div class="text-xs text-slate-500">
-                                                <div> Efektivitas:
-                                                </div>
-                                                
-                                                <span class="font-semibold">
+                                            {{-- Efektivitas (Flexbox Sejajar Tanpa Line-Break) --}}
+                                            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                                                <span>Efektivitas:</span>
+                                                <span class="font-semibold text-slate-800">
                                                     {{ $monitoringTerakhir->aturanEfektivitas->hasil ?? 'Belum ada pembanding' }}
                                                 </span>
                                             </div>
                                         </div>
                                     @else
-                                        <span class="text-sm text-slate-400">Belum ada monitoring</span>
+                                        <span class="text-xs font-medium italic text-slate-400">Belum ada monitoring</span>
                                     @endif
                                 </td>
 
-                                <td class="whitespace-nowrap px-6 py-4">
+                                {{-- Status Aktif / Tidak Aktif --}}
+                                <td class="whitespace-nowrap px-6 py-4 text-center">
                                     @if ($topRisk->is_aktif)
-                                        <span class="inline-flex rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                        <span class="inline-flex items-center rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                                             Aktif
                                         </span>
                                     @else
-                                        <span class="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                        <span class="inline-flex items-center rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                                             Tidak Aktif
                                         </span>
                                     @endif

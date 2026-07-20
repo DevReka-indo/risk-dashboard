@@ -29,7 +29,9 @@ class DashboardController extends Controller
                           + SmapMonitoring::whereIn('id_level', $highLevelIds)->whereNull('parent_id')->count(),
 
             // Menunggu Tindakan (Belum atau Proses)
-            'pending_actions' => DepMonitoring::whereIn('penanganan', ['Belum', 'Proses'])->count(),
+            // Menunggu Tindakan (Total akumulasi angka progres Belum + Proses)
+            'pending_actions' => DB::table('dep_monitoring_periods')->sum('progres_belum')
+                            + DB::table('dep_monitoring_periods')->sum('progres_proses'),
 
             // Rincian per Modul
             'total_dep' => DepMonitoring::count(),
