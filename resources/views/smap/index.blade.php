@@ -263,7 +263,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="space-y-1">
                                         <span class="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                                            Skor: {{ $smapRisk->inherent ?? 0 }}
+                                            Skala: {{ $smapRisk->inherent ?? 0 }}
                                         </span>
                                         <div>
                                             <span class="text-xs text-slate-500 font-medium">
@@ -283,7 +283,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="space-y-1">
                                         <span class="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                                            Skor: {{ $smapRisk->inherent_target ?? $smapRisk->target_value ?? 0 }}
+                                            Skala: {{ $smapRisk->inherent_target ?? $smapRisk->target_value ?? 0 }}
                                         </span>
                                         <div>
                                             <span class="text-xs text-slate-500 font-medium">
@@ -300,36 +300,60 @@
                                         </div>
                                     </div>
                                 </td>
+
+                                {{-- Monitoring Terakhir --}}
                                 <td class="px-6 py-4">
                                     @if ($monitoringTerakhir)
-                                        <div class="space-y-1">
-                                            <div class="flex flex-wrap gap-1 items-center">
-                                                <span class="inline-flex rounded bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                                        @php
+                                            // Penentuan warna badge otomatis berdasarkan Level Risiko
+                                            $lvlName   = $monitoringTerakhir->levelRisiko->nama_level ?? '-';
+                                            $lvlLower  = strtolower($lvlName);
+                                            $isHighLvl = str_contains($lvlLower, 'high') || str_contains($lvlLower, 'tinggi');
+                                            $isLowLvl  = str_contains($lvlLower, 'low') || str_contains($lvlLower, 'rendah');
+                                            
+                                            $lvlClass  = $isHighLvl 
+                                                ? 'bg-rose-100 text-rose-700' 
+                                                : ($isLowLvl ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700');
+                                        @endphp
+
+                                        <div class="space-y-1.5">
+                                            {{-- Badge Nilai & Level Risiko --}}
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="inline-flex rounded bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
                                                     Nilai {{ $monitoringTerakhir->value ?? 0 }}
                                                 </span>
-                                                <span class="inline-flex rounded px-3 py-1 text-xs font-semibold">
-                                                    {{ $monitoringTerakhir->levelRisiko->nama_level ?? '-' }}
+                                                
+                                                {{-- Warna Badge Level Risiko Disesuaikan --}}
+                                                <span class="inline-flex rounded px-2.5 py-1 text-xs font-semibold {{ $lvlClass }}">
+                                                    {{ $lvlName }}
                                                 </span>
                                             </div>
+
+                                            {{-- Periode --}}
                                             <div class="text-xs font-bold text-slate-900">
-                                                {{ $monitoringTerakhir->quarter }} {{ $monitoringTerakhir->year }}
+                                                {{ $monitoringTerakhir->quarter ?? '-' }} {{ $monitoringTerakhir->year ?? '' }}
                                             </div>
 
-                                            <div class="text-xs text-slate-500">
-                                                <div>
-                                                    Trend:
-                                            </div>
+                                            {{-- Indikator Trend (Flex Sejajar & Warna Visual) --}}
+                                            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                                                <span>Trend:</span>
                                                 @if(($monitoringTerakhir->trend ?? '') === 'Naik')
-                                                    <span class="font-medium text-rose-600">→ Naik</span>
+                                                    <span class="inline-flex items-center gap-0.5 font-semibold text-rose-600">
+                                                        ↑ Naik
+                                                    </span>
                                                 @elseif(($monitoringTerakhir->trend ?? '') === 'Turun')
-                                                    <span class="font-medium text-emerald-600">→ Turun</span>
+                                                    <span class="inline-flex items-center gap-0.5 font-semibold text-emerald-600">
+                                                        ↓ Turun
+                                                    </span>
                                                 @else
-                                                    <span class="font-medium text-slate-500">→ Stabil</span>
+                                                    <span class="inline-flex items-center gap-0.5 font-semibold text-slate-500">
+                                                        → Stabil
+                                                    </span>
                                                 @endif
                                             </div>
                                         </div>
                                     @else
-                                        <span class="text-xs text-slate-400">Belum ada monitoring</span>
+                                        <span class="text-xs font-medium italic text-slate-400">Belum ada monitoring</span>
                                     @endif
                                 </td>
 

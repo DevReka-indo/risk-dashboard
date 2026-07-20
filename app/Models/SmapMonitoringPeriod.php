@@ -11,18 +11,20 @@ class SmapMonitoringPeriod extends Model
     protected $primaryKey = 'id_detail';
 
     protected $fillable = [
-            'id_smap',
-            'quarter',
-            'year',
-            'value',
-            'inherent',
-            'inherent_target',
-            'id_level',
-            'id_level_target',
-            'trend',
-            'status_penanganan',
-            'efektif_risiko',
-        ];
+        'id_smap',
+        'quarter',
+        'year',
+        'value',
+        'inherent',
+        'inherent_target',
+        'id_level',
+        'id_level_target',
+        'trend',
+        'efektif_risiko',
+        'progress_belum',
+        'progress_proses',
+        'progress_sudah',  
+    ];
 
     public function monitoring(): BelongsTo
     {
@@ -36,7 +38,6 @@ class SmapMonitoringPeriod extends Model
 
     public function period(): BelongsTo
     {
-
         return $this->belongsTo(Period::class, 'id_period', 'id_period');
     }
 

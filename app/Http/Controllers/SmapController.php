@@ -203,17 +203,19 @@ class SmapController extends Controller
         $scoreCurrent = (int) $validated['value'];
 
         SmapMonitoringPeriod::create([
-            'id_smap'           => $parentRisk->id_smap,
-            'quarter'           => $validated['quarter'],
-            'year'              => $validated['year'],
-            'id_level'          => $this->smapService->determineLevelId($scoreCurrent),
-            'id_level_target'   => $parentRisk->id_level_target,
-            'value'             => $scoreCurrent,
-            'inherent'          => $scoreInherent,
-            'inherent_target'   => (int) $parentRisk->inherent_target,
-            'trend'             => $this->smapService->calculateTrend($scoreCurrent, $scoreInherent),
-            'status_penanganan' => $validated['status_penanganan'],
-            'efektif_risiko'    => $this->smapService->calculateEfektivitas($scoreCurrent, $scoreInherent),
+            'id_smap'         => $parentRisk->id_smap,
+            'quarter'         => $validated['quarter'],
+            'year'            => $validated['year'],
+            'id_level'        => $this->smapService->determineLevelId($scoreCurrent),
+            'id_level_target' => $parentRisk->id_level_target,
+            'value'           => $scoreCurrent,
+            'inherent'        => $scoreInherent,
+            'inherent_target' => (int) $parentRisk->inherent_target,
+            'trend'           => $this->smapService->calculateTrend($scoreCurrent, $scoreInherent),
+            'progress_belum'  => (int) $validated['progress_belum'],    //
+            'progress_proses' => (int) $validated['progress_proses'], // <-- Update
+            'progress_sudah'  => (int) $validated['progress_sudah'],    //
+            'efektif_risiko'  => $this->smapService->calculateEfektivitas($scoreCurrent, $scoreInherent),
         ]);
 
         $parentRisk->update(['status' => $validated['status_monitoring']]);
@@ -247,13 +249,15 @@ class SmapController extends Controller
         $inherentScore = $riskMaster ? (int) $riskMaster->inherent : 0;
         $currentScore = (int) $validated['value'];
 
-        $history->quarter           = $validated['quarter'];
-        $history->year              = $validated['year'];
-        $history->value             = $currentScore;
-        $history->status_penanganan = $validated['status_penanganan'];
-        $history->id_level          = $this->smapService->determineLevelId($currentScore);
-        $history->trend             = $this->smapService->calculateTrend($currentScore, $inherentScore);
-        $history->efektif_risiko    = $this->smapService->calculateEfektivitas($currentScore, $inherentScore);
+        $history->quarter         = $validated['quarter'];
+        $history->year            = $validated['year'];
+        $history->value           = $currentScore;
+        $history->progress_belum  = (int) $validated['progress_belum'];  //
+        $history->progress_proses = (int) $validated['progress_proses']; // <-- Update
+        $history->progress_sudah  = (int) $validated['progress_sudah'];  // 
+        $history->id_level        = $this->smapService->determineLevelId($currentScore);
+        $history->trend           = $this->smapService->calculateTrend($currentScore, $inherentScore);
+        $history->efektif_risiko  = $this->smapService->calculateEfektivitas($currentScore, $inherentScore);
         $history->save();
 
         if ($riskMaster) {
@@ -265,7 +269,6 @@ class SmapController extends Controller
             ->back()
             ->with('success', 'Riwayat perkembangan kuartal, periode waktu, dan status risiko berhasil diperbarui.');
     }
-
     public function destroyMonitoring(int $id_period): RedirectResponse
     {
         $monitoring = SmapMonitoringPeriod::findOrFail($id_period);

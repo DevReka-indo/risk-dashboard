@@ -163,6 +163,9 @@ class SmapService
             'efektif'  => ['labels' => array_keys($baseEfektif), 'off' => array_values($baseEfektif)]
         ];
 
+        // ⬇️ Ambil Data Tabel Progres Unit Kerja
+        $smapUnitTable = $this->smapRepo->getUnitProgressTableData($selectedYear, $quarterLookups);
+
         return [
             'selectedYear' => $selectedYear,
             'summary' => [
@@ -179,6 +182,7 @@ class SmapService
             'trendLabels' => ['Naik', 'Turun', 'Stagnan'],
             'trendData' => $trendData,
             'smapPieData' => $smapPieData,
+            'smapUnitTable' => $smapUnitTable, // ⬅️ Masukkan ke return array
             'level_distribution' => $levelDistributionData
         ];
     }

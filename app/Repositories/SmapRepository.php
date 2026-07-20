@@ -110,15 +110,23 @@ class SmapRepository
             ->toArray();
     }
 
-    public function getProgresOffData(int $selectedYear, array $quarterLookups)
+   public function getProgresOffData(int $selectedYear, array $quarterLookups)
     {
-        return DB::table('smap_monitoring_periods')
+        $result = DB::table('smap_monitoring_periods')
             ->where('year', $selectedYear)
             ->whereIn('quarter', $quarterLookups)
-            ->selectRaw('status_penanganan, count(*) as total')
-            ->groupBy('status_penanganan')
-            ->pluck('total', 'status_penanganan')
-            ->toArray();
+            ->selectRaw('
+                SUM(progress_belum) as belum,
+                SUM(progress_proses) as proses,
+                SUM(progress_sudah) as selesai
+            ')
+            ->first();
+
+        return [
+            'belum'   => (int) ($result->belum ?? 0),
+            'proses'  => (int) ($result->proses ?? 0),
+            'selesai' => (int) ($result->selesai ?? 0),
+        ];
     }
 
     public function getEfektifOffData(int $selectedYear, array $quarterLookups)
@@ -158,5 +166,22 @@ class SmapRepository
             // UBAH BAGIAN INI: Dari oldest('id_smap') menjadi latest('created_at')
             ->latest('created_at')
             ->paginate($perPage);
+    }
+
+    public function getUnitProgressTableData(int $year, array $quarterLookups)
+    {
+        return \Illuminate\Support\Facades\DB::table('top_unit_kerja as u')
+            ->leftJoin('smap_monitoring as r', 'r.id_unit', '=', 'u.id_unit') // <-- Diubah ke smap_monitorings
+            ->leftJoin('smap_monitoring_periods as p', 'p.id_smap', '=', 'r.id_smap')
+            ->where('p.year', $year)
+            ->whereIn('p.quarter', $quarterLookups)
+            ->select(
+                'u.nama_unit',
+                \Illuminate\Support\Facades\DB::raw('SUM(p.progress_belum) as progress_belum'),
+                \Illuminate\Support\Facades\DB::raw('SUM(p.progress_proses) as progress_proses'),
+                \Illuminate\Support\Facades\DB::raw('SUM(p.progress_sudah) as progress_sudah')
+            )
+            ->groupBy('u.id_unit', 'u.nama_unit')
+            ->get();
     }
 }

@@ -3,7 +3,7 @@
     {{-- TOP BAR --}}
     <div class="border-b border-slate-100 pb-3">
         <h3 class="text-base font-bold text-slate-900">Progres Penanganan Risiko SMAP</h3>
-        <p class="text-xs text-slate-500 mt-0.5">Visualisasi status penanganan risiko pada kuartal berjalan berjalan.</p>
+        <p class="text-xs text-slate-500 mt-0.5">Visualisasi status penanganan risiko pada kuartal berjalan.</p>
     </div>
 
     {{-- AREA CANVAS CHART --}}
@@ -16,6 +16,38 @@
             <canvas id="smapChartProgresUnique"></canvas>
         </div>
     </div>
+
+    {{-- TABEL PROGRES PER UNIT KERJA (Sesuai Gambar Client) --}}
+    <div class="mt-6 overflow-x-auto">
+        <table class="w-full text-center text-xs border-collapse border border-slate-900">
+            <thead class="bg-blue-600 text-white font-bold" style="background-color: #2B72B9 !important; color: #ffffff !important;">
+                <tr>
+                    <th class="border border-slate-900 py-2.5 px-3 text-left w-2/5 font-bold text-white">Unit kerja</th>
+                    <th class="border border-slate-900 py-2.5 px-3 w-1/5 font-bold text-white">Belum</th>
+                    <th class="border border-slate-900 py-2.5 px-3 w-1/5 font-bold text-white">Proses</th>
+                    <th class="border border-slate-900 py-2.5 px-3 w-1/5 font-bold text-white">Sudah</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-900 font-semibold text-slate-900">
+                {{-- Modifikasi variabel $smapUnitTable sesuai variabel yang kamu pass dari Controller --}}
+                @forelse($smapUnitTable ?? [] as $row)
+                    <tr>
+                        <td class="border border-slate-900 py-2 px-3 text-left font-medium">{{ $row->nama_unit }}</td>
+                        <td class="border border-slate-900 py-2 px-3">{{ $row->progress_belum > 0 ? $row->progress_belum : '' }}</td>
+                        <td class="border border-slate-900 py-2 px-3">{{ $row->progress_proses > 0 ? $row->progress_proses : '' }}</td>
+                        <td class="border border-slate-900 py-2 px-3">{{ $row->progress_sudah > 0 ? $row->progress_sudah : '' }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="border border-slate-900 py-3 text-slate-400 italic font-normal">
+                            Data unit kerja belum tersedia.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
 </div>
 
 <script>
