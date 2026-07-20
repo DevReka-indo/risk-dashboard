@@ -9,71 +9,49 @@
     </x-slot>
 
     <div class="space-y-6">
-        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <form method="GET" action="{{ route('users.index') }}" class="flex w-full flex-col gap-3 sm:flex-row lg:max-w-xl">
-                    <div class="relative flex-1">
-                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197M15.803 15.803A7.5 7.5 0 1 0 5.197 5.197a7.5 7.5 0 0 0 10.606 10.606Z" />
-                            </svg>
-                        </div>
+            <div class="flex items-center gap-2">
+                <form method="GET" action="{{ route('users.index') }}" class="flex items-center gap-2">
+                <input type="text" name="search" value="{{ $search ?? '' }}"
+                       placeholder="Cari nama unit atau keterangan..."
+                       class="w-64 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <button type="submit"
+                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition">
+                    Cari
+                </button>
+            </form>
 
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ $search }}"
-                            placeholder="Cari nama atau email..."
-                            class="w-full rounded-2xl border-slate-200 bg-white py-2.5 pl-11 pr-4 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <!-- Filter Button -->
-                    <button
-                        type="submit"
-                        class="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M5.25 12h13.5M8.25 17.25h7.5" />
-                        </svg>
-                        
-                    </button>
-
-                    @if ($search)
-                        <a href="{{ route('users.index') }}"
-                           class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                            Reset
-                        </a>
-                    @endif
-                </form>
+            <div class="flex-1"></div>
 
                 @can('user.create')
                     <a href="{{ route('users.create') }}"
-                       class="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700">
+                       class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                         Tambah User
                     </a>
                 @endcan
-            </div>
+
         </div>
 
-        <div class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-lg">
+        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
             <div class="overflow-x-auto">
                 <table class="min-w-full border-collapse">
                     <thead>
                         <tr class="bg-indigo-600 text-white">
-                            <th class="rounded-tl-[28px] px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide border-r border-slate-300">
+                            <th class="rounded-tl-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
                                 User
                             </th>
-                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide border-r border-slate-300">
+                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
                                 Email
                             </th>
-                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide border-r border-slate-300">
+                            <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
                                 Role
                             </th>
-                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide border-r border-slate-300">
+                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
                                 Dibuat
                             </th>
-                            <th class="rounded-tr-[28px] px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                            <th class="rounded-tr-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
                                 Aksi
                             </th>
                         </tr>
@@ -81,16 +59,16 @@
                     <tbody>
                         @forelse ($users as $user)
                             <tr class="hover:bg-slate-50 transition border-b border-slate-300">
-                                <td class="whitespace-nowrap px-6 py-4 border-r border-slate-300">
+                                <td class="whitespace-nowrap px-6 py-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                                        <div class="flex h-10 w-10 items-center justify-center rounded bg-indigo-50 text-indigo-600">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a8.25 8.25 0 0 1 15 0" />
                                             </svg>
                                         </div>
 
                                         <div>
-                                            <div class="font-semibold text-slate-900">
+                                            <div class="text-sm font-semibold text-slate-900">
                                                 {{ $user->name }}
                                             </div>
 
@@ -103,12 +81,12 @@
                                     </div>
                                 </td>
 
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600 border-r border-slate-300">
+                                <td class="whitespace-nowrap px-6 py-4 text-xs text-slate-600">
                                     {{ $user->email }}
                                 </td>
 
-                                <td class="px-6 py-4 border-r border-slate-300">
-                                    <div class="flex flex-wrap gap-2">
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-wrap justify-center gap-2">
                                         @forelse ($user->roles as $role)
                                             <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                                                 {{ $role->name }}
@@ -121,7 +99,7 @@
                                     </div>
                                 </td>
 
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600 border-r border-slate-300">
+                                <td class="whitespace-nowrap px-6 py-4 text-xs text-slate-600">
                                     {{ $user->created_at?->format('d M Y') }}
                                 </td>
 

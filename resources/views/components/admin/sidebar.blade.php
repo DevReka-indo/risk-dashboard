@@ -53,7 +53,7 @@
         {{-- MENU UTAMA --}}
         @canany(['toprisk.view', 'risk.view'])
             <div class="pt-4">
-                <div class="px-3 mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-indigo-300">
+                <div class="px-3 mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
                     MENU UTAMA
                 </div>
 
@@ -102,7 +102,7 @@
         {{-- MASTER DATA --}}
         @canany(['risk.view', 'unit-kerja.view'])
             <div class="pt-4">
-               <div class="px-3 mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-indigo-300">
+               <div class="px-3 mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
                     Menu Lainnya
                 </div>
 
@@ -139,7 +139,7 @@
 
         @canany(['user.view', 'role.view', 'permission.view'])
             <div class="pt-4">
-               <div class="px-3 mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-indigo-300">
+               <div class="px-3 mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
                     User Management
                 </div>
 

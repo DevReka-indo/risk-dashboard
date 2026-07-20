@@ -215,7 +215,7 @@
                         {{-- Baris 3: Nilai saat ini (level badge) + Trend --}}
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
                             <div>
-                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Nilai saat ini</label>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Level saat ini</label>
                                 <div style="border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; min-height:40px; background:#fff; display:flex; align-items:center;">
                                     <span x-show="otomatisLevel" style="display:none;">
                                         <span x-text="{1:'Low',2:'Low to Moderate',3:'Moderate',4:'Moderate to High',5:'High'}[otomatisLevel]"
@@ -264,7 +264,7 @@
 
          {{-- ═══════════ CARD 3: Riwayat monitoring Triwulan ═══════════ --}}
 <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
-    
+
     <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Riwayat monitoring Triwulan</h2>
     <p style="font-size:12px; color:#94a3b8; margin:0 0 20px;">Daftar riwayat yang telah dimasukkan untuk risiko ini</p>
 
@@ -291,10 +291,10 @@
                     'proses' => 'background:#eff6ff;color:#3b82f6;',
                     default => 'background:#f1f5f9;color:#64748b;',
                 };
-                $statusStyle = ($risk->status ?? 1) == 1 
-                    ? 'background:#ecfdf5;color:#10b981;' 
+                $statusStyle = ($risk->status ?? 1) == 1
+                    ? 'background:#ecfdf5;color:#10b981;'
                     : 'background:#fef2f2;color:#ef4444;';
-                
+
                 $trend = $history->trend ?? 'Stabil';
                 $trendIcon = match($trend) {
                     'Naik' => '↑',
@@ -327,17 +327,17 @@
                                 @endphp
                                 {{ $displayQ }} {{ $history->year }}
                             </span>
-                            
+
                             {{-- Nilai --}}
                             <span style="background:#eff6ff; color:#4f46e5; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                 Nilai {{ $history->value ?? '-' }}
                             </span>
-                            
+
                             {{-- Level --}}
                             <span style="{{ $lvlStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                 {{ ucfirst($history->levelRisiko->nama_level ?? $history->levelRisiko->level ?? '-') }}
                             </span>
-                            
+
                             {{-- Penanganan --}}
                             <span style="{{ $penStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                 {{ $penDisplay }}
@@ -348,7 +348,7 @@
                                 Status: {{ ($risk->status ?? 1) == 1 ? 'Aktif' : 'Tidak Aktif' }}
                             </span>
                         </div>
-                        
+
                         {{-- Tombol Edit & Hapus --}}
                         <div style="display:flex; gap:4px; align-items:center;">
                             <button type="button" @click="editOpen = !editOpen"

@@ -13,8 +13,10 @@ use App\Http\Controllers\UnitKerjaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\KategoriRisikoController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/sso/redirect', SsoRedirectController::class)->name('sso.redirect');
@@ -238,11 +240,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/chat/ask', [ChatController::class, 'ask'])->name('chat.ask');
     Route::get('/cek-model', [\App\Http\Controllers\ChatController::class, 'cekModel']);
 
-    Route::get('/settings', function () {
-        return 'Halaman Pengaturan';
-    })
-        ->middleware('permission:setting.view')
-        ->name('settings.index');
+    // Settings
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings/system', [SettingsController::class, 'updateSystem'])->name('settings.update-system');
+    Route::get('/settings/export', [SettingsController::class, 'export'])->name('settings.export');
+    Route::delete('/settings/audit/clear', [SettingsController::class, 'clearAudit'])->name('settings.clear-audit');
 
 });
 

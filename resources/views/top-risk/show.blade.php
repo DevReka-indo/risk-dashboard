@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex items-center gap-3">
             <a href="{{ route('top-risk.index') }}"
-               class="flex h-7 w-7 items-center justify-center rounded text-slate-800 hover:bg-slate-100 transition">
+               class="flex h-7 w-7 items-center justify-center rounded-lg text-slate-800 hover:bg-slate-100 transition">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                 </svg>
@@ -35,7 +35,7 @@
 
         {{-- Flash --}}
         @if(session('success'))
-            <div style="border:1px solid #6ee7b7; background:#ecfdf5; border-radius:12px; padding:12px 16px; font-size:13px; color:#065f46; font-weight:600;">{{ session('success') }}</div>
+            <div style="border:1px solid #46c290ff; background:#ecfdf5; border-radius:12px; padding:12px 16px; font-size:13px; color:#065f46; font-weight:600;">{{ session('success') }}</div>
         @endif
         @if(session('error'))
             <div style="border:1px solid #fca5a5; background:#fef2f2; border-radius:12px; padding:12px 16px; font-size:13px; color:#991b1b; font-weight:600;">{{ session('error') }}</div>
@@ -93,7 +93,7 @@
                         <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Unit Kerja</p>
                         <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">
                             @foreach ($topRisk->unitKerja as $unit)
-                                <span style="display:inline-block; background:#f1f5f9; border-radius:6px; padding:2px 10px; margin:2px 4px 2px 0; font-size:12px;">{{ $unit->nama_unit }}</span>
+                                <span style="display:inline-block; background:#f1f5f9; rounded-lg; padding:2px 10px; margin:2px 4px 2px 0; font-size:12px;">{{ $unit->nama_unit }}</span>
                             @endforeach
                         </p>
                     </div>
@@ -102,9 +102,9 @@
                     <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
                         <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Status</p>
                         @if($topRisk->is_aktif)
-                            <span style="background:#ecfdf5; color:#10b981; border-radius:9999px; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Aktif</span>
+                            <span style="background:#ecfdf5; color:#10b981; rounded-lg; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Aktif</span>
                         @else
-                            <span style="background:#f1f5f9; color:#94a3b8; border-radius:9999px; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Tidak Aktif</span>
+                            <span style="background:#f1f5f9; color:#94a3b8; rounded-lg; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Tidak Aktif</span>
                         @endif
                     </div>
                 </div>
@@ -377,7 +377,7 @@
                         @if($monitoring->catatan)
                             <div style="padding:0 20px 12px 20px;">
                                 <p style="font-size:12px; color:#64748b; margin:0; padding:8px 12px; background:#f8fafc; border-radius:8px; border:1px solid #f1f5f9;">
-                                    📝 {{ $monitoring->catatan }}
+                                    Catatan : {{ $monitoring->catatan }}
                                 </p>
                             </div>
                         @endif

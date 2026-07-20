@@ -224,12 +224,12 @@
                                 $monitoringTerakhir = $topRisk->monitoringBulanan->first();
                                 $levelUrutan = (int) ($monitoringTerakhir?->level?->urutan ?? 0);
                                 $levelBadgeClass = match ($levelUrutan) {
-                                    1 => 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200',
-                                    2 => 'bg-lime-100 text-lime-800 ring-1 ring-lime-200',
-                                    3 => 'bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200',
-                                    4 => 'bg-orange-100 text-orange-800 ring-1 ring-orange-200',
-                                    5 => 'bg-red-100 text-red-800 ring-1 ring-red-200',
-                                    default => 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
+                                    1 => 'bg-emerald-100 text-emerald-800',
+                                    2 => 'bg-lime-100 text-lime-800',
+                                    3 => 'bg-yellow-100 text-yellow-800',
+                                    4 => 'bg-orange-100 text-orange-800',
+                                    5 => 'bg-red-100 text-red-800',
+                                    default => 'bg-slate-100 text-slate-700',
                                 };
                             @endphp
 

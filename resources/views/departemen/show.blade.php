@@ -126,6 +126,12 @@
             <form method="POST" action="{{ route('department-risk.update-period', $risk->id_monitoring) }}">
                 @csrf @method('PUT')
 
+                {{-- HIDDEN INPUT: Ditambahkan agar lolos validasi Required dari backend --}}
+                <input type="hidden" name="inherent" value="{{ $risk->inherent }}">
+                <input type="hidden" name="id_level" value="{{ $risk->id_level }}">
+                <input type="hidden" name="target_value" value="{{ $risk->target_value }}">
+                <input type="hidden" name="target_id_level" value="{{ $risk->target_id_level }}">
+
                 <div style="display:grid; grid-template-columns:200px 1fr; gap:20px; align-items:start;">
 
                     {{-- Kiri: Parameter Awal & Target (Read Only) --}}
@@ -139,7 +145,8 @@
                             </div>
                             <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
                                 <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Level Inheren</p>
-                                <p style="font-size:14px; font-weight:700; color:#f59e0b; margin:0;" x-text="inherentLevelName || '-'"></p>
+                                {{-- Dirender langsung via Blade agar pasti muncul --}}
+                                <p style="font-size:14px; font-weight:700; color:#f59e0b; margin:0;">{{ $risk->levelRisiko->nama_level ?? '-' }}</p>
                             </div>
                             <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
                                 <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Nilai Target</p>
@@ -147,7 +154,8 @@
                             </div>
                             <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
                                 <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Level Target</p>
-                                <p style="font-size:14px; font-weight:700; color:#f59e0b; margin:0;" x-text="otomatisTargetLevelName || '-'"></p>
+                                {{-- Dirender langsung via Blade agar pasti muncul --}}
+                                <p style="font-size:14px; font-weight:700; color:#f59e0b; margin:0;">{{ $risk->targetLevel->nama_level ?? $targetName }}</p>
                             </div>
                         </div>
                     </div>
@@ -264,7 +272,7 @@
 
        {{-- ═══════════ CARD 3: Riwayat Monitoring Triwulan ═══════════ --}}
 <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
-    
+
     <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Riwayat monitoring Triwulan</h2>
     <p style="font-size:12px; color:#94a3b8; margin:0 0 20px;">Daftar riwayat yang telah dimasukkan untuk risiko ini</p>
 
@@ -291,10 +299,10 @@
                     'Proses' => 'background:#eff6ff;color:#3b82f6;',
                     default => 'background:#f1f5f9;color:#64748b;',
                 };
-                $statusStyle = ($risk->status ?? 1) == 1 
-                    ? 'background:#ecfdf5;color:#10b981;' 
+                $statusStyle = ($risk->status ?? 1) == 1
+                    ? 'background:#ecfdf5;color:#10b981;'
                     : 'background:#fef2f2;color:#ef4444;';
-                
+
                 $trend = $period->pivot->trend ?? 'Stabil';
                 $trendIcon = match($trend) {
                     'Naik' => '↑',
@@ -319,17 +327,17 @@
                             <span style="background:#1e293b; color:#fff; border-radius:20px; padding:4px 14px; font-size:13px; font-weight:700;">
                                 {{ $period->pivot->quarter }} {{ $period->pivot->year }}
                             </span>
-                            
+
                             {{-- Nilai --}}
                             <span style="background:#eff6ff; color:#4f46e5; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                 Nilai {{ $period->pivot->value ?? '-' }}
                             </span>
-                            
+
                             {{-- Level --}}
                             <span style="{{ $lvlStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                 {{ ucfirst($period->nama_level ?? $period->level ?? '-') }}
                             </span>
-                            
+
                             {{-- Penanganan --}}
                             <span style="{{ $penStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                 {{ $penDisplay }}
@@ -340,7 +348,7 @@
                                 Status: {{ ($risk->status ?? 1) == 1 ? 'Aktif' : 'Tidak Aktif' }}
                             </span>
                         </div>
-                        
+
                         {{-- Tombol Edit & Hapus --}}
                         <div style="display:flex; gap:4px; align-items:center;">
                             <button type="button" @click="editOpen = !editOpen"

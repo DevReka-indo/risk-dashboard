@@ -155,7 +155,7 @@
                 <table class="min-w-full border-collapse">
                     <thead>
                         <tr class="bg-indigo-600 text-white">
-                            <th class="rounded-tl-lg px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide ">
+                            <th class="rounded-tl-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide ">
                                 Unit Kerja
                             </th>
                             <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide ">

@@ -155,7 +155,8 @@ class SmapRepository
             ->when($filters['status'] !== '', function ($query) use ($filters) {
                 $query->where('status', (bool) $filters['status']);
             })
-            ->oldest('id_smap')
+            // UBAH BAGIAN INI: Dari oldest('id_smap') menjadi latest('created_at')
+            ->latest('created_at')
             ->paginate($perPage);
     }
 }

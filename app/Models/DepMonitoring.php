@@ -90,6 +90,11 @@ class DepMonitoring extends Model
         return $this->belongsTo(Period::class, 'id_period', 'id_period');
     }
 
+    public function targetLevel(): BelongsTo
+    {
+        return $this->belongsTo(LevelRisiko::class, 'target_id_level', 'id_level');
+    }
+
     public function periods()
     {
         return $this->belongsToMany(

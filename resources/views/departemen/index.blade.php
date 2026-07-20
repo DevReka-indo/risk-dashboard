@@ -238,11 +238,14 @@
                             <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
                                 Unit Kerja
                             </th>
+                            <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                                Inherent
+                            </th>
+                            <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
+                                Target
+                            </th>
                             <th class="whitespace-nowrap px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
                                 Monitoring Terakhir
-                            </th>
-                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
-                                Status
                             </th>
                             <th class="rounded-tr-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
                                 Aksi
@@ -261,10 +264,21 @@
                                     <div class="max-w-md">
                                         <div class="mb-1">
                                             <span class="inline-block rounded px-3 py-0.5 text-xs font-medium
-                                                {{ $isProyek ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-600' }}">
+                                                {{ $isProyek ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-600' }}">
                                                 {{ $risk->type ?? '-' }}
                                             </span>
+                                {{-- Aktif - Non-Aktif --}}
+                                    @if ($risk->status)
+                                        <span class="inline-flex rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                            Aktif
+                                        </span>
+                                    @else
+                                        <span class="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                            Tidak Aktif
+                                        </span>
+                                    @endif
                                         </div>
+                                    {{-- Proyek --}}
                                         <div class="font-semibold text-slate-900">
                                             {{ $risk->risk_event_deta }}
                                         </div>
@@ -275,7 +289,7 @@
                                 </td>
 
                                 {{-- Kategori --}}
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
+                                <td class="px-6 py-4 text-sm text-slate-600">
                                     {{ $risk->kategoriRisiko->nama_kategori ?? '-' }}
                                 </td>
 
@@ -285,6 +299,48 @@
                                         <span class="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                                             {{ $unit->nama_unit }}
                                         </span>
+                                    </div>
+                                </td>
+
+                                {{-- Inheren & Target (Hitung Manual) --}}
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="space-y-1">
+                                        <span class="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                                            Skor: {{ $risk->inherent ?? 0 }}
+                                        </span>
+                                        <div>
+                                            <span class="text-xs text-slate-500 font-medium">
+                                                @php
+                                                    $inherentVal = (int)($risk->inherent ?? 0);
+                                                    $levelName = 'Low';
+                                                    if ($inherentVal >= 6 && $inherentVal <= 11) $levelName = 'Low Mod';
+                                                    elseif ($inherentVal >= 12 && $inherentVal <= 15) $levelName = 'Moderate';
+                                                    elseif ($inherentVal >= 16 && $inherentVal <= 19) $levelName = 'Mod High';
+                                                    elseif ($inherentVal >= 20) $levelName = 'High';
+                                                @endphp
+                                                {{ $levelName }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="space-y-1">
+                                        <span class="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                                            Skor: {{ $risk->target_value ?? 0 }}
+                                        </span>
+                                        <div>
+                                            <span class="text-xs text-slate-500 font-medium">
+                                                @php
+                                                    $targetVal = (int)($risk->target_value ?? 0);
+                                                    $targetLevelName = 'Low';
+                                                    if ($targetVal >= 6 && $targetVal <= 11) $targetLevelName = 'Low Mod';
+                                                    elseif ($targetVal >= 12 && $targetVal <= 15) $targetLevelName = 'Moderate';
+                                                    elseif ($targetVal >= 16 && $targetVal <= 19) $targetLevelName = 'Mod High';
+                                                    elseif ($targetVal >= 20) $targetLevelName = 'High';
+                                                @endphp
+                                                {{ $targetLevelName }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </td>
 
@@ -305,7 +361,7 @@
                                             $trendIcon = $trendVal === 'Turun' ? '↓' : ($trendVal === 'Naik' ? '↑' : '→');
                                         @endphp
                                         <div class="space-y-1">
-                                                
+
                                             <div class="flex flex-wrap gap-2">
                                                 <span class="inline-flex rounded bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
                                                     Nilai {{ $latestPeriod->pivot->value ?? 0 }}
@@ -329,19 +385,6 @@
                                         </div>
                                     @else
                                         <span class="text-xs text-slate-400">Belum ada monitoring</span>
-                                    @endif
-                                </td>
-
-                                {{-- Status --}}
-                                <td class="whitespace-nowrap px-6 py-4">
-                                    @if ($risk->status)
-                                        <span class="inline-flex rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                            Aktif
-                                        </span>
-                                    @else
-                                        <span class="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                            Tidak Aktif
-                                        </span>
                                     @endif
                                 </td>
 

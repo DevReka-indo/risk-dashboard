@@ -163,10 +163,10 @@
                             {{-- Nilai Target --}}
                             <div>
                                 <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Nilai Target <span style="color:#ef4444;">*</span></label>
-                                <input type="number" name="target_score" x-model="targetValue" min="1" max="25"
+                                <input type="number" name="target_value" x-model="targetValue" min="1" max="25"
                                        placeholder="1 - 25"
                                        style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
-                                <input type="hidden" name="id_target_level" :value="otomatisTargetLevel">
+                                <input type="hidden" name="target_id_level" :value="otomatisTargetLevel">
                             </div>
 
                             {{-- Level Target (auto) --}}

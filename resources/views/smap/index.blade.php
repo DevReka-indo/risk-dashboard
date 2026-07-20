@@ -219,7 +219,7 @@
                             <th class="rounded-tr-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
                                 Aksi
                             </th>
-                        </tr> 
+                        </tr>
                     </thead>
                     <tbody>
                         @forelse ($smapRisks as $smapRisk)
@@ -249,13 +249,14 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
+                                <td class="px-6 py-4 text-sm text-slate-600">
                                     {{ $smapRisk->kategoriRisiko->nama_kategori ?? '-' }}
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex max-w-xs flex-wrap gap-2">
                                         <span class="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                                            {{ $unit->nama_unit }}
+                                            {{-- Perbaikan variabel $unit menjadi $smapRisk->unitKerja --}}
+                                            {{ $smapRisk->unitKerja->nama_unit ?? '-' }}
                                         </span>
                                     </div>
                                 </td>
@@ -315,7 +316,7 @@
                                             </div>
 
                                             <div class="text-xs text-slate-500">
-                                                <div> 
+                                                <div>
                                                     Trend:
                                             </div>
                                                 @if(($monitoringTerakhir->trend ?? '') === 'Naik')

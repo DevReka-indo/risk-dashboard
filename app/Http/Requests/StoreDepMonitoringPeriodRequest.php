@@ -20,6 +20,14 @@ class StoreDepMonitoringPeriodRequest extends FormRequest
             'penanganan'       => ['required', 'in:Belum,Proses,Sudah'],
             'calculated_trend' => ['required', 'string'],
             'calculated_level' => ['required'],
+
+            // Validasi Inheren
+            'inherent'        => ['required', 'numeric', 'min:1', 'max:25'],
+            'id_level'        => ['required'],
+
+            // Validasi Target (Ini yang penting!)
+            'target_value'    => ['required', 'numeric', 'min:1', 'max:25'],
+            'target_id_level' => ['required'],
         ];
     }
 }

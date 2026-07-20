@@ -27,8 +27,10 @@ class DepMonitoringRequest extends FormRequest
             'type'            => ['required', 'in:Proyek,Non-Proyek'],
             'inherent'        => ['required', 'numeric', 'min:1', 'max:25'],
             'id_level'        => ['required', 'integer'],
-            'target_score'    => ['required', 'numeric', 'min:1', 'max:25'],
-            'id_target_level' => ['required', 'integer'],
+
+            // --- UBAH DUA BARIS DI BAWAH INI ---
+            'target_value'    => ['required', 'numeric', 'min:1', 'max:25'],
+            'target_id_level' => ['required', 'integer'],
         ];
     }
 

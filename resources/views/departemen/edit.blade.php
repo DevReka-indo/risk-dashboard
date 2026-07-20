@@ -190,18 +190,18 @@
 
                                 {{-- MENGGUNAKAN targetValue --}}
                                <input type="number"
-                                    name="target_score"
+                                    name="target_value"
                                     x-model="targetValue"
-                                    x-init="targetValue = '{{ old('target_score', $risk->target_value) }}'"
+                                    x-init="targetValue = '{{ old('target_value', $risk->target_value) }}'"
                                     min="1" max="25"
                                     placeholder="1 - 25"
-                                    value="{{ old('target_score', $risk->target_value) }}"
+                                    value="{{ old('target_value', $risk->target_value) }}"
                                     style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
 
                                 {{-- MENGGUNAKAN otomatisTargetLevel --}}
                                 <input type="hidden"
-                                    name="id_target_level"
-                                    :value="otomatisTargetLevel || '{{ old('id_target_level', $risk->target_id_level) }}'">
+                                    name="target_id_level"
+                                    :value="otomatisTargetLevel || '{{ old('target_id_level', $risk->target_id_level) }}'">
                             </div>
 
                             {{-- Level Target (auto) --}}

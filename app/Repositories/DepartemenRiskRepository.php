@@ -25,7 +25,8 @@ class DepartemenRiskRepository
             ->when(!empty($filters['level_id']), fn($q) => $q->where('id_level', $filters['level_id']))
             ->when(!empty($filters['type']), fn($q) => $q->where('type', $filters['type']))
             ->when(isset($filters['status']) && $filters['status'] !== '', fn($q) => $q->where('status', (bool) $filters['status']))
-            ->oldest('id_monitoring')
+            // UBAH BAGIAN INI: Dari oldest('id_monitoring') menjadi latest('created_at')
+            ->latest('created_at')
             ->paginate($perPage)
             ->withQueryString();
     }
