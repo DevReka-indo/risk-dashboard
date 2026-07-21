@@ -266,12 +266,12 @@
                                     @if ($monitoringTerakhir)
                                         <div class="space-y-1.5">
                                             {{-- Badge Nilai & Level Risiko --}}
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <span class="inline-flex rounded bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                                            <div class="flex flex-nowrap items-center gap-2">
+                                                <span class="inline-flex shrink-0 items-center whitespace-nowrap rounded bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
                                                     Nilai {{ $monitoringTerakhir->nilai ?? 0 }}
                                                 </span>
 
-                                                <span class="inline-flex rounded px-2.5 py-1 text-xs font-semibold {{ $levelBadgeClass }}">
+                                                <span class="inline-flex shrink-0 items-center whitespace-nowrap rounded px-2.5 py-1 text-xs font-semibold {{ $levelBadgeClass }}">
                                                     {{ $monitoringTerakhir->level->nama_level ?? '-' }}
                                                 </span>
                                             </div>
@@ -282,9 +282,12 @@
                                             </div>
 
                                             {{-- Efektivitas (Flexbox Sejajar Tanpa Line-Break) --}}
-                                            <div class="flex items-center gap-1.5 text-xs text-slate-500">
-                                                <span>Efektivitas:</span>
-                                                <span class="font-semibold text-slate-800">
+                                            <div class="flex flex-col gap-0.5 text-xs text-slate-500">
+                                                <span>
+                                                    Efektivitas:
+
+                                                </span>
+                                                <span class="inline-flex items-center gap-0.5 font-semibold">
                                                     {{ $monitoringTerakhir->aturanEfektivitas->hasil ?? 'Belum ada pembanding' }}
                                                 </span>
                                             </div>

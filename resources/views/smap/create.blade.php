@@ -18,7 +18,7 @@
         @csrf
 
         {{-- CARD UTAMA --}}
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
 
             {{-- TABEL: BARIS ATAS --}}
             <table style="width:100%; border-collapse:collapse;">
@@ -174,12 +174,12 @@
         {{-- TOMBOL AKSI --}}
         <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:12px; padding:0 4px;">
             <a href="{{ route('smap-risk.index') }}"
-               style="border:1px solid #e2e8f0; border-radius:10px; padding:10px 28px; font-size:13px; font-weight:600; color:#475569; background:#fff; text-decoration:none; display:inline-block;">
-                Batal
+                class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
+            Batal
             </a>
             <button type="submit"
-                    style="background:#4F7EF0; border:none; border-radius:10px; padding:10px 32px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
-                Simpan Risk SMAP
+                class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
+            Tambah
             </button>
         </div>
 

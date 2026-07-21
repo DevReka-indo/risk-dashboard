@@ -92,8 +92,8 @@
                     </div>
 
                     {{-- Kotak 3: Status --}}
-                    <div class="border border-slate-200 rounded-[8px] px-4 py-3 bg-[#fafbfc]">
-                        <p class="text-[10px] font-semibold text-slate-400 m-0 mb-1 uppercase tracking-[0.3px]">Status</p>
+                    <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Status</p>
                         @if($risk->status)
                             <span class="inline-flex rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                                 Aktif
@@ -123,6 +123,7 @@
         </div>
 
         {{-- ═══════════ CARD 2: Input Parameter Risiko Per Triwulan ═══════════ --}}
+        {{-- 👇 STRUKTUR ALPINE DIKEMBALIKAN KE BENTUK ASLI AGAR OTOMATISASI-LOGIC.JS BERJALAN 👇 --}}
         <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);"
              x-data="smapRiskForm(@js($historyData), '{{ old('year', date('Y')) }}', '{{ $risk->inherent }}', '{{ $risk->target_value }}')">
 
@@ -132,8 +133,15 @@
             <form method="POST" action="{{ route('department-risk.update-period', $risk->id_monitoring) }}">
                 @csrf @method('PUT')
 
-                {{-- HIDDEN INPUT: Ditambahkan agar lolos validasi Required dari backend --}}
-                <input type="hidden" name="inherent" value="{{ $risk->inherent }}">
+                {{-- 👇 INLINE LOGIC ALPINE UNTUK INHERENT 👇 --}}
+                <input type="hidden" name="inherent" :value="(() => {
+                    let q = quarter || 'TW1';
+                    let y = parseInt(year || {{ date('Y') }});
+                    let prevQ = { 'TW4': 'TW3', 'TW3': 'TW2', 'TW2': 'TW1', 'TW1': 'TW4' }[q];
+                    let prevY = q === 'TW1' ? (y - 1) : y;
+                    let hist = @js($historyData);
+                    return (hist && hist[prevY] && hist[prevY][prevQ]) ? hist[prevY][prevQ] : '{{ $risk->inherent }}';
+                })()">
                 <input type="hidden" name="id_level" value="{{ $risk->id_level }}">
                 <input type="hidden" name="target_value" value="{{ $risk->target_value }}">
                 <input type="hidden" name="target_id_level" value="{{ $risk->target_id_level }}">
@@ -145,10 +153,22 @@
                         <p style="font-size:12px; font-weight:700; color:#1e293b; margin:0 0 4px;">Parameter Awal dan Target</p>
                         <p style="font-size:11px; color:#94a3b8; margin:0 0 14px;">Acuan perkembangan statistik (Read Only)</p>
                         <div style="display:flex; flex-direction:column; gap:10px;">
+
+                            {{-- 👇 INLINE LOGIC ALPINE UNTUK TEKS INHERENT 👇 --}}
                             <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
                                 <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Nilai Inheren</p>
-                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->inherent ?? '-' }}</p>
+                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;" x-text="(() => {
+                                    let q = quarter || 'TW1';
+                                    let y = parseInt(year || {{ date('Y') }});
+                                    let prevQ = { 'TW4': 'TW3', 'TW3': 'TW2', 'TW2': 'TW1', 'TW1': 'TW4' }[q];
+                                    let prevY = q === 'TW1' ? (y - 1) : y;
+                                    let hist = @js($historyData);
+                                    return (hist && hist[prevY] && hist[prevY][prevQ]) ? hist[prevY][prevQ] : '{{ $risk->inherent }}';
+                                })()">
+                                    {{ $risk->inherent ?? '-' }}
+                                </p>
                             </div>
+
                             <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
                                 <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Level Inheren</p>
                                 <p style="font-size:14px; font-weight:700; color:#f59e0b; margin:0;">{{ $risk->levelRisiko->nama_level ?? '-' }}</p>
@@ -324,27 +344,27 @@
                             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
                                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                                     {{-- TW --}}
-                                    <span style="background:#1e293b; color:#fff; border-radius:8px; padding:4px 14px; font-size:13px; font-weight:700;">
+                                    <span style="background:#1e293b; color:#fff; border-radius:20px; padding:4px 14px; font-size:13px; font-weight:700;">
                                         {{ $period->pivot->quarter }} {{ $period->pivot->year }}
                                     </span>
 
                                     {{-- Nilai --}}
-                                    <span style="background:#eff6ff; color:#4f46e5; border-radius:8px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                    <span style="background:#eff6ff; color:#4f46e5; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         Nilai {{ $period->pivot->value ?? '-' }}
                                     </span>
 
                                     {{-- Level --}}
-                                    <span style="{{ $lvlStyle }} border-radius:8px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                    <span style="{{ $lvlStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         {{ ucfirst($period->nama_level ?? $period->level ?? '-') }}
                                     </span>
 
                                     {{-- Progres --}}
-                                    <span style="background:#f8fafc; color:#475569; border:1px solid #e2e8f0; border-radius:8px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                    <span style="background:#f8fafc; color:#475569; border:1px solid #e2e8f0; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         Progres (Belum: <span style="color:#64748b;">{{ $pBelum }}</span> | Proses: <span style="color:#3b82f6;">{{ $pProses }}</span> | Sudah: <span style="color:#10b981;">{{ $pSudah }}</span>)
                                     </span>
 
                                     {{-- Status --}}
-                                    <span style="{{ $statusStyle }} border-radius:8px; padding:4px 12px; font-size:12px; font-weight:600;">
+                                    <span style="{{ $statusStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         Status: {{ ($risk->status ?? 1) == 1 ? 'Aktif' : 'Tidak Aktif' }}
                                     </span>
                                 </div>
@@ -458,14 +478,13 @@
                                     </div>
                                 </div>
 
-                                {{-- 👇 PERBAIKAN: Menggunakan value statis dari backend sebagai gantinya 👇 --}}
                                 <input type="hidden" name="calculated_level" value="{{ $period->nama_level ?? $period->level ?? $risk->levelRisiko->nama_level }}">
                                 <input type="hidden" name="calculated_trend" value="{{ $trend }}">
 
-                            {{-- Tombol Form (Batal & Simpan) --}}
+                            {{-- Tombol Form (Batal & Simpan Card Bawah) --}}
                             <div class="flex items-center justify-end gap-2 pt-1">
                                 {{-- Tombol Batal --}}
-                                <button type="reset"
+                                <button type="button" @click="editOpen = !editOpen"
                                         class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
                                     Batal
                                 </button>

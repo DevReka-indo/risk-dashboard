@@ -211,6 +211,8 @@
                                     <span x-text="otomatisTargetLevelName || ''"></span>
                                 </div>
                             </div>
+                            </form>
+                        </div>
 
                             {{-- TOMBOL AKSI --}}
                             <div class="flex items-center justify-end gap-2 pt-1">
@@ -226,11 +228,9 @@
                                     Simpan
                                 </button>
                             </div>
-                            </form>
-
+                    </td> 
                 </tr>
             </table>
-
         </div>
 
 

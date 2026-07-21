@@ -364,12 +364,13 @@
                                         @endphp
 
                                         <div class="space-y-1.5">
-                                            {{-- Badge Nilai & Level Risiko --}}
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <span class="inline-flex rounded bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                                            {{-- Badge Nilai & Level Risiko (Terkunci 1 Baris) --}}
+                                            <div class="flex items-center gap-2 flex-nowrap">
+                                                <span class="inline-flex items-center whitespace-nowrap shrink-0 rounded bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
                                                     Nilai {{ $latestPeriod->pivot->value ?? 0 }}
                                                 </span>
-                                                <span class="inline-flex rounded px-2.5 py-1 text-xs font-semibold {{ $lvlClass }}">
+
+                                                <span class="inline-flex items-center whitespace-nowrap shrink-0 rounded px-2.5 py-1 text-xs font-semibold {{ $lvlClass }}">
                                                     {{ $lvlName }}
                                                 </span>
                                             </div>
@@ -380,8 +381,10 @@
                                             </div>
 
                                             {{-- Indikator Trend --}}
-                                            <div class="flex items-center gap-1.5 text-xs text-slate-500">
-                                                <span>Trend:</span>
+                                            <div class="flex flex-col gap-0.5 text-xs text-slate-500">
+                                                <span>
+                                                    Trend:
+                                                </span>
                                                 <span class="inline-flex items-center gap-0.5 font-semibold {{ $trendColor }}">
                                                     {{ $trendIcon }} {{ $trendVal ?: '-' }}
                                                 </span>

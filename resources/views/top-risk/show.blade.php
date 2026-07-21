@@ -260,14 +260,15 @@
 
                         {{-- Tombol Aksi --}}
                         <div class="flex items-center justify-end gap-2 pt-1">
-                            <button type="reset"
-                                    class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
-                                Batal
-                            </button>
-                            <button type="submit"
-                                    class="inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
-                                Simpan Monitoring
-                            </button>
+                        {{-- Tombol Batal --}}
+                        <button type="reset"
+                                class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
+                            Batal
+                        </button>
+                        <button type="submit"
+                                class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
+                            Simpan
+                        </button>
                         </div>
 
                     </div>
@@ -453,10 +454,10 @@
                                             class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
                                         Batal
                                     </button>
-                                    <button type="submit"
-                                            class="inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
-                                        Simpan Perubahan
-                                    </button>
+                        <button type="submit"
+                                class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
+                            Simpan
+                        </button>
                                 </div>
                             </form>
                         </div>

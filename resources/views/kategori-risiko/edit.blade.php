@@ -131,21 +131,18 @@
             </div>
 
             {{-- Tombol Aksi --}}
-            <div class="flex flex-col gap-3 sm:flex-row sm:justify-end border-t-2 border-slate-200 pt-6">
+            <div class="flex items-center justify-end gap-2 pt-1">
                 <a
                     href="{{ route('kategori-risiko.index') }}"
-                    class="inline-flex items-center justify-center rounded-2xl border-2 border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                    class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
                 >
-                    Batalkan
+                    Batal
                 </a>
                 <button
                     type="submit"
-                    class="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition"
+                    class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700"
                 >
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    Perbarui
+                    Simpan
                 </button>
             </div>
         </form>

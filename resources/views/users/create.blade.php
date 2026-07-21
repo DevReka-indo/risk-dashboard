@@ -11,7 +11,7 @@
     <form method="POST" action="{{ route('users.store') }}" class="space-y-6">
         @csrf
 
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <div class="grid gap-6 lg:grid-cols-2">
                 <div>
                     <label for="name" class="block text-sm font-semibold text-slate-700">
@@ -23,7 +23,7 @@
                         name="name"
                         value="{{ old('name') }}"
                         autofocus
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        class="mt-2 w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
 
                     @error('name')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
@@ -39,7 +39,7 @@
                         type="email"
                         name="email"
                         value="{{ old('email') }}"
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        class="mt-2 w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
 
                     @error('email')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
@@ -54,7 +54,7 @@
                         id="password"
                         type="password"
                         name="password"
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        class="mt-2 w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
 
                     @error('password')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
@@ -69,12 +69,12 @@
                         id="password_confirmation"
                         type="password"
                         name="password_confirmation"
-                        class="mt-2 w-full rounded-2xl border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        class="mt-2 w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
             </div>
         </div>
 
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <div class="mb-5">
                 <h2 class="text-base font-bold text-slate-900">
                     Role Akses
@@ -94,7 +94,7 @@
                         $isChecked = in_array($role->name, old('roles', []), true);
                     @endphp
 
-                    <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50/40">
+                    <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50/40">
                         <input
                             type="checkbox"
                             name="roles[]"
@@ -117,13 +117,13 @@
 
         <div class="flex items-center justify-end gap-3">
             <a href="{{ route('users.index') }}"
-               class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+               class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                 Batal
             </a>
 
             <button
                 type="submit"
-                class="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700">
+                class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>

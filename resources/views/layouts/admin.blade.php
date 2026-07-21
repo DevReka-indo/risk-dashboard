@@ -54,7 +54,7 @@
                     x-show="show"
                     x-init="setTimeout(()=>show=false,4000)"
                     x-transition
-                    class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-emerald-700 shadow-sm">
+                    class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-3 text-emerald-700 shadow-sm">
 
                     {{ session('success') }}
 
@@ -68,7 +68,7 @@
                     x-show="show"
                     x-init="setTimeout(()=>show=false,4000)"
                     x-transition
-                    class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-3 text-rose-700 shadow-sm">
+                    class="mb-6 rounded-lg border border-rose-200 bg-rose-50 px-5 py-3 text-rose-700 shadow-sm">
 
                     {{ session('error') }}
 
