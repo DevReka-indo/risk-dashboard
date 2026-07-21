@@ -318,13 +318,13 @@
 
                                         <div class="space-y-1.5">
                                             {{-- Badge Nilai & Level Risiko --}}
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <span class="inline-flex rounded bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                                            <div class="flex items-center gap-2 flex-nowrap">
+                                                <span class="inline-flex items-center whitespace-nowrap shrink-0 rounded bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
                                                     Nilai {{ $monitoringTerakhir->value ?? 0 }}
                                                 </span>
                                                 
                                                 {{-- Warna Badge Level Risiko Disesuaikan --}}
-                                                <span class="inline-flex rounded px-2.5 py-1 text-xs font-semibold {{ $lvlClass }}">
+                                                <span class="inline-flex items-center whitespace-nowrap shrink-0 rounded px-2.5 py-1 text-xs font-semibold {{ $lvlClass }}">
                                                     {{ $lvlName }}
                                                 </span>
                                             </div>
@@ -334,28 +334,30 @@
                                                 {{ $monitoringTerakhir->quarter ?? '-' }} {{ $monitoringTerakhir->year ?? '' }}
                                             </div>
 
-                                            {{-- Indikator Trend (Flex Sejajar & Warna Visual) --}}
-                                            <div class="flex items-center gap-1.5 text-xs text-slate-500">
-                                                <span>Trend:</span>
-                                                @if(($monitoringTerakhir->trend ?? '') === 'Naik')
-                                                    <span class="inline-flex items-center gap-0.5 font-semibold text-rose-600">
-                                                        ↑ Naik
+                                                {{-- Indikator Trend (Flex Sejajar & Warna Visual) --}}
+                                                <div class="flex flex-col gap-0.5 text-xs text-slate-500">
+                                                    <span>
+                                                        Trend:
                                                     </span>
-                                                @elseif(($monitoringTerakhir->trend ?? '') === 'Turun')
-                                                    <span class="inline-flex items-center gap-0.5 font-semibold text-emerald-600">
-                                                        ↓ Turun
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center gap-0.5 font-semibold text-slate-500">
-                                                        → Stabil
-                                                    </span>
-                                                @endif
+                                                    @if(($monitoringTerakhir->trend ?? '') === 'Naik')
+                                                        <span class="inline-flex items-center gap-0.5 font-semibold text-rose-600">
+                                                            ↑ Naik
+                                                        </span>
+                                                    @elseif(($monitoringTerakhir->trend ?? '') === 'Turun')
+                                                        <span class="inline-flex items-center gap-0.5 font-semibold text-emerald-600">
+                                                            ↓ Turun
+                                                        </span>
+                                                    @else
+                                                        <span class="inline-flex items-center gap-0.5 font-semibold text-slate-500">
+                                                            → Stabil
+                                                        </span>
+                                                    @endif
+                                                </div>
                                             </div>
-                                        </div>
-                                    @else
-                                        <span class="text-xs font-medium italic text-slate-400">Belum ada monitoring</span>
-                                    @endif
-                                </td>
+                                        @else
+                                            <span class="text-xs font-medium italic text-slate-400">Belum ada monitoring</span>
+                                        @endif
+                                    </td>
 
                                 <td class="whitespace-nowrap px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-1">

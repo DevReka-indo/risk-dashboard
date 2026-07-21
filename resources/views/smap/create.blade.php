@@ -14,10 +14,10 @@
         </div>
     </x-slot>
 
-    <form method="POST" action="{{ route('smap-risk.store') }}" x-data="smapRiskForm">
+    <form method="POST" action="{{ route('smap-risk.store') }}" x-data="smapRiskForm({}, '', '{{ old('inherent', 0) }}', '{{ old('inherent_target', 0) }}')">
         @csrf
 
-        {{-- CARD UTAMA: semua input dalam satu kotak putih --}}
+        {{-- CARD UTAMA --}}
         <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 
             {{-- TABEL: BARIS ATAS --}}
@@ -34,7 +34,7 @@
                                 </label>
                                 <div style="position:relative;">
                                     <select name="id_unit"
-                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; cursor:pointer; transition:border-color 0.2s;">
+                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; cursor:pointer;">
                                         <option value="" disabled selected>Pilih Unit Kerja</option>
                                         @foreach ($units as $unit)
                                             <option value="{{ $unit->id_unit }}" @selected(old('id_unit') == $unit->id_unit)>{{ $unit->nama_unit }}</option>
@@ -54,7 +54,7 @@
                                 </label>
                                 <div style="position:relative;">
                                     <select name="id_kategori"
-                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; cursor:pointer; transition:border-color 0.2s;">
+                                            style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; cursor:pointer;">
                                         <option value="" disabled selected>Pilih Kategori</option>
                                         @foreach ($categories as $cat)
                                             <option value="{{ $cat->id_kategori }}" @selected(old('id_kategori') == $cat->id_kategori)>{{ $cat->nama_kategori }}</option>
@@ -72,12 +72,8 @@
                                 <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">
                                     Tanggal Dibuat <span style="color:#ef4444;">*</span>
                                 </label>
-                                <div style="position:relative;">
-                                    <input type="date"
-                                           name="created_at"
-                                           value="{{ old('created_at', date('Y-m-d')) }}"
-                                           style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; transition:border-color 0.2s;">
-                                </div>
+                                <input type="date" name="created_at" value="{{ old('created_at', date('Y-m-d')) }}"
+                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box;">
                             </div>
 
                             {{-- Status --}}
@@ -87,19 +83,13 @@
                                 </label>
                                 <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px; background:#fff;">
                                     <div style="display:flex; flex-direction:column; gap:8px;">
-                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px 0;">
-                                            <input type="radio" name="status" value="1"
-                                                   style="width:16px; height:16px; accent-color:#4F7EF0; cursor:pointer;"
-                                                   @checked(old('status', '1') === '1')>
-                                            <span style="font-size:13px; color:#475569; font-weight:500;">Aktif</span>
-
+                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                            <input type="radio" name="status" value="1" style="accent-color:#4F7EF0;" @checked(old('status', '1') === '1')>
+                                            <span style="font-size:13px; color:#475569;">Aktif</span>
                                         </label>
-                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px 0;">
-                                            <input type="radio" name="status" value="0"
-                                                   style="width:16px; height:16px; accent-color:#4F7EF0; cursor:pointer;"
-                                                   @checked(old('status') === '0')>
-                                            <span style="font-size:13px; color:#475569; font-weight:500;">Non-Aktif</span>
-
+                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                            <input type="radio" name="status" value="0" style="accent-color:#4F7EF0;" @checked(old('status') === '0')>
+                                            <span style="font-size:13px; color:#475569;">Non-Aktif</span>
                                         </label>
                                     </div>
                                 </div>
@@ -108,15 +98,14 @@
                         </div>
                     </td>
 
-                    {{-- KOLOM KANAN: Peristiwa Resiko --}}
+                    {{-- KOLOM KANAN --}}
                     <td style="padding:24px; vertical-align:top;">
                         <div style="display:flex; flex-direction:column; height:100%;">
                             <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">
                                 Peristiwa Resiko <span style="color:#ef4444;">*</span>
                             </label>
-                            <textarea name="risk_event_deta"
-                                      placeholder="Masukkan peristiwa resiko secara detail..."
-                                      style="flex:1; width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:12px; font-size:13px; color:#475569; background:#fff; resize:none; outline:none; min-height:240px; font-family:inherit; transition:border-color 0.2s; line-height:1.6;">{{ old('risk_event_deta') }}</textarea>
+                            <textarea name="risk_event_deta" placeholder="Masukkan peristiwa resiko secara detail..."
+                                      style="flex:1; width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:12px; font-size:13px; color:#475569; background:#fff; resize:none; outline:none; min-height:240px; font-family:inherit; line-height:1.6;">{{ old('risk_event_deta') }}</textarea>
                             <div style="margin-top:6px; font-size:11px; color:#94a3b8; text-align:right;">
                                 <span id="charCount">0</span> karakter
                             </div>
@@ -129,7 +118,7 @@
             {{-- DIVIDER --}}
             <div style="border-top:2px solid #f1f5f9;"></div>
 
-            {{-- TABEL: BARIS BAWAH (Nilai & Level) --}}
+            {{-- BARIS BAWAH (Nilai & Level) --}}
             <table style="width:100%; border-collapse:collapse;">
                 <tr>
                     <td style="padding:24px;">
@@ -140,20 +129,17 @@
                                 <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">
                                     Nilai Inheren <span style="color:#ef4444;">*</span>
                                 </label>
-                                <div style="position:relative;">
-                                    <input type="number" name="inherent" x-model="inherent" min="1" max="25"
-                                           placeholder="1 - 25"
-                                           style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; transition:border-color 0.2s; height:38px;">
-                                </div>
+                                <input type="number" name="inherent" x-model="inherent" min="1" max="25" placeholder="1 - 25"
+                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
                                 <input type="hidden" name="id_level" :value="inherentLevel">
                             </div>
 
-                            {{-- Level Inheren (auto) --}}
+                            {{-- Level Inheren --}}
                             <div>
                                 <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">
                                     Level Inheren
                                 </label>
-                                <div style="border:2px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#1e293b; background:#f8fafc; text-align:center; min-height:38px; height:38px; display:flex; align-items:center; justify-content:center; font-weight:600; box-sizing:border-box;">
+                                <div style="border:2px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#1e293b; background:#f8fafc; text-align:center; height:38px; display:flex; align-items:center; justify-content:center; font-weight:600; box-sizing:border-box;">
                                     <span x-text="inherentLevelName || ''"></span>
                                 </div>
                             </div>
@@ -163,20 +149,17 @@
                                 <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">
                                     Nilai Target <span style="color:#ef4444;">*</span>
                                 </label>
-                                <div style="position:relative;">
-                                    <input type="number" name="inherent_target" x-model="targetValue" min="1" max="25"
-                                           placeholder="1 - 25"
-                                           style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; transition:border-color 0.2s; height:38px;">
-                                </div>
+                                <input type="number" name="inherent_target" x-model="targetValue" min="1" max="25" placeholder="1 - 25"
+                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
                                 <input type="hidden" name="id_level_target" :value="otomatisTargetLevel">
                             </div>
 
-                            {{-- Level Target (auto) --}}
+                            {{-- Level Target --}}
                             <div>
                                 <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">
                                     Level Target
                                 </label>
-                                <div style="border:2px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#1e293b; background:#f8fafc; text-align:center; min-height:38px; height:38px; display:flex; align-items:center; justify-content:center; font-weight:600; box-sizing:border-box;">
+                                <div style="border:2px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#1e293b; background:#f8fafc; text-align:center; height:38px; display:flex; align-items:center; justify-content:center; font-weight:600; box-sizing:border-box;">
                                     <span x-text="otomatisTargetLevelName || ''"></span>
                                 </div>
                             </div>
@@ -191,38 +174,26 @@
         {{-- TOMBOL AKSI --}}
         <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:12px; padding:0 4px;">
             <a href="{{ route('smap-risk.index') }}"
-               style="border:1px solid #e2e8f0; border-radius:10px; padding:10px 28px; font-size:13px; font-weight:600; color:#475569; background:#fff; text-decoration:none; display:inline-block; transition:all 0.2s;"
-               onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1';"
-               onmouseout="this.style.background='#fff'; this.style.borderColor='#e2e8f0';">
-                <svg style="display:inline-block; width:16px; height:16px; margin-right:6px; vertical-align:middle;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+               style="border:1px solid #e2e8f0; border-radius:10px; padding:10px 28px; font-size:13px; font-weight:600; color:#475569; background:#fff; text-decoration:none; display:inline-block;">
                 Batal
             </a>
             <button type="submit"
-                    style="background:#4F7EF0; border:none; border-radius:10px; padding:10px 32px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(79,126,240,0.3);"
-                    onmouseover="this.style.background='#3b66d9'; this.style.boxShadow='0 6px 16px rgba(79,126,240,0.4)';"
-                    onmouseout="this.style.background='#4F7EF0'; this.style.boxShadow='0 4px 12px rgba(79,126,240,0.3)';">
-                <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
+                    style="background:#4F7EF0; border:none; border-radius:10px; padding:10px 32px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
                 Simpan Risk SMAP
             </button>
         </div>
 
     </form>
 
-    <script src="{{ asset('js/smap-logic.js') }}"></script>
+    {{-- DIBETULKAN KETIK MEMANGGIL JS --}}
+    <script src="{{ asset('js/smap-logic.js') }}?v={{ time() }}"></script>
 
-    {{-- Script untuk character counter --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const textarea = document.querySelector('textarea[name="risk_event_deta"]');
             const charCount = document.getElementById('charCount');
-
             if (textarea && charCount) {
                 charCount.textContent = textarea.value.length;
-
                 textarea.addEventListener('input', function() {
                     charCount.textContent = this.value.length;
                 });

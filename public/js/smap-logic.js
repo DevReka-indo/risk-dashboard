@@ -18,7 +18,6 @@ document.addEventListener('alpine:init', () => {
         init() {
             this.checkInherent();
 
-            // Re-kalkulasi secara realtime saat user mengubah kuartal atau tahun
             this.$watch('quarter', () => this.checkInherent());
             this.$watch('year', () => this.checkInherent());
         },
@@ -38,7 +37,6 @@ document.addEventListener('alpine:init', () => {
 
             let previousValue = null;
 
-            // 1. Cari riwayat di tahun yang sama (kuartal sebelum kuartal terpilih)
             for (let i = currentIndex - 1; i >= 0; i--) {
                 const prevQ = quartersOrder[i];
                 if (yearData[prevQ] && yearData[prevQ].value !== undefined) {
@@ -47,7 +45,6 @@ document.addEventListener('alpine:init', () => {
                 }
             }
 
-            // 2. Jika di tahun ini belum ada kuartal sebelumnya, cari TW4 dari tahun sebelumnya
             if (previousValue === null) {
                 const prevYearData = this.history[parseInt(this.year) - 1] || {};
                 for (let i = quartersOrder.length - 1; i >= 0; i--) {
@@ -59,7 +56,6 @@ document.addEventListener('alpine:init', () => {
                 }
             }
 
-            // 3. Pasang nilai inherent yang ditemukan, atau balik ke master jika tidak ada
             if (previousValue !== null && previousValue !== undefined) {
                 this.inherent = parseInt(previousValue);
             } else {
@@ -83,7 +79,7 @@ document.addEventListener('alpine:init', () => {
             return '';
         },
 
-        get RiskLevelName() {
+        getRiskLevelNameById(id) {
             const names = {
                 1: 'Low',
                 2: 'Low to Moderate',
@@ -91,11 +87,29 @@ document.addEventListener('alpine:init', () => {
                 4: 'Moderate to High',
                 5: 'High'
             };
-            return names[this.otomatisLevel] || '';
+            return names[id] || '';
         },
 
+        // Getters untuk Monitoring
         get otomatisLevel() {
             return this.getRiskLevelId(this.value);
+        },
+        get RiskLevelName() {
+            return this.getRiskLevelNameById(this.otomatisLevel);
+        },
+
+        // Getters untuk Form Create & Edit
+        get inherentLevel() {
+            return this.getRiskLevelId(this.inherent);
+        },
+        get inherentLevelName() {
+            return this.getRiskLevelNameById(this.inherentLevel);
+        },
+        get otomatisTargetLevel() {
+            return this.getRiskLevelId(this.targetValue);
+        },
+        get otomatisTargetLevelName() {
+            return this.getRiskLevelNameById(this.otomatisTargetLevel);
         },
 
         get otomatisTrend() {
