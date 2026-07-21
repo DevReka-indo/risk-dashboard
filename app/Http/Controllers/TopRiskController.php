@@ -24,7 +24,7 @@ class TopRiskController extends Controller
 
     public function index(Request $request): View
     {
-        //[cite: 1] Penarikan parameter pencarian dan filter dari request.
+        // Penarikan parameter pencarian dan filter dari request.
         $search = $request->string('search')->toString();
         $kategoriId = $request->integer('id_kategori');
         $unitId = $request->integer('id_unit');
@@ -32,7 +32,7 @@ class TopRiskController extends Controller
         $selectedMonth = (int) $request->integer('bulan', now()->month);
         $selectedYear = (int) $request->integer('tahun', now()->year);
 
-        //[cite: 1] Memanggil layanan dan repositori untuk mendapatkan data.
+        // Memanggil layanan dan repositori untuk mendapatkan data.
         $topRisks = $this->topRiskRepository->getPaginatedRisks($search, $kategoriId, $unitId, $statusAktif);
         $kategoriRisiko = $this->topRiskRepository->getAllKategoriRisiko();
         $unitKerja = $this->topRiskRepository->getAllUnitKerja();
@@ -44,11 +44,11 @@ class TopRiskController extends Controller
             }
             return [
                 'nama_peristiwa_risiko' => $topRisk->nama_peristiwa_risiko,
-                'nilai' => $monitoringTerbaru->nilai,
-                'level' => $monitoringTerbaru->level?->nama_level,
-                'kode_warna' => $monitoringTerbaru->level?->kode_warna,
-                'bulan' => $monitoringTerbaru->bulan,
-                'tahun' => $monitoringTerbaru->tahun,
+                'nilai'                 => $monitoringTerbaru->nilai,
+                'level'                 => $monitoringTerbaru->level?->nama_level,
+                'kode_warna'            => $monitoringTerbaru->level?->kode_warna,
+                'bulan'                 => $monitoringTerbaru->bulan,
+                'tahun'                 => $monitoringTerbaru->tahun,
             ];
         })->filter()->values();
 
@@ -71,7 +71,7 @@ class TopRiskController extends Controller
 
     public function store(TopRiskRequest $request): RedirectResponse
     {
-        //[cite: 1] Pendelegasian logic store ke service.
+        // Pendelegasian logic store ke service.
         $this->topRiskService->createTopRisk($request->validated());
 
         return redirect()->route('top-risk.index')->with('success', 'Data Top Risk berhasil ditambahkan.');
@@ -89,9 +89,16 @@ class TopRiskController extends Controller
             },
         ]);
 
+        $monitoringTerbaru = $topRisk->monitoringBulanan->first();
+
+        // Inherent berlaku: Ambil dari realisasi bulan lalu, atau jika belum ada, pakai Inherent Awal dari Master TopRisk
+        $inherentAwal = ($monitoringTerbaru && (int) $monitoringTerbaru->nilai > 0)
+            ? $monitoringTerbaru->nilai
+            : ($monitoringTerbaru?->inherent ?? $topRisk->inherent);
+
         $levelRisiko = $this->topRiskRepository->getAllLevelRisiko();
 
-        return view('top-risk.show', compact('topRisk', 'levelRisiko'));
+        return view('top-risk.show', compact('topRisk', 'levelRisiko', 'monitoringTerbaru', 'inherentAwal'));
     }
 
     public function edit(TopRisiko $topRisk): View
@@ -107,12 +114,12 @@ class TopRiskController extends Controller
     {
         $this->topRiskService->updateTopRisk($topRisk, $request->validated());
 
-        return redirect()->route('top-risk.show', $topRisk)->with('success', 'Data Top Risk berhasil diperbarui.');
+        return redirect()->route('top-risk.index', $topRisk)->with('success', 'Data Top Risk berhasil diperbarui.');
     }
 
     public function destroy(TopRisiko $topRisk): RedirectResponse
     {
-        //[cite: 1] Logic destroy bawaan dari resource.
+        // Logic destroy bawaan dari resource.
         TopRisiko::query()->where('id_risiko', $topRisk->id_risiko)->delete();
 
         return redirect()->route('top-risk.index')->with('success', 'Data Top Risk berhasil dihapus.');
@@ -141,5 +148,38 @@ class TopRiskController extends Controller
         TopMonitoringBulanan::query()->where('id_monitoring', $monitoring->id_monitoring)->delete();
 
         return redirect()->route('top-risk.show', $topRisk)->with('success', 'Data monitoring bulanan berhasil dihapus.');
+    }
+
+    // Endpoint API untuk pengambilan inherent secara dinamis dari frontend (Blade/Alpine.js)
+    public function getInherentByPeriod(Request $request, TopRisiko $topRisk): \Illuminate\Http\JsonResponse
+    {
+        $selectedMonth = (int) $request->integer('bulan');
+        $selectedYear = (int) $request->integer('tahun');
+
+        $monitoringSebelumnya = $topRisk->monitoringBulanan()
+            ->where(function ($q) use ($selectedYear, $selectedMonth) {
+                $q->where('tahun', '<', $selectedYear)
+                  ->orWhere(function ($q2) use ($selectedYear, $selectedMonth) {
+                      $q2->where('tahun', $selectedYear)
+                         ->where('bulan', '<', $selectedMonth);
+                  });
+            })
+            ->orderByDesc('tahun')
+            ->orderByDesc('bulan')
+            ->first();
+
+        if ($monitoringSebelumnya && (int) $monitoringSebelumnya->nilai > 0) {
+            $inherent = (int) $monitoringSebelumnya->nilai;
+            $levelName = $monitoringSebelumnya->level?->nama_level ?? '-';
+        } else {
+            $inherent = (int) ($topRisk->inherent ?? 0);
+            $levelId = $this->topRiskService->resolveLevelRisikoIdByNilai($inherent);
+            $levelName = $this->topRiskRepository->getAllLevelRisiko()->firstWhere('id_level', $levelId)->nama_level ?? '-';
+        }
+
+        return response()->json([
+            'inherent'   => $inherent,
+            'level_name' => $levelName,
+        ]);
     }
 }

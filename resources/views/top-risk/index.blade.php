@@ -58,7 +58,7 @@
     }">
 
         {{-- Toolbar: Search + Cari | Filters + Tambah --}}
-        <div class="mb-4 flex items-center gap-2"> 
+        <div class="mb-4 flex items-center gap-2">
 
             {{-- Search + Cari --}}
             <form method="GET" action="{{ route('top-risk.index') }}" class="flex items-center gap-2">
@@ -260,7 +260,7 @@
                                         @endforelse
                                     </div>
                                 </td>
-                                
+
                                 {{-- Monitoring Terakhir --}}
                                 <td class="px-6 py-4">
                                     @if ($monitoringTerakhir)
@@ -324,7 +324,7 @@
                                         </a>
 
                                         {{-- Hapus --}}
-                                        <form method="POST" action="{{ route('top-risk.destroy', $topRisk) }}" 
+                                        <form method="POST" action="{{ route('top-risk.destroy', $topRisk) }}"
                                               onsubmit="return confirm('Yakin ingin menghapus data Top Risk ini?')"
                                               class="m-0">
                                             @csrf

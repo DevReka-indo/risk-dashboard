@@ -18,11 +18,21 @@ class TopRisiko extends Model
         'id_kategori',
         'tanggal_dibuat',
         'is_aktif',
+        'inherent',
+        'target_tw1',
+        'target_tw2',
+        'target_tw3',
+        'target_tw4',
     ];
 
     protected $casts = [
         'tanggal_dibuat' => 'date',
-        'is_aktif' => 'boolean',
+        'is_aktif'       => 'boolean',
+        'inherent'       => 'integer',
+        'target_tw1'     => 'integer',
+        'target_tw2'     => 'integer',
+        'target_tw3'     => 'integer',
+        'target_tw4'     => 'integer',
     ];
 
     public function kategori(): BelongsTo

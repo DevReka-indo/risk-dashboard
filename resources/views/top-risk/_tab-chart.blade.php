@@ -92,14 +92,15 @@
             'items' => $dashboardData['status_distribution'],
         ])
     </div>
-
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     @include('top-risk.partials._chart-progress', [
         'progressDistribution' => $dashboardData['progress_distribution']
     ])
 
     @include('top-risk.partials._chart-effectiveness', [
         'effectivenessDistribution' => $dashboardData['effectiveness_distribution']
-    ])  
+    ])
+    </div>
 </div>
 
 

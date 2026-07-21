@@ -79,6 +79,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/top-risk/{topRisk}', [TopRiskController::class, 'destroy'])
         ->middleware('permission:toprisk.delete')
         ->name('top-risk.destroy');
+    Route::get('/top-risk/{topRisk}/inherent-period', [TopRiskController::class, 'getInherentByPeriod'])
+        ->middleware('permission:toprisk.view')
+        ->name('top-risk.inherent-period');
     Route::post('/top-risk/{topRisk}/monitoring', [TopRiskController::class, 'storeMonitoring'])
         ->middleware('permission:toprisk.create')
         ->name('top-risk.monitoring.store');

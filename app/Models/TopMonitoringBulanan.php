@@ -18,6 +18,7 @@ class TopMonitoringBulanan extends Model
         'nilai',
         'id_level',
         'status',
+        'inherent',
         'progres_belum',
         'progres_proses',
         'progres_sudah',
