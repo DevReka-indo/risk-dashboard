@@ -16,9 +16,32 @@
 
     @php
         $historyData = [];
-        foreach($risk->detailPeriode as $p) {
-            $historyData[$p->year][$p->quarter] = $p->value;
+
+        // Sorting urutan riwayat dari yang paling tua ke baru untuk pencarian inheren
+        $sortedDetails = $risk->detailPeriode->sortBy(function($p) {
+            $qNum = match((string)$p->quarter) {
+                'TW1', '1', 'Q1' => 1,
+                'TW2', '2', 'Q2' => 2,
+                'TW3', '3', 'Q3' => 3,
+                'TW4', '4', 'Q4' => 4,
+                default => 1
+            };
+            return $p->year . $qNum;
+        });
+
+        foreach($sortedDetails as $p) {
+            $qKey = $p->quarter;
+            if (is_numeric($qKey)) {
+                $qKey = 'TW' . $qKey;
+            } elseif (str_contains($qKey, 'Q')) {
+                $qKey = str_replace('Q', 'TW', $qKey);
+            }
+
+            $historyData[$p->year][$qKey] = [
+                'value' => (int) $p->value
+            ];
         }
+
         $targetId = $risk->id_level_target ?? null;
         $targetName = match((int) $targetId) {
             1 => 'Low', 2 => 'Low to Moderate', 3 => 'Moderate', 4 => 'Moderate to High', 5 => 'High',
@@ -54,18 +77,16 @@
                 </div>
                 <div style="display:flex; gap:8px;">
                     <a href="{{ route('smap-risk.edit', $risk->id_smap) }}"
-                       style="border:1px solid #e2e8f0; border-radius:8px; padding:7px 18px; font-size:13px; font-weight:600; color:#475569; background:#fff; text-decoration:none; display:inline-block; transition:all 0.2s;"
-                       onmouseover="this.style.background='#f8fafc';"
-                       onmouseout="this.style.background='#fff';">
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         Edit
                     </a>
                     <form method="POST" action="{{ route('smap-risk.destroy', $risk->id_smap) }}"
                           onsubmit="return confirm('Yakin hapus?')" style="margin:0;">
                         @csrf @method('DELETE')
                         <button type="submit"
-                                style="border:1px solid #fca5a5; border-radius:8px; padding:7px 18px; font-size:13px; font-weight:600; color:#ef4444; background:#fff; cursor:pointer; transition:all 0.2s;"
-                                onmouseover="this.style.background='#fef2f2';"
-                                onmouseout="this.style.background='#fff';">
+                                class="inline-flex items-center gap-1 rounded-lg border border-rose-100 bg-white px-2.5 py-1.5 text-xs font-semibold text-rose-500 shadow-sm transition hover:bg-rose-50 hover:text-rose-600">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             Hapus
                         </button>
                     </form>
@@ -93,15 +114,15 @@
                     <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
                         <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Status</p>
                         @if($risk->status)
-                            <span style="background:#ecfdf5; color:#10b981; rounded-lg; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Aktif</span>
+                            <span style="background:#ecfdf5; color:#10b981; border-radius:8px; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Aktif</span>
                         @else
-                            <span style="background:#f1f5f9; color:#94a3b8; rounded-lg; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Tidak Aktif</span>
+                            <span style="background:#f1f5f9; color:#94a3b8; border-radius:8px; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Tidak Aktif</span>
                         @endif
                     </div>
                 </div>
 
                 {{-- Kolom Kanan: 1 Kotak Peristiwa Resiko --}}
-                <div style="flex:2;">
+                <div style="flex:4;">
                     <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc; height:100%; display:flex; flex-direction:column;">
                         <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Peristiwa Resiko</p>
                         <p style="font-size:13px; color:#475569; line-height:1.8; margin:0; text-align:justify; flex:1;">
@@ -126,7 +147,8 @@
             <form method="POST" action="{{ route('smap-risk.store-monitoring', $risk->id_smap) }}">
                 @csrf
 
-                <input type="hidden" name="inherent" value="{{ $risk->inherent }}">
+                <!-- Dikirim ke Controller agar nilai inheren dinamis tersimpan saat submit -->
+                <input type="hidden" name="inherent" :value="inherent">
                 <input type="hidden" name="id_level" value="{{ $risk->id_level }}">
                 <input type="hidden" name="inherent_target" value="{{ $risk->inherent_target }}">
                 <input type="hidden" name="id_level_target" value="{{ $risk->id_level_target }}">
@@ -140,7 +162,7 @@
                         <div style="display:flex; flex-direction:column; gap:10px;">
                             <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
                                 <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Nilai Inheren</p>
-                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->inherent ?? '-' }}</p>
+                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;" x-text="inherent"></p>
                             </div>
                             <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
                                 <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Level Inheren</p>
@@ -184,7 +206,7 @@
                             </div>
                         </div>
 
-                        {{-- Baris 2: Nilai saat ini + Progress Belum + Progress Proses + Progress Sudah --}}
+                        {{-- Baris 2: Nilai saat ini + Progress --}}
                         <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px;">
                             <div>
                                 <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Nilai saat ini (1-25)</label>
@@ -249,18 +271,14 @@
                             </div>
                         </div>
 
-                        {{-- Tombol --}}
-                        <div style="display:flex; justify-content:flex-end; gap:10px; padding-top:4px;">
+                        {{-- Tombol Form --}}
+                        <div class="flex items-center justify-end gap-2 pt-1">
                             <button type="reset"
-                                    style="border:1px solid #e2e8f0; border-radius:8px; padding:8px 20px; font-size:13px; font-weight:600; color:#475569; background:#fff; cursor:pointer; transition:all 0.2s;"
-                                    onmouseover="this.style.background='#f8fafc';"
-                                    onmouseout="this.style.background='#fff';">
+                                    class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
                                 Batal
                             </button>
                             <button type="submit"
-                                    style="background:#4F7EF0; border:none; border-radius:8px; padding:8px 24px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s;"
-                                    onmouseover="this.style.background='#3b66d9';"
-                                    onmouseout="this.style.background='#4F7EF0';">
+                                    class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
                                 Simpan
                             </button>
                         </div>
@@ -279,6 +297,22 @@
             <div style="display:flex; flex-direction:column; gap:12px;">
                 @forelse($risk->detailPeriode as $history)
                     @php
+                        // HITUNG DINAMIS INHEREN DINAMIS UNTUK DITAMPILKAN DI BADGE ATAS
+                        $currQNum = match((string)$history->quarter) { 'TW1','1','Q1'=>1, 'TW2','2','Q2'=>2, 'TW3','3','Q3'=>3, 'TW4','4','Q4'=>4, default=>1 };
+                        $currTimeKey = (int)($history->year . $currQNum);
+
+                        $prevItem = $risk->detailPeriode->filter(function($item) use ($currTimeKey) {
+                            $itemQNum = match((string)$item->quarter) { 'TW1','1','Q1'=>1, 'TW2','2','Q2'=>2, 'TW3','3','Q3'=>3, 'TW4','4','Q4'=>4, default=>1 };
+                            $itemTimeKey = (int)($item->year . $itemQNum);
+                            return $itemTimeKey < $currTimeKey;
+                        })->sortBy(function($item) {
+                            $itemQNum = match((string)$item->quarter) { 'TW1','1','Q1'=>1, 'TW2','2','Q2'=>2, 'TW3','3','Q3'=>3, 'TW4','4','Q4'=>4, default=>1 };
+                            return $item->year . $itemQNum;
+                        })->last();
+
+                        // Nilai Inherent periode ini (diambil dari nilai kuartal sebelumnya / master)
+                        $displayInherent = $history->inherent ?? ($prevItem ? $prevItem->value : $risk->inherent);
+
                         $lvl = strtolower($history->levelRisiko->nama_level ?? $history->levelRisiko->level ?? '');
                         $lvlStyle = match($lvl) {
                             'high' => 'background:#fef2f2;color:#ef4444;',
@@ -308,7 +342,7 @@
                     <div x-data="{ editOpen: false }"
                         style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
 
-                        {{-- Row 1: Badge Info --}}
+                        {{-- Row 1: Badge Info (DITUKAR: Tampilkan Inherent di Badge Atas) --}}
                         <div style="padding:12px 20px; border-bottom:1px solid #f1f5f9;">
                             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
                                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -325,9 +359,9 @@
                                         {{ $displayQ }} {{ $history->year }}
                                     </span>
 
-                                    {{-- Nilai --}}
+                                    {{-- Inherent (SEKARANG DI ATAS) --}}
                                     <span style="background:#eff6ff; color:#4f46e5; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
-                                        Nilai {{ $history->value ?? '-' }}
+                                        Inherent {{ $displayInherent }}
                                     </span>
 
                                     {{-- Level --}}
@@ -368,12 +402,12 @@
                             </div>
                         </div>
 
-                        {{-- Row 2: 4 Kotak Info --}}
+                        {{-- Row 2: 4 Kotak Info (DITUKAR: Kotak 1 Menampilkan NILAI SAAT INI / MONITORING) --}}
                         <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:16px 20px;">
-                            {{-- Kotak 1: Nilai Inheren --}}
+                            {{-- Kotak 1: NILAI MONITORING (SEKARANG DI BAWAH) --}}
                             <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
-                                <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nilai Inheren</p>
-                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->inherent ?? '-' }}</p>
+                                <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nilai</p>
+                                <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $history->value ?? '-' }}</p>
                             </div>
 
                             {{-- Kotak 2: Nilai Target --}}
@@ -459,14 +493,17 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div style="display:flex; justify-content:flex-end;">
-                                    <button type="submit"
-                                            style="background:#4F7EF0; border:none; border-radius:8px; padding:8px 22px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; transition:all 0.2s;"
-                                            onmouseover="this.style.background='#3b66d9';"
-                                            onmouseout="this.style.background='#4F7EF0';">
-                                        Simpan Perubahan
-                                    </button>
-                                </div>
+
+                            <div class="flex items-center justify-end gap-2 pt-1">
+                                <button type="button" @click="editOpen = !editOpen"
+                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
+                                    Batal
+                                </button>
+                                <button type="submit"
+                                        class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
+                                    Simpan
+                                </button>
+                            </div>
                             </form>
                         </div>
 
