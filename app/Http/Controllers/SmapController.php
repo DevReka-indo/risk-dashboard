@@ -27,7 +27,7 @@ class SmapController extends Controller
         $this->smapService = $smapService;
     }
 
-    public function index(Request $request): View
+    public function index(Request $request): View|\Illuminate\Http\RedirectResponse
     {
         $tab = $request->query('tab', 'list');
 
@@ -38,7 +38,6 @@ class SmapController extends Controller
 
             $data = $this->smapService->buildDashboardData($selectedPeriode, $yearParam);
 
-            // Satukan kembali array untuk memenuhi kebutuhan variabel $dashboardData di Blade
             $data['dashboardData'] = [
                 'summary'               => $data['summary'],
                 'period'                => $data['periodText'],
@@ -55,14 +54,30 @@ class SmapController extends Controller
             ));
         }
 
-        // List View Logic
+        if ($request->has('reset')) {
+            session()->forget('smap_risk_filter');
+            return redirect()->route('smap-risk.index', ['tab' => 'list']); // Sesuaikan dengan nama route kamu
+        }
+
+        $filterParams = $request->except(['tab', 'page']);
+
+        if (!empty(array_filter($filterParams))) {
+            session(['smap_risk_filter' => $filterParams]);
+        }
+
+        elseif (session()->has('smap_risk_filter') && empty($filterParams) && !$request->has('page')) {
+            return redirect()->route('smap-risk.index', array_merge(['tab' => 'list'], session('smap_risk_filter')));
+        }
+
+        $savedFilters = session('smap_risk_filter', []);
+
         $filters = [
-            'search'      => $request->string('search')->toString(),
-            'unit_id'     => $request->string('unit_id')->toString(),
-            'category_id' => $request->string('category_id')->toString(),
-            'level_id'    => $request->string('level_id')->toString(),
-            'trend'       => $request->string('trend')->toString(),
-            'status'      => $request->string('status')->toString(),
+            'search'      => $request->query('search', $savedFilters['search'] ?? ''),
+            'unit_id'     => $request->query('unit_id', $savedFilters['unit_id'] ?? ''),
+            'category_id' => $request->query('category_id', $savedFilters['category_id'] ?? ''),
+            'level_id'    => $request->query('level_id', $savedFilters['level_id'] ?? ''),
+            'trend'       => $request->query('trend', $savedFilters['trend'] ?? ''),
+            'status'      => $request->query('status', $savedFilters['status'] ?? ''),
         ];
 
         $smapRisks = $this->smapRepo->getPaginatedRisks($filters);
