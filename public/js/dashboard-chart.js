@@ -45,8 +45,8 @@ document.addEventListener("DOMContentLoaded", function () {
             'High': '#be123c', 'Tinggi': '#be123c',
             'Moderate to High': '#f59e0b',
             'Moderate': '#eab308',
-            'Low to Moderate': '#3b82f6',
-            'Low': '#10b981', 'Rendah': '#10b981'
+            'Low to Moderate': '#4ade80', // hijau muda
+            'Low': '#166534', 'Rendah': '#166534' // hijau tua
         };
         const levelColors = levelLabels.map(label => colorMap[label] || '#94a3b8');
 

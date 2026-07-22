@@ -5,7 +5,7 @@
         </h3>
     </div>
 
-    <div class="relative w-full" style="height: 300px;">
+    <div class="relative mx-auto w-full max-w-md" style="height: 300px;">
         <canvas id="effectivenessChart"></canvas>
     </div>
 </div>
@@ -30,15 +30,18 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'right',
-                        labels: { padding: 20 }
+                        position: 'bottom', // Posisi legend di bawah
+                        labels: {
+                            padding: 20,
+                            font: { size: 14 }
+                        }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                 const value = context.parsed;
-                                const percentage = ((value / total) * 100).toFixed(1);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                                 return `${context.label}: ${value} (${percentage}%)`;
                             }
                         }

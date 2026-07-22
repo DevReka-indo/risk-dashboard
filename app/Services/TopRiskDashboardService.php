@@ -244,14 +244,13 @@ class TopRiskDashboardService
 
     private function buildProgressDistribution(Collection $currentMonitoring): array
     {
-        // SESUAIKAN: Ganti 'status_penanganan' dengan nama kolom yang ada di tabel Anda
-        // Contoh: 'Belum', 'Proses', 'Sudah'
+        // Menggunakan sum() untuk menjumlahkan total angka dari masing-masing kolom INT
         return [
             'labels' => ['Belum', 'Proses', 'Sudah'],
             'data' => [
-                $currentMonitoring->where('status_penanganan', 'Belum')->count(),
-                $currentMonitoring->where('status_penanganan', 'Proses')->count(),
-                $currentMonitoring->where('status_penanganan', 'Sudah')->count(),
+                (int) $currentMonitoring->sum('progres_belum'),
+                (int) $currentMonitoring->sum('progres_proses'),
+                (int) $currentMonitoring->sum('progres_sudah'),
             ],
             'colors' => ['#FCD34D', '#A3E635', '#93C5FD'] // Kuning, Lime, Biru
         ];
@@ -277,3 +276,4 @@ class TopRiskDashboardService
     }
 
 }
+

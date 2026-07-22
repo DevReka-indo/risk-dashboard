@@ -23,8 +23,8 @@
                                 @if($data['level_name'] == 'High') background-color: #ff0000;
                                 @elseif($data['level_name'] == 'Moderate to High') background-color: #ed7d31;
                                 @elseif($data['level_name'] == 'Moderate') background-color: #ffc000;
-                                @elseif($data['level_name'] == 'Low to Moderate') background-color: #92d050;
-                                @elseif($data['level_name'] == 'Low') background-color: #385723;
+                                @elseif($data['level_name'] == 'Low to Moderate') background-color: #4ade80;
+                                @elseif($data['level_name'] == 'Low') background-color: #166534;
                                 @else background-color: #6b7280; @endif
                             ">
                             {{ $data['level_name'] }}

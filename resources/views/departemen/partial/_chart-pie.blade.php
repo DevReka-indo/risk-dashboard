@@ -43,8 +43,8 @@
                             '#FF0000', // High (Merah)
                             '#F28C28', // Moderate to High (Oranye)
                             '#FFD700', // Moderate (Kuning)
-                            '#90EE90', // Low to Moderate (Hijau Muda)
-                            '#228B22'  // Low (Hijau Tua)
+                            '#4ade80', // Low to Moderate (Hijau Muda)
+                            '#166534'  // Low (Hijau Tua)
                         ],
                         borderWidth: 1
                     }]

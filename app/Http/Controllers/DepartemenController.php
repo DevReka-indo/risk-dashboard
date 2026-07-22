@@ -32,13 +32,11 @@ class DepartemenController extends Controller
 
         // 1. Tab Dashboard
         if ($tab === 'dashboard') {
-            // TANGKAP VARIABEL DARI URL
             $selectedPeriode = $request->query('periode', 'all');
             $selectedYear    = (int) $request->query('tahun', date('Y'));
 
             $dashboardData = $this->dashboardService->getDashboardData($selectedPeriode, $selectedYear);
 
-            // KIRIM VARIABELNYA KE VIEW
             return view('departemen.index', array_merge([
                 'tab' => $tab,
                 'selectedPeriode' => $selectedPeriode,
@@ -66,7 +64,7 @@ class DepartemenController extends Controller
             'levels' => $this->riskRepo->getAllLevels()
         ]);
     }
-
+    
     public function store(DepMonitoringRequest $request): RedirectResponse
     {
         $dataToSave = $request->validated();
@@ -117,37 +115,53 @@ class DepartemenController extends Controller
         $reqYear = $request->year;
         $reqQuarter = $request->quarter;
 
-        // Cek Duplikasi
+        // 1. Cek Duplikasi
         if ($this->riskRepo->checkPeriodExists($id, $reqQuarter, $reqYear)) {
             return redirect()->back()->with('error', "Periode {$reqQuarter} Tahun {$reqYear} sudah terdaftar.");
         }
 
-        // Validasi Wajib Isi Berurutan
+        // 2. Validasi Wajib Isi Berurutan & Tentukan Triwulan Sebelumnya
         $quarterOrder = ['TW1' => 1, 'TW2' => 2, 'TW3' => 3, 'TW4' => 4];
         $currentQNum = $quarterOrder[$reqQuarter];
 
+        $prevQ = null;
+        $prevYear = $reqYear;
+
         if ($currentQNum > 1) {
             $prevQ = array_search($currentQNum - 1, $quarterOrder);
+            // Cek apakah riwayat berurutan di tahun yang sama sudah diisi
             if (!$this->riskRepo->getPeriodData($id, $prevQ, $reqYear)) {
                 return redirect()->back()->with('error', "Gagal! Isi riwayat $prevQ Tahun $reqYear terlebih dahulu.");
             }
+        } else {
+            // Jika Triwulan saat ini adalah TW1, maka Triwulan sebelumnya adalah TW4 di tahun sebelumnya
+            $prevQ = 'TW4';
+            $prevYear = $reqYear - 1;
         }
 
-        // Kalkulasi Logika Bisnis
+        // 3. Kalkulasi Logika Bisnis (Nilai Inheren Dinamis)
         $risk = $this->riskRepo->findById($id);
+
+        // Ambil data triwulan sebelumnya melalui Repository
+        $prevPeriod = $this->riskRepo->getPeriodData($id, $prevQ, $prevYear);
+
+        // Jika ada data historis, ambil value-nya. Jika tidak ada, ambil default dari master risk.
+        $calculatedInherent = $prevPeriod ? $prevPeriod->value : $risk->inherent;
+
         $levelRecord = $this->riskRepo->findLevelByIdOrName($request->calculated_level);
         $idLevelTerbaru = $levelRecord ? $levelRecord->id_level : $risk->id_level;
 
+        // Hitung Efektivitas Risiko menggunakan Inheren yang baru dikalkulasi
         $efektifRisiko = $this->dashboardService->hitungEfektivitasRisiko(
-            (int) $request->value, (int) $risk->inherent, (int) $idLevelTerbaru, (int) $risk->id_level
+            (int) $request->value, (int) $calculatedInherent, (int) $idLevelTerbaru, (int) $risk->id_level
         );
 
-        // Simpan Data ke Pivot
+        // 4. Simpan Data ke Pivot
         $this->riskRepo->attachPeriod($id, $idLevelTerbaru, [
             'quarter'         => $reqQuarter,
             'year'            => $reqYear,
             'value'           => $request->value,
-            'inherent'        => $risk->inherent,
+            'inherent'        => $calculatedInherent, // <-- Inheren kini diset otomatis oleh sistem
             'trend'           => $request->calculated_trend,
             'target_value'    => $risk->target_value,
             'target_id_level' => $risk->target_id_level,
@@ -159,7 +173,7 @@ class DepartemenController extends Controller
             'updated_at'      => now(),
         ]);
 
-        // Update Data Terbaru ke Tabel Utama
+        // 5. Update Data Terbaru ke Tabel Utama
         $this->riskRepo->update($id, [
             'id_level'       => $idLevelTerbaru,
             'value'          => $request->value,

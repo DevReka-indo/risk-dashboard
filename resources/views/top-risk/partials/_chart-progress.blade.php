@@ -5,7 +5,7 @@
         </h3>
     </div>
 
-    <div class="relative w-full" style="height: 300px;">
+    <div class="relative mx-auto w-full max-w-md" style="height: 300px;">
         <canvas id="progressChart"></canvas>
     </div>
 </div>
@@ -30,7 +30,7 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'right',
+                        position: 'bottom', // Posisi legend di bawah
                         labels: {
                             padding: 20,
                             font: { size: 14 }
