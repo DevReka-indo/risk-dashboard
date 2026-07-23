@@ -8,38 +8,45 @@
 
     {{-- AREA CANVAS CHART --}}
     <div class="flex flex-col items-center p-6 bg-indigo-50/30 rounded-lg border border-indigo-100/50 max-w-sm mx-auto">
-        <h4 class="text-xs font-black text-indigo-950 bg-white shadow-sm border border-indigo-100 px-3 py-1.5 rounded-xl mb-4 w-full text-center uppercase tracking-wider flex justify-center items-center gap-2">
+        <!-- UI Label dilembutkan: font-black -> font-bold, warna badge disesuaikan ke pastel -->
+        <h4 class="text-xs font-bold text-slate-700 bg-white shadow-sm border border-slate-200 px-3 py-1.5 rounded-xl mb-4 w-full text-center uppercase tracking-wider flex justify-center items-center gap-2">
             Status Penanganan Risiko
-            <span class="text-[9px] px-1.5 py-0.5 rounded font-extrabold text-white bg-indigo-500">CURRENT TW</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-indigo-700 bg-indigo-100">CURRENT TW</span>
         </h4>
         <div class="relative w-full h-[220px]">
             <canvas id="smapChartProgresUnique"></canvas>
         </div>
     </div>
 
-    {{-- TABEL PROGRES PER UNIT KERJA (Sesuai Gambar Client) --}}
-    <div class="mt-6 overflow-x-auto">
-        <table class="w-full text-center text-xs border-collapse border border-slate-900">
-            <thead class="bg-blue-600 text-white font-bold" style="background-color: #2B72B9 !important; color: #ffffff !important;">
+    {{-- TABEL PROGRES PER UNIT KERJA --}}
+    <!-- Wrapper div ditambahkan border rounded agar tabel terlihat rapi di dalam kotak -->
+    <div class="mt-6 overflow-hidden rounded-lg border border-slate-200 shadow-sm">
+        <!-- text-xs diubah ke text-sm agar seragam ukurannya dengan tabel lain -->
+        <table class="w-full text-center text-sm border-collapse">
+            
+            <!-- Thead: Inline style biru dihapus, diganti bg-slate-50 yang lembut -->
+            <thead class="bg-indigo-600 text-white border-b border-indigo-700">
                 <tr>
-                    <th class="border border-slate-900 py-2.5 px-3 text-left w-2/5 font-bold text-white">Unit kerja</th>
-                    <th class="border border-slate-900 py-2.5 px-3 w-1/5 font-bold text-white">Belum</th>
-                    <th class="border border-slate-900 py-2.5 px-3 w-1/5 font-bold text-white">Proses</th>
-                    <th class="border border-slate-900 py-2.5 px-3 w-1/5 font-bold text-white">Sudah</th>
+                    <th class="py-3 px-4 text-left w-2/5 font-semibold">Unit kerja</th>
+                    <th class="py-3 px-4 w-1/5 font-semibold">Belum</th>
+                    <th class="py-3 px-4 w-1/5 font-semibold">Proses</th>
+                    <th class="py-3 px-4 w-1/5 font-semibold">Sudah</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-900 font-semibold text-slate-900">
+            
+            <!-- Tbody: Border hitam (slate-900) dihapus, diganti text-slate-700 dan font-medium -->
+            <tbody class="text-slate-700">
                 {{-- Modifikasi variabel $smapUnitTable sesuai variabel yang kamu pass dari Controller --}}
                 @forelse($smapUnitTable ?? [] as $row)
-                    <tr>
-                        <td class="border border-slate-900 py-2 px-3 text-left font-medium">{{ $row->nama_unit }}</td>
-                        <td class="border border-slate-900 py-2 px-3">{{ $row->progress_belum > 0 ? $row->progress_belum : '' }}</td>
-                        <td class="border border-slate-900 py-2 px-3">{{ $row->progress_proses > 0 ? $row->progress_proses : '' }}</td>
-                        <td class="border border-slate-900 py-2 px-3">{{ $row->progress_sudah > 0 ? $row->progress_sudah : '' }}</td>
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        <td class="border-b border-r border-slate-200 py-2.5 px-4 text-left font-medium">{{ $row->nama_unit }}</td>
+                        <td class="border-b border-r border-slate-200 py-2.5 px-4 font-medium">{{ $row->progress_belum > 0 ? $row->progress_belum : '' }}</td>
+                        <td class="border-b border-r border-slate-200 py-2.5 px-4 font-medium">{{ $row->progress_proses > 0 ? $row->progress_proses : '' }}</td>
+                        <td class="border-b border-slate-200 py-2.5 px-4 font-medium">{{ $row->progress_sudah > 0 ? $row->progress_sudah : '' }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="border border-slate-900 py-3 text-slate-400 italic font-normal">
+                        <td colspan="4" class="border-b border-slate-200 py-6 text-slate-400 text-center font-normal">
                             Data unit kerja belum tersedia.
                         </td>
                     </tr>
@@ -87,7 +94,7 @@
                         position: 'bottom',
                         labels: {
                             boxWidth: 10,
-                            font: { size: 10, weight: '600' }
+                            font: { size: 10, weight: '500' } // Menurunkan sedikit ketebalan font legenda grafik
                         }
                     }
                 }

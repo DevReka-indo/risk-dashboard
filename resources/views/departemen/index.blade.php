@@ -7,17 +7,17 @@
     @php $activeTab = request()->query('tab', 'data'); @endphp
 
     {{-- Tab full width --}}
-    <div class="mb-6 rounded-2xl bg-slate-200/70 dark:bg-slate-800/80 p-1.5 backdrop-blur border border-slate-300/50 dark:border-slate-700/60 shadow-inner">
+    <div class="mb-6 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 p-1.5 backdrop-blur border border-slate-300/50 dark:border-slate-700/60 shadow-inner">
         <div class="grid grid-cols-2 gap-1.5">
             <a href="{{ route('department-risk.index', array_merge(request()->except('page'), ['tab' => 'data'])) }}"
-               class="rounded-xl py-2.5 text-center text-sm font-semibold transition-all duration-200
+               class="rounded-lg py-2.5 text-center text-sm font-semibold transition-all duration-200
                {{ $activeTab === 'data'
                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-300/60 dark:hover:bg-slate-700/60 hover:text-slate-900 dark:hover:text-white' }}">
                 Data Departemen
             </a>
             <a href="{{ route('department-risk.index', array_merge(request()->except('page'), ['tab' => 'dashboard'])) }}"
-               class="rounded-xl py-2.5 text-center text-sm font-semibold transition-all duration-200
+               class="rounded-lg py-2.5 text-center text-sm font-semibold transition-all duration-200
                {{ $activeTab === 'dashboard'
                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-300/60 dark:hover:bg-slate-700/60 hover:text-slate-900 dark:hover:text-white' }}">
@@ -66,9 +66,9 @@
                 <input type="hidden" name="tab" value="data">
                 <input type="text" name="search" value="{{ $search ?? '' }}"
                        placeholder="Cari Peristiwa Risiko..."
-                       class="w-64 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
+                       class="w-64 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
                 <button type="submit"
-                        class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all active:scale-95">
+                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all active:scale-95">
                     Cari
                 </button>
             </form>
@@ -78,7 +78,7 @@
             {{-- Filters --}}
             <button type="button"
                     @click="filterOpen = true"
-                    class="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
                 <svg class="h-4 w-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm0 0v7.5" />
                 </svg>
@@ -87,7 +87,7 @@
 
             {{-- Tambah --}}
             <a href="{{ route('department-risk.create') }}"
-               class="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition-all active:scale-95">
+               class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition-all active:scale-95">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -133,7 +133,7 @@
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Unit Kerja</label>
                     <div class="relative">
                         <select x-model="filterUnit"
-                                class="w-full appearance-none rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                class="w-full appearance-none rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                             <option value="">Semua Unit</option>
                             @foreach ($units as $unit)
                                 <option value="{{ $unit->id_unit }}">{{ $unit->nama_unit }}</option>
@@ -150,7 +150,7 @@
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Kategori</label>
                     <div class="relative">
                         <select x-model="filterCategory"
-                                class="w-full appearance-none rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                class="w-full appearance-none rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                             <option value="">Semua Kategori</option>
                             @foreach ($categories as $cat)
                                 <option value="{{ $cat->id_kategori }}">{{ $cat->nama_kategori }}</option>
@@ -167,7 +167,7 @@
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Level Resiko</label>
                     <div class="relative">
                         <select x-model="filterLevel"
-                                class="w-full appearance-none rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                class="w-full appearance-none rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                             <option value="">Semua Level</option>
                             @foreach ($levels as $lvl)
                                 <option value="{{ $lvl->id_level }}">{{ $lvl->nama_level }}</option>
@@ -184,7 +184,7 @@
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tren</label>
                     <div class="relative">
                         <select x-model="filterTrend"
-                                class="w-full appearance-none rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                class="w-full appearance-none rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                             <option value="">Semua Tren</option>
                             <option value="Naik">Naik</option>
                             <option value="Turun">Turun</option>
@@ -201,7 +201,7 @@
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Status</label>
                     <div class="relative">
                         <select x-model="filterStatus"
-                                class="w-full appearance-none rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                class="w-full appearance-none rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                             <option value="">Semua Status</option>
                             <option value="1">Aktif</option>
                             <option value="0">Tidak Aktif</option>
@@ -215,7 +215,7 @@
                 {{-- Tombol Add Filter --}}
                 <div class="flex justify-end">
                 <button type="button" @click="applyFilter()"
-                        class="inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700 active:scale-95">
+                        class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700 active:scale-95">
                     Add Filter
                 </button>
                 </div>
@@ -224,30 +224,30 @@
         </div>
 
         {{-- Tabel --}}
-        <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-slate-950/5">
+        <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-slate-950/5">
             <div class="overflow-x-auto">
                 <table class="min-w-full border-collapse">
                     <thead>
                         <tr class="bg-indigo-600 text-white">
-                            <th class="rounded-tl-2xl px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">
+                            <th class="rounded-tl-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
                                 Risiko
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">
+                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
                                 Kategori
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">
+                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
                                 Unit Kerja
                             </th>
-                            <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">
+                            <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
                                 Inherent
                             </th>
-                            <th class="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">
+                            <th class="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
                                 Target
                             </th>
-                            <th class="whitespace-nowrap px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">
+                            <th class="whitespace-nowrap px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
                                 Monitoring Terakhir
                             </th>
-                            <th class="rounded-tr-2xl px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">
+                            <th class="rounded-tr-lg px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide">
                                 Aksi
                             </th>
                         </tr>
@@ -262,8 +262,8 @@
                                 {{-- Risiko --}}
                                 <td class="px-6 py-4">
                                     <div class="max-w-md">
-                                        <div class="mb-2 flex flex-wrap items-center gap-2">
-                                            <span class="inline-block rounded-lg px-3 py-0.5 text-xs font-semibold {{ $isProyek ? 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }}">
+                                        <div class="flex items-center gap-2 flex-nowrap">
+                                            <span class="inline-block whitespace-nowrap rounded-lg px-3 py-1 text-xs font-semibold {{ $isProyek ? 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }}">
                                                 {{ $risk->type ?? '-' }}
                                             </span>
 
@@ -323,8 +323,7 @@
                                                 $iName = 'Low'; $iBg = 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50'; $iDot = 'bg-emerald-600';
                                             }
                                         @endphp
-                                        <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold border {{ $iBg }}">
-                                            <span class="h-2 w-2 rounded-full {{ $iDot }}"></span>
+                                        <span class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-0.5 text-xs font-semibold border {{ $iBg }}">
                                             {{ $iName }}
                                         </span>
                                     </div>
@@ -350,8 +349,7 @@
                                                 $tName = 'Low'; $tBg = 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50'; $tDot = 'bg-emerald-600';
                                             }
                                         @endphp
-                                        <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold border {{ $tBg }}">
-                                            <span class="h-2 w-2 rounded-full {{ $tDot }}"></span>
+                                        <span class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-0.5 text-xs font-semibold border {{ $tBg }}">
                                             {{ $tName }}
                                         </span>
                                     </div>
@@ -387,8 +385,7 @@
                                                     Nilai {{ $latestPeriod->pivot->value ?? 0 }}
                                                 </span>
 
-                                                <span class="inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold border {{ $mLvlBg }}">
-                                                    <span class="h-2 w-2 rounded-full {{ $mDot }}"></span>
+                                                <span class="inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold border {{ $mLvlBg }}">
                                                     {{ $lvlName }}
                                                 </span>
                                             </div>
@@ -417,12 +414,12 @@
                                 <td class="whitespace-nowrap px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-1.5">
                                         <a href="{{ route('department-risk.show', $risk->id_monitoring) }}"
-                                           class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-xs transition-all hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                           class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-xs transition-all hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             Detail
                                         </a>
                                         <a href="{{ route('department-risk.edit', $risk->id_monitoring) }}"
-                                           class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-xs transition-all hover:border-amber-300 dark:hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/50 hover:text-amber-600 dark:hover:text-amber-400">
+                                           class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-xs transition-all hover:border-amber-300 dark:hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/50 hover:text-amber-600 dark:hover:text-amber-400">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                             Edit
                                         </a>
@@ -433,7 +430,7 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"
-                                                    class="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 shadow-xs transition hover:bg-rose-50 dark:hover:bg-rose-950/50">
+                                                    class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 shadow-xs transition hover:bg-rose-50 dark:hover:bg-rose-950/50">
                                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                 </svg>
@@ -446,7 +443,7 @@
                         @empty
                             <tr>
                                 <td colspan="7" class="px-6 py-16 text-center border-b border-slate-200 dark:border-slate-800">
-                                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 ring-1 ring-indigo-500/10 dark:ring-indigo-500/20">
+                                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 ring-1 ring-indigo-500/10 dark:ring-indigo-500/20">
                                         <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12V16.5ZM10.29 3.86 1.82 18a2.25 2.25 0 0 0 1.93 3.375h16.5A2.25 2.25 0 0 0 22.18 18L13.71 3.86a2.25 2.25 0 0 0-3.42 0Z" />
                                         </svg>

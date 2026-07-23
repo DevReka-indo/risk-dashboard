@@ -268,12 +268,11 @@
                                         <div class="space-y-1.5">
                                             {{-- Badge Nilai & Level Risiko --}}
                                             <div class="flex flex-nowrap items-center gap-2">
-                                                <span class="inline-flex shrink-0 items-center whitespace-nowrap rounded-lg bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
+                                                <span class="inline-flex shrink-0 items-center whitespace-nowrap rounded-lg bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
                                                     Nilai {{ $monitoringTerakhir->nilai ?? 0 }}
                                                 </span>
 
-                                                <span class="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold border {{ $tLvlBg }}">
-                                                    <span class="h-2 w-2 rounded-full {{ $tDot }}"></span>
+                                                <span class="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap rounded-lg px-2.5 py-0.5 text-xs font-semibold border {{ $tLvlBg }}">
                                                     {{ $lvlName }}
                                                 </span>
                                             </div>

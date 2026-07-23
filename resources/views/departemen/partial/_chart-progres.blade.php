@@ -7,32 +7,32 @@
         <canvas id="chartProgres"></canvas>
     </div>
 
-    <!-- Bagian Tabel Berdasarkan Unit Kerja -->
+<!-- Bagian Tabel Berdasarkan Unit Kerja -->
     <div class="mt-8 overflow-hidden rounded-md border border-slate-200">
         <table class="w-full text-sm text-left border-collapse">
 
-            <!-- UBAH BAGIAN THEAD INI MENGGUNAKAN INLINE STYLE -->
-            <thead style="background-color: #2563eb; color: #ffffff;">
+            <!-- BAGIAN THEAD DIPERBARUI AGAR SELARAS DENGAN TEMA SLATE -->
+            <thead class="bg-indigo-600 text-white border-b border-indigo-700">
                 <tr>
-                    <th class="px-4 py-3 border-b border-r border-[#1d4ed8] font-semibold whitespace-nowrap">Unit Kerja</th>
-                    <th class="px-4 py-3 border-b border-r border-[#1d4ed8] font-semibold text-center w-28 whitespace-nowrap">Belum</th>
-                    <th class="px-4 py-3 border-b border-r border-[#1d4ed8] font-semibold text-center w-28 whitespace-nowrap">Proses</th>
-                    <th class="px-4 py-3 border-b border-[#1d4ed8] font-semibold text-center w-28 whitespace-nowrap">Sudah</th>
+                    <th class="px-4 py-3 font-semibold whitespace-nowrap">Unit Kerja</th>
+                    <th class="px-4 py-3 font-semibold text-center w-28 whitespace-nowrap">Belum</th>
+                    <th class="px-4 py-3 font-semibold text-center w-28 whitespace-nowrap">Proses</th>
+                    <th class="px-4 py-3 font-semibold text-center w-28 whitespace-nowrap">Sudah</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($progresPerUnit ?? [] as $item)
                     <tr class="bg-white hover:bg-slate-50 transition-colors">
-                        <td class="px-4 py-3 border-b border-r border-slate-200 text-slate-700">
+                        <td class="px-4 py-3 border-b text-slate-700">
                             {{ $item['nama_unit'] }}
                         </td>
-                        <td class="px-4 py-3 border-b border-r border-slate-200 text-center text-slate-700 font-medium">
+                        <td class="px-4 py-3 border-b text-center text-slate-700 font-medium">
                             {{ $item['belum'] }}
                         </td>
-                        <td class="px-4 py-3 border-b border-r border-slate-200 text-center text-slate-700 font-medium">
+                        <td class="px-4 py-3 border-b text-center text-slate-700 font-medium">
                             {{ $item['proses'] }}
                         </td>
-                        <td class="px-4 py-3 border-b border-slate-200 text-center text-slate-700 font-medium">
+                        <td class="px-4 py-3 border-b text-center text-slate-700 font-medium">
                             {{ $item['sudah'] }}
                         </td>
                     </tr>
@@ -46,8 +46,6 @@
             </tbody>
         </table>
     </div>
-
-</div>
 
 <!-- Script Chart.js (Tetap sama seperti milikmu) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
