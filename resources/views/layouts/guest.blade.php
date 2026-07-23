@@ -11,35 +11,37 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased">
+<body class="font-sans antialiased text-slate-900 dark:text-slate-100 bg-slate-900">
 
-    <div
-        class="min-h-screen flex flex-col items-center justify-center px-4 py-8"
-        style="
-            background: linear-gradient(
-                180deg,
-                #8FAEE8 0%,
-                #A8C2EE 30%,
-                #BED3F3 65%,
-                #DDE8F7 100%
-            );
-        ">
+    <div class="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-gradient-to-b from-[#8FAEE8] via-[#BED3F3] to-[#DDE8F7] dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
 
         {{-- Logo dan Brand --}}
         <div class="mb-8 text-center">
 
             <a href="{{ url('/') }}" class="inline-flex items-center gap-4">
 
-                {{-- Logo --}}
-                <div class="flex h-14 w-14 items-center justify-center rounded-2xl"
-                     style="background: transparent; box-shadow: none;">
+                {{-- Frameless Glossy Logo Container --}}
+                <div class="relative flex items-center justify-center">
+                    {{-- Light Mode Logo Icon (Glossy Dark Chrome Emblem) --}}
                     <img src="{{ asset('images/Group 6924.png') }}"
                          alt="Manrisk Logo"
-                         class="h-12 w-auto object-contain"
-                         style="filter: brightness(0) invert(1);">
+                         class="h-12 w-auto object-contain filter brightness-0 drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)] dark:hidden">
+
+                    {{-- Dark Mode Logo Icon (Glossy Glowing White Emblem) --}}
+                    <img src="{{ asset('images/Group 6924.png') }}"
+                         alt="Manrisk Logo"
+                         class="h-12 w-auto object-contain hidden dark:block filter brightness-0 invert drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">
                 </div>
 
                 {{-- Brand Text --}}

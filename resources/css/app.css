@@ -1,3 +1,236 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+[x-cloak] {
+    display: none !important;
+}
+
+/* Comprehensive Dark Mode Styles */
+html.dark {
+    color-scheme: dark;
+    background-color: #090d16 !important;
+    color: #f1f5f9 !important;
+}
+
+html.dark body,
+html.dark .min-h-screen {
+    background-color: #090d16 !important;
+    color: #f1f5f9 !important;
+}
+
+/* Header, Topbar, Sidebars, Navbars */
+html.dark header,
+html.dark nav,
+html.dark aside {
+    background-color: #0f172a !important;
+    border-color: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+/* Base Cards & Containers */
+html.dark .bg-white,
+html.dark .bg-white\/95,
+html.dark .bg-white\/90,
+html.dark .bg-white\/80,
+html.dark .bg-white\/70,
+html.dark .bg-slate-50,
+html.dark .bg-gray-50,
+html.dark .bg-gray-100 {
+    background-color: #0f172a !important;
+    border-color: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+/* Inline Style Cards & Containers (Create, Edit, Show Detail Views) */
+html.dark [style*="background:#fff"],
+html.dark [style*="background: #fff"],
+html.dark [style*="background:#ffffff"],
+html.dark [style*="background: #ffffff"] {
+    background-color: #0f172a !important;
+    border-color: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+/* Form Left Sidebars, Inner Cells, Readonly Boxes, Level Boxes */
+html.dark [style*="background:#fafbfc"],
+html.dark [style*="background: #fafbfc"],
+html.dark [style*="background:#fafafa"],
+html.dark [style*="background: #fafafa"],
+html.dark [style*="background:#f8fafc"],
+html.dark [style*="background: #f8fafc"],
+html.dark [style*="background:#f1f5f9"],
+html.dark [style*="background: #f1f5f9"] {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+/* Form Controls, Inputs, Selects, Textareas */
+html.dark input,
+html.dark select,
+html.dark textarea,
+html.dark input[type="text"],
+html.dark input[type="number"],
+html.dark input[type="date"],
+html.dark [style*="background:#fff"] input,
+html.dark [style*="background:#fff"] select,
+html.dark [style*="background:#fff"] textarea,
+html.dark [style*="background: #fff"] input,
+html.dark [style*="background: #fff"] select,
+html.dark [style*="background: #fff"] textarea,
+html.dark [style*="background:#fafbfc"] input,
+html.dark [style*="background:#fafbfc"] select,
+html.dark [style*="background:#fafbfc"] textarea,
+html.dark [style*="background: #fafbfc"] input,
+html.dark [style*="background: #fafbfc"] select,
+html.dark [style*="background: #fafbfc"] textarea {
+    background-color: #111827 !important;
+    border-color: #374151 !important;
+    color: #f9fafb !important;
+}
+
+/* Radio & Checkbox Container Wrappers */
+html.dark div[style*="background:#fff"],
+html.dark div[style*="background: #fff"] {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+/* Inline Style Border Overrides */
+html.dark [style*="border:1px solid #e2e8f0"],
+html.dark [style*="border: 1px solid #e2e8f0"],
+html.dark [style*="border:2px solid #e2e8f0"],
+html.dark [style*="border: 2px solid #e2e8f0"],
+html.dark [style*="border-right:1px solid #f1f5f9"],
+html.dark [style*="border-right: 1px solid #f1f5f9"],
+html.dark [style*="border-top:2px solid #f1f5f9"],
+html.dark [style*="border-top: 2px solid #f1f5f9"],
+html.dark [style*="border-top:1px solid #e2e8f0"],
+html.dark [style*="border-top: 1px solid #e2e8f0"] {
+    border-color: #334155 !important;
+}
+
+/* Inline Style Text Colors */
+html.dark [style*="color:#1e293b"],
+html.dark [style*="color: #1e293b"],
+html.dark [style*="color:#475569"],
+html.dark [style*="color: #475569"] {
+    color: #f1f5f9 !important;
+}
+
+html.dark [style*="color:#94a3b8"],
+html.dark [style*="color: #94a3b8"],
+html.dark [style*="color:#64748b"],
+html.dark [style*="color: #64748b"] {
+    color: #94a3b8 !important;
+}
+
+/* Badges, Chips & Scale Boxes */
+html.dark .bg-slate-100,
+html.dark .bg-slate-200,
+html.dark .bg-slate-300,
+html.dark .bg-gray-100,
+html.dark .bg-gray-200 {
+    background-color: #1e293b !important;
+    color: #e2e8f0 !important;
+}
+
+html.dark .bg-indigo-100,
+html.dark .bg-indigo-50 {
+    background-color: rgba(99, 102, 241, 0.15) !important;
+    color: #a5b4fc !important;
+}
+
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-100 {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #6ee7b7 !important;
+}
+
+html.dark .bg-rose-50,
+html.dark .bg-rose-100 {
+    background-color: rgba(244, 63, 94, 0.15) !important;
+    color: #fda4af !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-100 {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    color: #fde047 !important;
+}
+
+/* Action Buttons & Links in Tables */
+html.dark a.border-slate-200,
+html.dark button.border-slate-200,
+html.dark a.border-slate-300,
+html.dark button.border-slate-300 {
+    border-color: #334155 !important;
+    background-color: #1e293b !important;
+    color: #cbd5e1 !important;
+}
+
+html.dark a.border-slate-200:hover,
+html.dark button.border-slate-200:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+}
+
+/* Text Colors */
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700,
+html.dark .text-gray-900,
+html.dark .text-gray-800,
+html.dark .text-gray-700 {
+    color: #f1f5f9 !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-slate-500,
+html.dark .text-gray-600,
+html.dark .text-gray-500 {
+    color: #94a3b8 !important;
+}
+
+/* Borders */
+html.dark .border-slate-200,
+html.dark .border-slate-100,
+html.dark .border-gray-200,
+html.dark .border-gray-100,
+html.dark .border-indigo-100 {
+    border-color: #1e293b !important;
+}
+
+/* Data Tables */
+html.dark table thead tr,
+html.dark table thead th {
+    background-color: #1e293b !important;
+    color: #cbd5e1 !important;
+}
+
+html.dark table tbody tr {
+    border-color: #1e293b !important;
+}
+
+html.dark table tbody tr:hover {
+    background-color: #1e293b !important;
+}
+
+/* Dashboard Active KPI Cards Dark Mode Overrides */
+html.dark .card-active-rose {
+    background: linear-gradient(135deg, #881337, #0f172a) !important;
+    color: #f8fafc !important;
+}
+
+html.dark .card-active-indigo {
+    background: linear-gradient(135deg, #1e1b4b, #0f172a) !important;
+    color: #f8fafc !important;
+}
+
+html.dark .card-active-emerald {
+    background: linear-gradient(135deg, #064e3b, #0f172a) !important;
+    color: #f8fafc !important;
+}
+
+

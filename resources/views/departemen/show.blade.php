@@ -1,7 +1,8 @@
 <x-admin-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('department-risk.index') }}"
+            {{-- 👇 UBAH BAGIAN INI: Gunakan session untuk tombol kembali 👇 --}}
+            <a href="{{ session('risk_index_url', route('department-risk.index', ['tab' => 'data'])) }}"
                class="flex h-7 w-7 items-center justify-center rounded text-slate-800 hover:bg-slate-100 transition">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -60,7 +61,7 @@
                         Edit
                     </a>
 
-                    {{-- Tombol Hapus --}}
+                    {{-- Tombol Hapus (Sudah aman karena controllernya sudah pakai redirect session) --}}
                     <form method="POST" action="{{ route('department-risk.destroy', $risk->id_monitoring) }}"
                         onsubmit="return confirm('Yakin hapus?')" class="m-0">
                         @csrf

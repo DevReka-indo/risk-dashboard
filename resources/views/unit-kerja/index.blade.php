@@ -29,15 +29,15 @@
     }">
 
         {{-- Toolbar: Search + Cari | Filters + Tambah --}}
-        <div class="flex items-center gap-2">
+        <div class="mb-4 flex flex-wrap items-center gap-2">
 
             {{-- Search + Cari --}}
             <form method="GET" action="{{ route('unit-kerja.index') }}" class="flex items-center gap-2">
                 <input type="text" name="search" value="{{ $search ?? '' }}"
                        placeholder="Cari nama unit atau keterangan..."
-                       class="w-64 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                       class="w-64 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
                 <button type="submit"
-                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition">
+                        class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all active:scale-95">
                     Cari
                 </button>
             </form>
@@ -47,8 +47,8 @@
             {{-- Filters --}}
             <button type="button"
                     @click="filterOpen = true"
-                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    class="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+                <svg class="h-4 w-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm0 0v7.5" />
                 </svg>
                 Filters
@@ -57,11 +57,11 @@
             {{-- Tambah --}}
             @can('unit-kerja.create')
                 <a href="{{ route('unit-kerja.create') }}"
-                   class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition">
+                   class="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition-all active:scale-95">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
-                    Tambah
+                    Tambah Unit Kerja
                 </a>
             @endcan
         </div>
@@ -69,7 +69,7 @@
         {{-- Filter Floating Modal --}}
         <div x-show="filterOpen"
              x-transition.opacity
-             class="fixed inset-0 z-50"
+             class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs"
              style="display:none;"
              @click.self="filterOpen = false">
 
@@ -81,64 +81,61 @@
                  x-transition:leave="transition transform duration-150 ease-in"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
-                 class="absolute bg-white"
-                 style="top: 140px; right: 24px; width: 320px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.14); padding: 24px;">
+                 class="absolute bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl p-6"
+                 style="top: 140px; right: 24px; width: 320px;">
 
                 {{-- Header --}}
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <button type="button" @click="filterOpen = false"
-                                style="background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center;">
-                            <svg style="width:18px;height:18px;color:#1e293b;" fill="none" stroke="#1e293b" stroke-width="2" viewBox="0 0 24 24">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-2.5">
+                        <button type="button" @click="filterOpen = false" class="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                             </svg>
                         </button>
-                        <span style="font-size:15px; font-weight:700; color:#1e293b;">Property Filter</span>
+                        <span class="text-sm font-bold text-slate-900 dark:text-slate-100">Property Filter</span>
                     </div>
-                    <button type="button" @click="resetFilter()"
-                            style="background:none; border:none; cursor:pointer; font-size:13px; font-weight:600; color:#4F7EF0;">
+                    <button type="button" @click="resetFilter()" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
                         Reset all
                     </button>
                 </div>
 
-                {{-- Dropdown: Risiko Terkait --}}
-                <div style="margin-bottom:14px;">
-                    <label style="display:block; font-size:13px; font-weight:600; color:#1e293b; margin-bottom:6px;">Risiko Terkait</label>
-                    <div style="position:relative;">
+                {{-- Dropdown: Total Risiko --}}
+                <div class="mb-3.5">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Total Risiko</label>
+                    <div class="relative">
                         <select x-model="filterRiskCount"
-                                style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:8px; padding:9px 36px 9px 12px; font-size:13px; color:#64748b; background:#fff; cursor:pointer; outline:none;">
-                            <option value="">Semua Risiko</option>
-                            <option value="terbanyak">Terbanyak</option>
-                            <option value="tersedikit">Tersedikit</option>
+                                class="w-full appearance-none rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                            <option value="">Semua Unit</option>
+                            <option value="has_risk">Memiliki Risiko (>0)</option>
+                            <option value="no_risk">Belum Ada Risiko (=0)</option>
+                            <option value="high_risk">Banyak Risiko (>=5)</option>
                         </select>
-                        <svg style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:#94a3b8; pointer-events:none;" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                         </svg>
                     </div>
                 </div>
 
-                {{-- Dropdown: Dibuat --}}
-                <div style="margin-bottom:24px;">
-                    <label style="display:block; font-size:13px; font-weight:600; color:#1e293b; margin-bottom:6px;">Dibuat</label>
-                    <div style="position:relative;">
+                {{-- Dropdown: Tanggal Dibuat --}}
+                <div class="mb-5">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Waktu Dibuat</label>
+                    <div class="relative">
                         <select x-model="filterCreated"
-                                style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:8px; padding:9px 36px 9px 12px; font-size:13px; color:#64748b; background:#fff; cursor:pointer; outline:none;">
-                            <option value="">Semua</option>
-                            <option value="terbaru">Terbaru</option>
-                            <option value="terlama">Terlama</option>
+                                class="w-full appearance-none rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                            <option value="">Semua Waktu</option>
+                            <option value="this_month">Bulan Ini</option>
+                            <option value="this_year">Tahun Ini</option>
                         </select>
-                        <svg style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; pointer-events:none;" fill="none" stroke="#94a3b8" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                         </svg>
                     </div>
                 </div>
 
                 {{-- Tombol Add Filter --}}
-                <div style="display:flex; justify-content:flex-end;">
+                <div class="flex justify-end">
                     <button type="button" @click="applyFilter()"
-                            style="background:#4F7EF0; color:#fff; border:none; border-radius:10px; padding:10px 28px; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.2s;"
-                            onmouseover="this.style.background='#3b66d9'"
-                            onmouseout="this.style.background='#4F7EF0'">
+                            class="inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700 active:scale-95">
                         Add Filter
                     </button>
                 </div>
@@ -146,17 +143,14 @@
             </div>
         </div>
 
-        {{-- Jarak antara toolbar dan tabel --}}
-        <div class="mt-6"></div>
-
-        {{-- Table Section --}}
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+        {{-- Tabel --}}
+        <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-slate-950/5">
             <div class="overflow-x-auto">
                 <table class="min-w-full border-collapse">
                     <thead>
                         <tr class="bg-indigo-600 text-white">
                             {{-- PERBAIKAN: Alignment disesuaikan ke text-left agar sejajar dengan isi data --}}
-                            <th class="rounded-tl-lg px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
+                            <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">
                                 Unit Kerja
                             </th>
                             <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide">

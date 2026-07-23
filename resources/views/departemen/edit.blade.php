@@ -178,40 +178,74 @@
 
                             {{-- Level Inheren (auto) --}}
                             <div>
-                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Level Inheren</label>
-                                <div style="border:2px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#1e293b; background:#f8fafc; text-align:center; height:38px; display:flex; align-items:center; justify-content:center; font-weight:600; box-sizing:border-box;">
-                                    <span x-text="inherentLevelName || ''"></span>
+                                <label class="block text-xs font-bold text-slate-900 dark:text-slate-100 mb-2">Level Inheren</label>
+                                <div class="flex h-[38px] items-center justify-center rounded-xl border px-3 text-xs font-bold transition-all"
+                                     :class="{
+                                         'bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-900': (inherentLevelName === 'High' || inherentLevelName === 'Tinggi'),
+                                         'bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-400 border-orange-300 dark:border-orange-900': (inherentLevelName === 'Mod High' || inherentLevelName === 'Moderate to High'),
+                                         'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-900': inherentLevelName === 'Moderate',
+                                         'bg-lime-100 dark:bg-lime-950/80 text-lime-800 dark:text-lime-300 border-lime-300 dark:border-lime-900': (inherentLevelName === 'Low Mod' || inherentLevelName === 'Low to Moderate'),
+                                         'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-900': (inherentLevelName === 'Low' || inherentLevelName === 'Rendah'),
+                                         'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700': !inherentLevelName
+                                     }">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span class="h-2 w-2 rounded-full"
+                                              :class="{
+                                                  'bg-rose-600': (inherentLevelName === 'High' || inherentLevelName === 'Tinggi'),
+                                                  'bg-orange-500': (inherentLevelName === 'Mod High' || inherentLevelName === 'Moderate to High'),
+                                                  'bg-amber-500': inherentLevelName === 'Moderate',
+                                                  'bg-lime-500': (inherentLevelName === 'Low Mod' || inherentLevelName === 'Low to Moderate'),
+                                                  'bg-emerald-600': (inherentLevelName === 'Low' || inherentLevelName === 'Rendah'),
+                                                  'hidden': !inherentLevelName
+                                              }"></span>
+                                        <span x-text="inherentLevelName || '-'"></span>
+                                    </span>
                                 </div>
                             </div>
 
                             {{-- Nilai Target --}}
                             <div>
-                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Nilai Target <span style="color:#ef4444;">*</span></label>
-
-                                {{-- MENGGUNAKAN targetValue --}}
-                               <input type="number"
-                                    name="target_value"
-                                    x-model="targetValue"
-                                    x-init="targetValue = '{{ old('target_value', $risk->target_value) }}'"
-                                    min="1" max="25"
-                                    placeholder="1 - 25"
-                                    value="{{ old('target_value', $risk->target_value) }}"
-                                    style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
-
-                                {{-- MENGGUNAKAN otomatisTargetLevel --}}
+                                <label class="block text-xs font-bold text-slate-900 dark:text-slate-100 mb-2">Nilai Target <span class="text-rose-500">*</span></label>
+                                <input type="number"
+                                     name="target_value"
+                                     x-model="targetValue"
+                                     x-init="targetValue = '{{ old('target_value', $risk->target_value) }}'"
+                                     min="1" max="25"
+                                     placeholder="1 - 25"
+                                     value="{{ old('target_value', $risk->target_value) }}"
+                                     class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 outline-none h-[38px]">
                                 <input type="hidden"
-                                    name="target_id_level"
-                                    :value="otomatisTargetLevel || '{{ old('target_id_level', $risk->target_id_level) }}'">
+                                     name="target_id_level"
+                                     :value="otomatisTargetLevel || '{{ old('target_id_level', $risk->target_id_level) }}'">
                             </div>
 
                             {{-- Level Target (auto) --}}
                             <div>
-                                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:8px;">Level Target</label>
-                                <div style="border:2px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#1e293b; background:#f8fafc; text-align:center; height:38px; display:flex; align-items:center; justify-content:center; font-weight:600; box-sizing:border-box;">
-                                    <span x-text="otomatisTargetLevelName || ''"></span>
+                                <label class="block text-xs font-bold text-slate-900 dark:text-slate-100 mb-2">Level Target</label>
+                                <div class="flex h-[38px] items-center justify-center rounded-xl border px-3 text-xs font-bold transition-all"
+                                     :class="{
+                                         'bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-900': (otomatisTargetLevelName === 'High' || otomatisTargetLevelName === 'Tinggi'),
+                                         'bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-400 border-orange-300 dark:border-orange-900': (otomatisTargetLevelName === 'Mod High' || otomatisTargetLevelName === 'Moderate to High'),
+                                         'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-900': otomatisTargetLevelName === 'Moderate',
+                                         'bg-lime-100 dark:bg-lime-950/80 text-lime-800 dark:text-lime-300 border-lime-300 dark:border-lime-900': (otomatisTargetLevelName === 'Low Mod' || otomatisTargetLevelName === 'Low to Moderate'),
+                                         'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-900': (otomatisTargetLevelName === 'Low' || otomatisTargetLevelName === 'Rendah'),
+                                         'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700': !otomatisTargetLevelName
+                                     }">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span class="h-2 w-2 rounded-full"
+                                              :class="{
+                                                  'bg-rose-600': (otomatisTargetLevelName === 'High' || otomatisTargetLevelName === 'Tinggi'),
+                                                  'bg-orange-500': (otomatisTargetLevelName === 'Mod High' || otomatisTargetLevelName === 'Moderate to High'),
+                                                  'bg-amber-500': otomatisTargetLevelName === 'Moderate',
+                                                  'bg-lime-500': (otomatisTargetLevelName === 'Low Mod' || otomatisTargetLevelName === 'Low to Moderate'),
+                                                  'bg-emerald-600': (otomatisTargetLevelName === 'Low' || otomatisTargetLevelName === 'Rendah'),
+                                                  'hidden': !otomatisTargetLevelName
+                                              }"></span>
+                                        <span x-text="otomatisTargetLevelName || '-'"></span>
+                                    </span>
                                 </div>
                             </div>
-                            </form>
+
                         </div>
 
                             {{-- TOMBOL AKSI --}}
@@ -228,10 +262,11 @@
                                     Simpan
                                 </button>
                             </div>
-                    </td> 
+                    </td>
                 </tr>
             </table>
         </div>
+    </form>
 
 
 

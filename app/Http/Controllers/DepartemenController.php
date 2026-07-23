@@ -50,6 +50,9 @@ class DepartemenController extends Controller
         $categories = $this->riskRepo->getAllCategories();
         $levels = $this->riskRepo->getAllLevels();
 
+        // 👇 TAMBAHAN: Simpan URL halaman saat ini (beserta filter dan pagination) ke dalam session
+        session()->put('risk_index_url', request()->fullUrl());
+
         return view('departemen.index', array_merge(
             compact('tab', 'risks', 'units', 'categories', 'levels'),
             $request->only(['search', 'unit_id', 'category_id', 'level_id', 'type', 'status'])
@@ -64,7 +67,7 @@ class DepartemenController extends Controller
             'levels' => $this->riskRepo->getAllLevels()
         ]);
     }
-    
+
     public function store(DepMonitoringRequest $request): RedirectResponse
     {
         $dataToSave = $request->validated();
@@ -91,15 +94,20 @@ class DepartemenController extends Controller
     {
         $this->riskRepo->update($id, $request->validated());
 
-        return redirect()->route('department-risk.index', ['tab' => 'data'])
-                         ->with('success', 'Risk Department berhasil diperbarui.');
+        // 👇 UBAH REDIRECT: Arahkan kembali ke URL yang tersimpan di session, atau fallback ke default
+        $redirectUrl = session('risk_index_url', route('department-risk.index', ['tab' => 'data']));
+
+        return redirect($redirectUrl)->with('success', 'Risk Department berhasil diperbarui.');
     }
 
     public function destroy(string $id): RedirectResponse
     {
         $this->riskRepo->delete($id);
-        return redirect()->route('department-risk.index', ['tab' => 'data'])
-                         ->with('success', 'Risk Department berhasil dihapus.');
+
+        // 👇 UBAH REDIRECT: Terapkan juga di sini agar hapus data tidak menghilangkan filter
+        $redirectUrl = session('risk_index_url', route('department-risk.index', ['tab' => 'data']));
+
+        return redirect($redirectUrl)->with('success', 'Risk Department berhasil dihapus.');
     }
 
     public function show(string $id): View

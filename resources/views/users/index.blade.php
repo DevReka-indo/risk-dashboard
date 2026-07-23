@@ -9,32 +9,31 @@
     </x-slot>
 
     <div class="space-y-6">
-            <div class="flex items-center gap-2">
-                <form method="GET" action="{{ route('users.index') }}" class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+            <form method="GET" action="{{ route('users.index') }}" class="flex items-center gap-2">
                 <input type="text" name="search" value="{{ $search ?? '' }}"
-                       placeholder="Cari nama unit atau keterangan..."
-                       class="w-64 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                       placeholder="Cari nama atau email user..."
+                       class="w-64 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
                 <button type="submit"
-                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition">
+                        class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all active:scale-95">
                     Cari
                 </button>
             </form>
 
             <div class="flex-1"></div>
 
-                @can('user.create')
-                    <a href="{{ route('users.create') }}"
-                       class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-700">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        Tambah User
-                    </a>
-                @endcan
-
+            @can('user.create')
+                <a href="{{ route('users.create') }}"
+                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition-all active:scale-95">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Tambah User
+                </a>
+            @endcan
         </div>
 
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+        <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl shadow-slate-950/5">
             <div class="overflow-x-auto">
                 <table class="min-w-full border-collapse">
                     <thead>

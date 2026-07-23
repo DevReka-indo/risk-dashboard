@@ -8,24 +8,23 @@
 
     <title>{{ $title ?? config('app.name', 'Risk Dashboard') }}</title>
 
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="font-sans text-slate-900 antialiased">
+<body class="font-sans text-slate-900 dark:text-slate-100 antialiased bg-slate-50 dark:bg-slate-950 transition-colors">
 
-<div
-    class="min-h-screen"
-    style="
-        background: linear-gradient(
-            180deg,
-            #F7FAFF 0%,
-            #EEF4FF 35%,
-            #E7F0FF 70%,
-            #E1ECFF 100%
-        );
-    ">
+<div class="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
+
 
     {{-- Overlay Mobile --}}
     <div

@@ -12,20 +12,20 @@
         $activeTab = request()->query('tab', 'data');
     @endphp
 
-    <div class="mb-6 rounded-lg bg-slate-200 p-2">
-        <div class="grid grid-cols-2 gap-2">
+    <div class="mb-6 rounded-2xl bg-slate-200/70 dark:bg-slate-800/80 p-1.5 backdrop-blur border border-slate-300/50 dark:border-slate-700/60 shadow-inner">
+        <div class="grid grid-cols-2 gap-1.5">
             <a href="{{ route('top-risk.index', array_merge(request()->except('page'), ['tab' => 'data'])) }}"
-                class="rounded-lg py-3 text-center text-sm font-semibold transition
+                class="rounded-xl py-2.5 text-center text-sm font-semibold transition-all duration-200
                 {{ $activeTab === 'data'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-700 hover:bg-slate-300' }}">
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-300/60 dark:hover:bg-slate-700/60 hover:text-slate-900 dark:hover:text-white' }}">
                 Data Top Risk
             </a>
             <a href="{{ route('top-risk.index', array_merge(request()->except('page'), ['tab' => 'dashboard'])) }}"
-                class="rounded-lg py-3 text-center text-sm font-semibold transition
+                class="rounded-xl py-2.5 text-center text-sm font-semibold transition-all duration-200
                 {{ $activeTab === 'dashboard'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-700 hover:bg-slate-300' }}">
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-300/60 dark:hover:bg-slate-700/60 hover:text-slate-900 dark:hover:text-white' }}">
                 Dashboard Risiko
             </a>
         </div>
@@ -87,9 +87,6 @@
             {{-- Tambah --}}
             <a href="{{ route('top-risk.create') }}"
                class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
                 Tambah
             </a>
         </div>
@@ -181,12 +178,10 @@
 
                 {{-- Tombol Add Filter --}}
                 <div style="display:flex; justify-content:flex-end;">
-                    <button type="button" @click="applyFilter()"
-                            style="background:#4F7EF0; color:#fff; border:none; border-radius:10px; padding:10px 28px; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.2s;"
-                            onmouseover="this.style.background='#3b66d9'"
-                            onmouseout="this.style.background='#4F7EF0'">
-                        Add Filter
-                    </button>
+                <button type="button" @click="applyFilter()"
+                        class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
+                    Add Filter
+                </button>
                 </div>
 
             </div>
@@ -223,14 +218,20 @@
                             @php
                                 $monitoringTerakhir = $topRisk->monitoringBulanan->first();
                                 $levelUrutan = (int) ($monitoringTerakhir?->level?->urutan ?? 0);
-                                $levelBadgeClass = match ($levelUrutan) {
-                                    1 => 'bg-emerald-100 text-emerald-800',
-                                    2 => 'bg-lime-100 text-lime-800',
-                                    3 => 'bg-yellow-100 text-yellow-800',
-                                    4 => 'bg-orange-100 text-orange-800',
-                                    5 => 'bg-red-100 text-red-800',
-                                    default => 'bg-slate-100 text-slate-700',
-                                };
+                                $lvlName = $monitoringTerakhir?->level?->nama_level ?? '-';
+                                $lvlLower = strtolower($lvlName);
+
+                                if ($levelUrutan === 5 || (str_contains($lvlLower, 'high') && !str_contains($lvlLower, 'mod'))) {
+                                    $tLvlBg = 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-900/50'; $tDot = 'bg-rose-600';
+                                } elseif ($levelUrutan === 4 || str_contains($lvlLower, 'mod high') || str_contains($lvlLower, 'moderate to high')) {
+                                    $tLvlBg = 'bg-orange-100 dark:bg-orange-950/70 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-900/50'; $tDot = 'bg-orange-500';
+                                } elseif ($levelUrutan === 3 || str_contains($lvlLower, 'moderate') || str_contains($lvlLower, 'mod')) {
+                                    $tLvlBg = 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900/50'; $tDot = 'bg-amber-500';
+                                } elseif ($levelUrutan === 2 || str_contains($lvlLower, 'low mod') || str_contains($lvlLower, 'low to moderate')) {
+                                    $tLvlBg = 'bg-lime-100 dark:bg-lime-950/70 text-lime-800 dark:text-lime-300 border-lime-200 dark:border-lime-900/50'; $tDot = 'bg-lime-500';
+                                } else {
+                                    $tLvlBg = 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50'; $tDot = 'bg-emerald-600';
+                                }
                             @endphp
 
                             <tr class="hover:bg-slate-50 transition border-b border-slate-300">
@@ -252,7 +253,7 @@
                                 <td class="px-6 py-4">
                                     <div class="flex max-w-xs flex-wrap gap-2">
                                         @forelse ($topRisk->unitKerja as $unit)
-                                            <span class="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                                            <span class="inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
                                                 {{ $unit->nama_unit }}
                                             </span>
                                         @empty
@@ -267,27 +268,27 @@
                                         <div class="space-y-1.5">
                                             {{-- Badge Nilai & Level Risiko --}}
                                             <div class="flex flex-nowrap items-center gap-2">
-                                                <span class="inline-flex shrink-0 items-center whitespace-nowrap rounded bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                                                <span class="inline-flex shrink-0 items-center whitespace-nowrap rounded-lg bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
                                                     Nilai {{ $monitoringTerakhir->nilai ?? 0 }}
                                                 </span>
 
-                                                <span class="inline-flex shrink-0 items-center whitespace-nowrap rounded px-2.5 py-1 text-xs font-semibold {{ $levelBadgeClass }}">
-                                                    {{ $monitoringTerakhir->level->nama_level ?? '-' }}
+                                                <span class="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold border {{ $tLvlBg }}">
+                                                    <span class="h-2 w-2 rounded-full {{ $tDot }}"></span>
+                                                    {{ $lvlName }}
                                                 </span>
                                             </div>
 
                                             {{-- Periode Bulan/Tahun --}}
-                                            <div class="text-xs font-bold text-slate-900">
+                                            <div class="text-xs font-bold text-slate-900 dark:text-slate-100">
                                                 {{ str_pad((string) ($monitoringTerakhir->bulan ?? ''), 2, '0', STR_PAD_LEFT) }}/{{ $monitoringTerakhir->tahun ?? '' }}
                                             </div>
 
-                                            {{-- Efektivitas (Flexbox Sejajar Tanpa Line-Break) --}}
-                                            <div class="flex flex-col gap-0.5 text-xs text-slate-500">
+                                            {{-- Efektivitas --}}
+                                            <div class="flex flex-col gap-0.5 text-xs text-slate-500 dark:text-slate-400">
                                                 <span>
                                                     Efektivitas:
-
                                                 </span>
-                                                <span class="inline-flex items-center gap-0.5 font-semibold">
+                                                <span class="inline-flex items-center gap-0.5 font-semibold text-slate-700 dark:text-slate-300">
                                                     {{ $monitoringTerakhir->aturanEfektivitas->hasil ?? 'Belum ada pembanding' }}
                                                 </span>
                                             </div>
@@ -300,28 +301,28 @@
                                 {{-- Status Aktif / Tidak Aktif --}}
                                 <td class="whitespace-nowrap px-6 py-4 text-center">
                                     @if ($topRisk->is_aktif)
-                                        <span class="inline-flex items-center rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                        <span class="inline-flex items-center rounded-lg bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
                                             Aktif
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                        <span class="inline-flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400">
                                             Tidak Aktif
                                         </span>
                                     @endif
                                 </td>
 
                                 <td class="whitespace-nowrap px-6 py-4 text-right">
-                                    <div class="flex items-center justify-end gap-2">
+                                    <div class="flex items-center justify-end gap-1.5">
                                         {{-- Detail --}}
                                         <a href="{{ route('top-risk.show', $topRisk) }}"
-                                           class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600">
+                                           class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-xs transition-all hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             Detail
                                         </a>
 
                                         {{-- Edit --}}
                                         <a href="{{ route('top-risk.edit', $topRisk) }}"
-                                           class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
+                                           class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-xs transition-all hover:border-amber-300 dark:hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/50 hover:text-amber-600 dark:hover:text-amber-400">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                             Edit
                                         </a>

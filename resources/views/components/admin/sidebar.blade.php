@@ -1,33 +1,32 @@
 <aside
     class="fixed inset-y-0 left-0 z-50 flex w-72 transform flex-col
-           border-r border-indigo-100
-           bg-gradient-to-b from-slate-50 via-white to-indigo-50/40
+           border-r border-indigo-100 dark:border-slate-800
+           bg-gradient-to-b from-slate-50 via-white to-indigo-50/40 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950
            shadow-2xl
            transition-transform duration-300
            lg:translate-x-0"
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
-    <div class="flex h-16 items-center gap-4 border-b border-indigo-100 px-6 bg-white/70 backdrop-blur">
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-            <div
-    class="flex h-12 w-12 items-center justify-center
-           rounded-lg
-           bg-gradient-to-br
-           from-white-500
-           via-white
-           to-white-500
-           text-white
-           shadow-xl shadow-indigo-300/40">
-               <img src="{{ asset('images/Group 6924.png') }}"
+    <div class="flex h-16 items-center gap-3.5 border-b border-slate-200 dark:border-slate-800 px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl">
+        <a href="{{ route('dashboard') }}" class="group flex items-center gap-3">
+            {{-- Frameless Glossy Logo Icons --}}
+            <div class="relative flex items-center justify-center">
+                {{-- Light Mode Logo Icon (Glossy Dark Chrome Emblem) --}}
+                <img src="{{ asset('images/Group 6924.png') }}"
                      alt="Manrisk Logo"
-                     class="h-7 w-7 object-contain brightness-0 invert text-white">
+                     class="h-9 w-auto object-contain filter brightness-0 drop-shadow-[0_2px_5px_rgba(0,0,0,0.25)] dark:hidden transition-all duration-300 group-hover:scale-105">
+
+                {{-- Dark Mode Logo Icon (Glossy Glowing White Emblem) --}}
+                <img src="{{ asset('images/Group 6924.png') }}"
+                     alt="Manrisk Logo"
+                     class="h-9 w-auto object-contain hidden dark:block filter brightness-0 invert drop-shadow-[0_0_10px_rgba(255,255,255,0.7)] transition-all duration-300 group-hover:scale-105">
             </div>
 
             <div>
-               <div class="text-base font-bold tracking-wide text-slate-800">
+                <div class="text-base font-extrabold tracking-wide text-slate-900 dark:text-white transition-colors leading-tight">
                     Manrisk
                 </div>
-              <div class="text-xs text-indigo-400 font-medium">
+                <div class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 leading-tight">
                     Monitoring Risiko Perusahaan
                 </div>
             </div>
