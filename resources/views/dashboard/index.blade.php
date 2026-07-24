@@ -29,40 +29,45 @@
     <script src="{{ asset('js/ai-chat.js') }}"></script>
 
     <script>
-    function switchTab(tabName) {
-        document.querySelectorAll('.tab-content').forEach(el => {
-            el.classList.add('hidden');
-        });
+   function switchTab(tabName) {
+    // 1. Sembunyikan semua isi tab
+    document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.add('hidden');
+    });
 
-        document.querySelectorAll('.kpi-card').forEach(el => {
-            el.classList.remove('ring-2', 'ring-rose-500', 'ring-purple-500', 'ring-blue-500', 'card-active-rose', 'card-active-purple', 'card-active-indigo');
+    // 2. Lepas status fokus dari elemen kpi-card
+    document.querySelectorAll('.kpi-card').forEach(el => {
+        if (document.activeElement === el) {
             el.blur();
-        });
-
-        const selectedContent = document.getElementById('content-' + tabName);
-        if (selectedContent) {
-            selectedContent.classList.remove('hidden');
-
-            setTimeout(() => {
-                window.dispatchEvent(new Event('resize'));
-                if (typeof resizeTabCharts === 'function') {
-                    resizeTabCharts(selectedContent);
-                }
-
-                if (tabName === 'smap') {
-                    if (typeof initSmapCharts === 'function') {
-                        initSmapCharts();
-                    } else if (typeof renderSmapCharts === 'function') {
-                        renderSmapCharts();
-                    }
-                }
-            }, 150);
         }
+    });
 
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('tab', tabName);
-        window.history.replaceState({}, '', currentUrl);
+    // 3. Tampilkan tab content terpilih
+    const selectedContent = document.getElementById('content-' + tabName);
+    if (selectedContent) {
+        selectedContent.classList.remove('hidden');
+
+        setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+            if (typeof resizeTabCharts === 'function') {
+                resizeTabCharts(selectedContent);
+            }
+
+            if (tabName === 'smap') {
+                if (typeof initSmapCharts === 'function') {
+                    initSmapCharts();
+                } else if (typeof renderSmapCharts === 'function') {
+                    renderSmapCharts();
+                }
+            }
+        }, 150);
     }
+
+    // 4. Update parameter tab URL
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('tab', tabName);
+    window.history.replaceState({}, '', currentUrl);
+}
 
     function resizeTabCharts(container) {
         if (!container) return;
