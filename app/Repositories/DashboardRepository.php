@@ -14,7 +14,8 @@ class DashboardRepository
 {
     public function getHighLevelIds(): array
     {
-        return LevelRisiko::whereIn('nama_level', ['High', 'Tinggi', 'Moderate to High'])
+        return DB::table('level_risiko')
+            ->whereIn('nama_level', ['High', 'Tinggi', 'Moderate to High'])
             ->pluck('id_level')
             ->toArray();
     }
@@ -22,14 +23,19 @@ class DashboardRepository
     public function getKpiStats(array $highLevelIds): array
     {
         return [
-            'total_risks' => DepMonitoring::count() + SmapMonitoring::whereNull('parent_id')->count() + TopRisiko::count(),
-            'high_risks' => DepMonitoring::whereIn('id_level', $highLevelIds)->count()
-                          + SmapMonitoring::whereIn('id_level', $highLevelIds)->whereNull('parent_id')->count(),
-            'pending_actions' => DB::table('dep_monitoring_periods')->sum('progres_belum')
-                            + DB::table('dep_monitoring_periods')->sum('progres_proses'),
-            'total_dep' => DepMonitoring::count(),
-            'total_smap' => SmapMonitoring::whereNull('parent_id')->count(),
-            'total_top' => TopRisiko::count(),
+            'total_risks' => DB::table('dep_monitoring')->count()
+                        + DB::table('smap_monitoring')->whereNull('parent_id')->count()
+                        + DB::table('top_risiko')->count(),
+
+            'high_risks'  => DB::table('dep_monitoring')->whereIn('id_level', $highLevelIds)->count()
+                        + DB::table('smap_monitoring')->whereIn('id_level', $highLevelIds)->whereNull('parent_id')->count(),
+
+            'pending_actions' => (int) DB::table('dep_monitoring_periods')->sum('progres_belum')
+                            + (int) DB::table('dep_monitoring_periods')->sum('progres_proses'),
+
+            'total_dep'  => DB::table('dep_monitoring')->count(),
+            'total_smap' => DB::table('smap_monitoring')->whereNull('parent_id')->count(),
+            'total_top'  => DB::table('top_risiko')->count(),
         ];
     }
 

@@ -214,16 +214,26 @@ class DashboardService
 
         if ($levels->isNotEmpty()) {
             $pieData['labels'] = $levels->pluck('nama_level')->toArray();
-            foreach ($levels as $level) {
-                $pieData['inherent'][] = SmapMonitoring::where('id_level', $level->id_level)->whereNull('parent_id')->count();
-                $pieData['current'][] = SmapMonitoring::where('id_level', $level->id_level)->whereNotNull('parent_id')->count();
-                $pieData['target'][] = SmapMonitoring::where('id_level', $level->id_level)->whereNull('parent_id')->count();
+
+            $levelsWithCounts = $levels->loadCount([
+                'smapMonitorings as inherent_count' => function ($query) {
+                    $query->whereNull('parent_id');
+                },
+                'smapMonitorings as current_count' => function ($query) {
+                    $query->whereNotNull('parent_id');
+                }
+            ]);
+
+            foreach ($levelsWithCounts as $level) {
+                $pieData['inherent'][] = $level->inherent_count;
+                $pieData['current'][]  = $level->current_count;
+                $pieData['target'][]   = $level->inherent_count;
             }
         } else {
-            $pieData['labels'] = ['Low', 'Low to Moderate', 'Moderate', 'Moderate to High', 'High'];
+            $pieData['labels']   = ['Low', 'Low to Moderate', 'Moderate', 'Moderate to High', 'High'];
             $pieData['inherent'] = [5, 8, 3];
-            $pieData['current'] = [3, 5, 2];
-            $pieData['target'] = [5, 8, 3];
+            $pieData['current']  = [3, 5, 2];
+            $pieData['target']   = [5, 8, 3];
         }
 
         $pieData['efektif'] = [
@@ -287,8 +297,8 @@ class DashboardService
         }
 
         try {
-            $risks = SmapMonitoring::whereNull('parent_id')
-                ->orderBy('created_at', 'desc')
+            $risks = SmapMonitoring::parentRisks()
+                ->latest()
                 ->take(10)
                 ->get();
         } catch (\Exception $e) {
@@ -322,28 +332,39 @@ class DashboardService
         $targetData = [];
 
         foreach ($levels as $level) {
-            $inherentData[] = DepMonitoring::where('id_level', $level->id_level)->count();
+            $inherentData[] = DB::table('dep_monitoring')
+                ->where('id_level', $level->id_level)
+                ->count();
+
             try {
                 $currentCount = DB::table('dep_monitoring_periods')
                     ->join('dep_monitoring', 'dep_monitoring_periods.id_monitoring', '=', 'dep_monitoring.id_monitoring')
                     ->where('dep_monitoring.id_level', $level->id_level)
-                    ->where(fn ($q) => $q->where('dep_monitoring_periods.progres_belum', '>', 0)->orWhere('dep_monitoring_periods.progres_proses', '>', 0))
-                    ->distinct('dep_monitoring_periods.id_monitoring')
+                    ->where(function ($q) {
+                        $q->where('dep_monitoring_periods.progres_belum', '>', 0)
+                        ->orWhere('dep_monitoring_periods.progres_proses', '>', 0);
+                    })
+                    ->distinct()
                     ->count('dep_monitoring_periods.id_monitoring');
 
                 $targetCount = DB::table('dep_monitoring_periods')
                     ->join('dep_monitoring', 'dep_monitoring_periods.id_monitoring', '=', 'dep_monitoring.id_monitoring')
                     ->where('dep_monitoring.id_level', $level->id_level)
                     ->where('dep_monitoring_periods.progres_sudah', '>', 0)
-                    ->distinct('dep_monitoring_periods.id_monitoring')
+                    ->distinct()
                     ->count('dep_monitoring_periods.id_monitoring');
+
             } catch (\Exception $e) {
-                $total = DepMonitoring::where('id_level', $level->id_level)->count();
+                $total = DB::table('dep_monitoring')
+                    ->where('id_level', $level->id_level)
+                    ->count();
+
                 $currentCount = (int) ($total * 0.6);
-                $targetCount = (int) ($total * 0.4);
+                $targetCount  = (int) ($total * 0.4);
             }
+
             $currentData[] = $currentCount;
-            $targetData[] = $targetCount;
+            $targetData[]  = $targetCount;
         }
 
         if (empty($inherentData) || array_sum($inherentData) == 0) {
@@ -353,14 +374,16 @@ class DashboardService
         }
 
         $jenisRisikoData = [4, 6];
+        
         try {
             if (Schema::hasColumn('dep_monitoring', 'type')) {
                 $jenisRisikoData = [
-                    DepMonitoring::where('type', 'Proyek')->count(),
-                    DepMonitoring::where('type', 'Non-Proyek')->count(),
+                    DB::table('dep_monitoring')->where('type', 'Proyek')->count(),
+                    DB::table('dep_monitoring')->where('type', 'Non-Proyek')->count(),
                 ];
             }
         } catch (\Exception $e) {
+            //
         }
 
         $efektifRisikoData = [2, 3, 2, 1, 1, 1];

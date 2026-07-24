@@ -35,17 +35,25 @@ class DepartemenRiskRepository
     public function getAllUnits() {
         return TopUnitKerja::orderBy('nama_unit', 'asc')->get();
     }
+
     public function getAllCategories() {
         return KategoriRisiko::orderBy('nama_kategori', 'asc')->get();
     }
+
     public function getAllLevels() {
         return LevelRisiko::orderBy('id_level', 'asc')->get();
     }
+    
     public function getLevelsOrdered() {
         return LevelRisiko::orderBy('urutan', 'asc')->get();
     }
-    public function findLevelByIdOrName($levelInput) {
-        return LevelRisiko::where('id_level', $levelInput)->orWhere('nama_level', $levelInput)->first();
+
+    public function findLevelByIdOrName($levelInput)
+    {
+        return DB::table('level_risiko')
+            ->where('id_level', $levelInput)
+            ->orWhere('nama_level', $levelInput)
+            ->first();
     }
 
     // --- CRUD RISIKO UTAMA ---

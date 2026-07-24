@@ -113,4 +113,9 @@ class SmapMonitoring extends Model
         return $this->hasMany(SmapMonitoringPeriod::class, 'id_smap', 'id_smap')
                     ->latest('id_detail');
     }
+
+    public function scopeParentRisks($query)
+    {
+        return $query->where('parent_id', null);
+    }
 }

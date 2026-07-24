@@ -30,28 +30,22 @@
 
     <script>
     function switchTab(tabName) {
-        // 1. Sembunyikan semua tab
         document.querySelectorAll('.tab-content').forEach(el => {
             el.classList.add('hidden');
         });
 
-        // 2. Clear status border aktif dari semua card KPI
         document.querySelectorAll('.kpi-card').forEach(el => {
             el.classList.remove('ring-2', 'ring-red-500', 'ring-indigo-500', 'ring-purple-500');
         });
 
-        // 3. Tampilkan tab yang dipilih
         const selectedContent = document.getElementById('content-' + tabName);
         if (selectedContent) {
             selectedContent.classList.remove('hidden');
 
-            // Beri waktu sebentar agar browser merender elemen HTML (display: block)
             setTimeout(() => {
-                // Force resize Chart.js canvas agar tidak terdistorsi/gepeng
                 window.dispatchEvent(new Event('resize'));
                 resizeTabCharts(selectedContent);
 
-                // Re-render chart SMAP spesifik jika method-nya terdaftar di JS
                 if (tabName === 'smap') {
                     if (typeof initSmapCharts === 'function') {
                         initSmapCharts();
@@ -62,16 +56,18 @@
             }, 150);
         }
 
-        // 4. Highlight Card KPI yang sedang aktif
         const selectedCard = document.getElementById('card-' + tabName);
         if (selectedCard) {
             if (tabName === 'top_risk') selectedCard.classList.add('ring-2', 'ring-red-500');
             else if (tabName === 'dep') selectedCard.classList.add('ring-2', 'ring-indigo-500');
             else if (tabName === 'smap') selectedCard.classList.add('ring-2', 'ring-purple-500');
         }
+
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('tab', tabName);
+        window.history.replaceState({}, '', currentUrl);
     }
 
-    // Helper universal untuk merefresh Chart.js
     function resizeTabCharts(container) {
         if (!container) return;
 
@@ -107,17 +103,15 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-    // 1. Cek parameter 'tab' dari URL (misal: ?tab=smap&periode=1&tahun=2026)
-    const urlParams = new URLSearchParams(window.location.search);
-    const activeTabParam = urlParams.get('tab');
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTabParam = urlParams.get('tab');
 
-    // 2. Jika ada query parameter tab (misal 'smap'), buka tab tersebut.
-    // Jika tidak ada, default ke 'top_risk'.
-    if (activeTabParam) {
-        switchTab(activeTabParam);
-    } else {
-        switchTab('top_risk');
-    }
+        if (activeTabParam) {
+            switchTab(activeTabParam);
+        } else {
+            switchTab('top_risk');
+        }
     });
     </script>
+    
 </x-admin-layout>

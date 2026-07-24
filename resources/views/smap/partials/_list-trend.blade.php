@@ -22,27 +22,31 @@
 
         const ctxTrend = canvasElement.getContext('2d');
 
-        const labelTren = {!! json_encode($trendLabels) !!};
-        const dataTren = {!! json_encode($trendData) !!};
+        const labels = {!! json_encode($trendLabels ?? []) !!};
+        const dataValues = {!! json_encode($trendData ?? []) !!};
+
+        // Pemetaan warna dinamis persis seperti modul Departemen
+        const dynamicColors = labels.map(label => {
+            if (label === 'Naik') return '#f59e0b';
+            if (label === 'Turun') return '#65a30d';
+            if (label === 'Stabil' || label === 'Stagnan') return '#ea580c';
+            return '#cbd5e1';
+        });
 
         new Chart(ctxTrend, {
             type: 'bar',
             data: {
-                labels: labelTren,
+                labels: labels,
                 datasets: [{
                     label: 'Jumlah Risiko',
-                    data: dataTren,
-                    backgroundColor: [
-                        '#ef4444',
-                        '#10b981',
-                        '#64748b'
-                    ],
+                    data: dataValues,
+                    backgroundColor: dynamicColors,
                     borderRadius: 6,
-                    barThickness: 20,
+                    barThickness: 16,
                 }]
             },
             options: {
-                indexAxis: 'y', 
+                indexAxis: 'y', // Bar horizontal
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
@@ -52,7 +56,7 @@
                     x: {
                         beginAtZero: true,
                         ticks: { stepSize: 1 },
-                        grid: { display: true }
+                        grid: { drawBorder: false }
                     },
                     y: {
                         grid: { display: false }

@@ -118,4 +118,6 @@ class DepMonitoring extends Model
         )
         ->withTimestamps();
     }
+
+    
 }

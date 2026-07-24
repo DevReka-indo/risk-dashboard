@@ -1,65 +1,93 @@
-<div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-
-    {{-- Top Header --}}
-    <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
-        <div>
-            <h3 class="text-base font-bold text-slate-900">Efektivitas Mitigasi Risiko</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Analisis hasil realisasi penanganan risiko triwulan ini.</p>
-        </div>
+<!-- Container Chart Keberhasilan Penanganan Risiko SMAP -->
+<div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    <h3 class="mb-4 text-base font-bold text-slate-900">Keberhasilan Penanganan Risiko SMAP</h3>
+    <div class="h-64">
+        <canvas id="smapChartEfektif"></canvas>
     </div>
-
-    {{-- Area Canvas --}}
-    <div class="flex flex-col items-center p-6 bg-slate-50/50 rounded-lg border border-slate-100 max-w-sm mx-auto">
-        <h4 class="text-xs font-black text-slate-700 bg-white shadow-sm border border-slate-200 px-3 py-1.5 rounded-xl mb-4 w-full text-center uppercase tracking-wider">
-            Matriks Efektivitas
-        </h4>
-        <div class="relative w-full h-[220px]">
-            <canvas id="smapChartEfektif"></canvas>
-        </div>
-    </div>
-
 </div>
 
+<!-- Script Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const pieData = {!! json_encode($smapPieData ?? null) !!};
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const canvasElement = document.getElementById('smapChartEfektif');
+            if (!canvasElement) return;
 
-        if (!pieData || !pieData.efektif) return;
+            // Membaca data pie dari controller SMAP
+            const pieData = {!! json_encode($smapPieData ?? null) !!};
 
-        const ctxEfektif = document.getElementById('smapChartEfektif');
-        if (!ctxEfektif) return;
+            // Mengambil array data triwulan berjalan (.off) atau fallback array default
+            const efektifValues = (pieData && pieData.efektif && pieData.efektif.off)
+                ? pieData.efektif.off
+                : {!! json_encode($efektifRisikoData ?? [0, 0, 0, 0, 0, 0]) !!};
 
-        // Reset instance Chart.js jika sebelumnya sudah ada
-        if (Chart.getChart(ctxEfektif)) {
-            Chart.getChart(ctxEfektif).destroy();
-        }
+            // Memastikan label menggunakan urutan standar yang sama
+            const chartLabels = (pieData && pieData.efektif && pieData.efektif.labels)
+                ? pieData.efektif.labels
+                : [
+                    'Effective',
+                    'Mostly Effective',
+                    'Partially Effective',
+                    'In-Effective',
+                    'Pencatatan',
+                    'Unmeasurable'
+                ];
 
-        // Palette warna sesuai status (Pencatatan, Effective, Mostly Effective, Partially Effective, In-Effective, Unmeasurable)
-        const colorsEfektif = ['#3b82f6', '#10b981', '#14b8a6', '#f59e0b', '#ef4444', '#64748b'];
+            // Hapus instance lama jika ada
+            const existingChart = Chart.getChart(canvasElement);
+            if (existingChart) {
+                existingChart.destroy();
+            }
 
-        new Chart(ctxEfektif.getContext('2d'), {
-            type: 'pie',
-            data: {
-                labels: pieData.efektif.labels,
-                datasets: [{
-                    data: pieData.efektif.off, // Mengunci langsung pada data triwulan berjalan
-                    backgroundColor: colorsEfektif,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 10,
-                            font: { size: 10, weight: '600' }
+            const ctx = canvasElement.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: efektifValues,
+                        backgroundColor: [
+                            '#22c55e', // Effective (Hijau)
+                            '#84cc16', // Mostly Effective (Lime)
+                            '#facc15', // Partially Effective (Kuning)
+                            '#ef4444', // In-Effective (Merah)
+                            '#94a3b8', // Pencatatan (Slate)
+                            '#8b5cf6'  // Unmeasurable (Ungu)
+                        ],
+                        borderWidth: 1,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: { weight: 'normal' },
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    let val = context.raw;
+                                    let total = context.chart._metasets[context.datasetIndex].total;
+                                    let percentage = total > 0 ? Math.round((val / total) * 1000) / 10 + '%' : '0%';
+                                    return label + val + ' (' + percentage + ')';
+                                }
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }, 250);
     });
 </script>

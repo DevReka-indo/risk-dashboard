@@ -39,7 +39,8 @@
             </div>
 
             <div class="lg:col-span-6 lg:flex lg:justify-end">
-                <button type="submit" class="inline-flex w-full items-center justify-center rounded-lg bg-purple-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-purple-800 lg:w-auto">
+                <button type="submit"
+                    class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors duration-150 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 lg:w-auto">
                     Tampilkan Dashboard SMAP
                 </button>
             </div>
