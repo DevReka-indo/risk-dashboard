@@ -53,7 +53,7 @@ class SmapService
         return 'Unmeasurable';
     }
 
-    public function buildDashboardData(int $selectedPeriode, ?int $selectedYear)
+    public function buildDashboardData($selectedPeriode, ?int $selectedYear)
     {
         if (!$selectedYear) {
             $latestData = $this->smapRepo->getLatestPeriodYear();
@@ -64,8 +64,18 @@ class SmapService
         $allLevels = $this->smapRepo->getAllLevels();
         $allCategories = $this->smapRepo->getSmapCategories();
 
-        $stringQuarter = 'TW' . $selectedPeriode;
-        $quarterLookups = [$stringQuarter, $selectedPeriode, (string)$selectedPeriode, 'Q' . $selectedPeriode];
+        // ⬇️ FIX UTAMA: Penanganan 'all' vs Angka Triwulan Specific
+        $isAllPeriode = ($selectedPeriode === 'all' || empty($selectedPeriode));
+
+        if ($isAllPeriode) {
+            // Ambil Seluruh Kuartal (TW1 - TW4)
+            $quarterLookups = ['TW1', 'TW2', 'TW3', 'TW4', 1, 2, 3, 4, '1', '2', '3', '4', 'Q1', 'Q2', 'Q3', 'Q4'];
+            $periodText = "Semua Triwulan - {$selectedYear}";
+        } else {
+            $stringQuarter = 'TW' . $selectedPeriode;
+            $quarterLookups = [$stringQuarter, $selectedPeriode, (string)$selectedPeriode, 'Q' . $selectedPeriode];
+            $periodText = "Triwulan {$selectedPeriode} - {$selectedYear}";
+        }
 
         $metrics = $this->smapRepo->getDashboardMetrics($quarterLookups, $selectedYear);
 
@@ -163,17 +173,18 @@ class SmapService
             'efektif'  => ['labels' => array_keys($baseEfektif), 'off' => array_values($baseEfektif)]
         ];
 
-        // ⬇️ Ambil Data Tabel Progres Unit Kerja
+        // Ambil Data Tabel Progres Unit Kerja
         $smapUnitTable = $this->smapRepo->getUnitProgressTableData($selectedYear, $quarterLookups);
 
         return [
+            'selectedPeriode' => $selectedPeriode, // ⬅️ Masukkan agar Blade tahu periode aktif
             'selectedYear' => $selectedYear,
             'summary' => [
                 'total_risiko'      => $metrics['totalRisiko'],
                 'risiko_aktif'      => $metrics['risikoAktif'],
                 'jumlah_departemen' => $allUnits->count(),
             ],
-            'periodText' => "Triwulan {$selectedPeriode} - {$selectedYear}",
+            'periodText' => $periodText, // ⬅️ Menampilkan "Semua Triwulan - [Tahun]" saat mode all
             'labels' => array_values($labels),
             'data' => array_values($data),
             'chartDatasets' => array_values($stackedTemplates),
@@ -182,7 +193,7 @@ class SmapService
             'trendLabels' => ['Naik', 'Turun', 'Stagnan'],
             'trendData' => $trendData,
             'smapPieData' => $smapPieData,
-            'smapUnitTable' => $smapUnitTable, // ⬅️ Masukkan ke return array
+            'smapUnitTable' => $smapUnitTable,
             'level_distribution' => $levelDistributionData
         ];
     }

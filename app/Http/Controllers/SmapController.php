@@ -32,27 +32,27 @@ class SmapController extends Controller
         $tab = $request->query('tab', 'list');
 
         if ($tab === 'dashboard') {
-            $defaultQuarter = ceil(date('n') / 3);
-            $selectedPeriode = (int) $request->query('periode', $defaultQuarter);
-            $yearParam = $request->query('tahun') ? (int) $request->query('tahun') : null;
+        $selectedPeriode = $request->query('periode', 'all');
 
-            $data = $this->smapService->buildDashboardData($selectedPeriode, $yearParam);
+        $yearParam = $request->query('tahun') ? (int) $request->query('tahun') : null;
 
-            $data['dashboardData'] = [
-                'summary'               => $data['summary'],
-                'period'                => $data['periodText'],
-                'level_distribution'    => $data['level_distribution'],
-                'trend_risk'            => $data['trendData'],
-                'category_distribution' => $data['catData'],
-                'heatmap'               => [],
-                'status_distribution'   => [],
-            ];
+        $data = $this->smapService->buildDashboardData($selectedPeriode, $yearParam);
 
-            return view('smap.index', array_merge(
-                ['tab' => $tab, 'selectedPeriode' => $selectedPeriode],
-                $data
-            ));
-        }
+        $data['dashboardData'] = [
+            'summary'               => $data['summary'],
+            'period'                => $data['periodText'],
+            'level_distribution'    => $data['level_distribution'],
+            'trend_risk'            => $data['trendData'],
+            'category_distribution' => $data['catData'],
+            'heatmap'               => [],
+            'status_distribution'   => [],
+        ];
+
+        return view('smap.index', array_merge(
+            ['tab' => $tab, 'selectedPeriode' => $selectedPeriode],
+            $data
+        ));
+    }
 
         if ($request->has('reset')) {
             session()->forget('smap_risk_filter');
