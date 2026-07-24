@@ -10,6 +10,7 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
+        outline: none !important;
     }
     .kpi-card::after {
         content: '';
@@ -18,69 +19,36 @@
         background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
         pointer-events: none;
     }
-    .kpi-card:hover { transform: translateY(-4px); }
-    .kpi-card .card-icon { transition: all 0.3s ease; }
-    .kpi-card:hover .card-icon { transform: scale(1.1) rotate(-5deg); }
 
-    .card-active-rose {
-        border-color: #fda4af !important;
-        background: #ffffff !important;
-        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06) !important;
+    /* BORDER & GLOW HANYA SAAT HOVER */
+    #card-top_risk:hover {
+        transform: translateY(-4px);
+        border-color: #f43f5e !important; /* Merah Rose Tegas */
+        box-shadow: 0 4px 20px rgba(244, 63, 94, 0.15) !important;
     }
-    .card-active-indigo {
-        border-color: #a5b4fc !important;
-        background: #ffffff !important;
-        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06) !important;
+    #card-smap:hover {
+        transform: translateY(-4px);
+        border-color: #a855f7 !important; /* Ungu Tegas */
+        box-shadow: 0 4px 20px rgba(168, 85, 247, 0.15) !important;
     }
-    .card-active-purple {
-        border-color: #d8b4fe !important;
-        background: #ffffff !important;
-        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06) !important;
+    #card-dep:hover {
+        transform: translateY(-4px);
+        border-color: #3b82f6 !important; /* Biru Tegas */
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15) !important;
     }
 
-    /* Dark mode: gradasi nyala untuk card Top Risk (merah), SMAP (ungu) dan Departemen (biru) */
-    .dark #card-top_risk {
-        background: linear-gradient(135deg, #3b0a1a 0%, #1f1020 50%, #0f172a 100%) !important;
-        border-color: #e11d48 !important;
-        box-shadow: 0 0 0 1px rgba(225, 29, 72, 0.3), 0 4px 24px rgba(225, 29, 72, 0.18) !important;
-    }
-    .dark #card-top_risk.card-active-rose {
-        background: linear-gradient(135deg, #5b0f28 0%, #2d0f1e 50%, #0f172a 100%) !important;
+    /* DARK MODE HOVER */
+    .dark #card-top_risk:hover {
         border-color: #f43f5e !important;
-        box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.5), 0 4px 32px rgba(244, 63, 94, 0.35) !important;
+        box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.5), 0 4px 24px rgba(244, 63, 94, 0.35) !important;
     }
-    .dark .card-active-rose {
-        border-color: #f43f5e !important;
-        box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.5), 0 4px 32px rgba(244, 63, 94, 0.35) !important;
-    }
-    .dark #card-smap {
-        background: linear-gradient(135deg, #2d1b4e 0%, #1e1b3a 50%, #1a1f3a 100%) !important;
-        border-color: #7c3aed !important;
-        box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.3), 0 4px 24px rgba(124, 58, 237, 0.18) !important;
-    }
-    .dark #card-smap.card-active-purple {
-        background: linear-gradient(135deg, #3b1f6e 0%, #251b50 50%, #1a1f3a 100%) !important;
+    .dark #card-smap:hover {
         border-color: #a855f7 !important;
-        box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.5), 0 4px 32px rgba(168, 85, 247, 0.35) !important;
+        box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.5), 0 4px 24px rgba(168, 85, 247, 0.35) !important;
     }
-    .dark #card-dep {
-        background: linear-gradient(135deg, #0f2d5e 0%, #111d3a 50%, #0f172a 100%) !important;
-        border-color: #2563eb !important;
-        box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3), 0 4px 24px rgba(37, 99, 235, 0.18) !important;
-    }
-    .dark #card-dep.card-active-indigo {
-        background: linear-gradient(135deg, #0f3470 0%, #112148 50%, #0f172a 100%) !important;
+    .dark #card-dep:hover {
         border-color: #3b82f6 !important;
-        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5), 0 4px 32px rgba(59, 130, 246, 0.35) !important;
-    }
-    /* Dark mode: active states override */
-    .dark .card-active-purple {
-        border-color: #a855f7 !important;
-        box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.5), 0 4px 32px rgba(168, 85, 247, 0.35) !important;
-    }
-    .dark .card-active-indigo {
-        border-color: #3b82f6 !important;
-        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5), 0 4px 32px rgba(59, 130, 246, 0.35) !important;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5), 0 4px 24px rgba(59, 130, 246, 0.35) !important;
     }
 
     .stat-badge {

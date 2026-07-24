@@ -35,7 +35,8 @@
         });
 
         document.querySelectorAll('.kpi-card').forEach(el => {
-            el.classList.remove('ring-2', 'ring-red-500', 'ring-indigo-500', 'ring-purple-500');
+            el.classList.remove('ring-2', 'ring-rose-500', 'ring-purple-500', 'ring-blue-500', 'card-active-rose', 'card-active-purple', 'card-active-indigo');
+            el.blur();
         });
 
         const selectedContent = document.getElementById('content-' + tabName);
@@ -44,7 +45,9 @@
 
             setTimeout(() => {
                 window.dispatchEvent(new Event('resize'));
-                resizeTabCharts(selectedContent);
+                if (typeof resizeTabCharts === 'function') {
+                    resizeTabCharts(selectedContent);
+                }
 
                 if (tabName === 'smap') {
                     if (typeof initSmapCharts === 'function') {
@@ -54,13 +57,6 @@
                     }
                 }
             }, 150);
-        }
-
-        const selectedCard = document.getElementById('card-' + tabName);
-        if (selectedCard) {
-            if (tabName === 'top_risk') selectedCard.classList.add('ring-2', 'ring-red-500');
-            else if (tabName === 'dep') selectedCard.classList.add('ring-2', 'ring-indigo-500');
-            else if (tabName === 'smap') selectedCard.classList.add('ring-2', 'ring-purple-500');
         }
 
         const currentUrl = new URL(window.location.href);
@@ -113,5 +109,4 @@
         }
     });
     </script>
-    
 </x-admin-layout>
