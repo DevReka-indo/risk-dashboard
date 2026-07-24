@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\SmapRepository;
 
+
 class SmapService
 {
     protected SmapRepository $smapRepo;
