@@ -1,4 +1,10 @@
 <div id="content-dep" class="tab-content hidden space-y-6 animate-fade-in-up">
+
+    @php
+        $selectedPeriode = $selectedPeriode ?? 'all';
+    @endphp
+
+    <!-- 1. Header Judul Tab Departemen -->
     <div class="flex items-center justify-between border-b border-slate-200/80 pb-4">
         <div>
             <h2 class="text-base font-bold text-slate-800">Analisis Risiko Departemen</h2>
@@ -6,6 +12,40 @@
         </div>
     </div>
 
+    <!-- 2. Filter Form khusus Tab Departemen -->
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <form method="GET" action="{{ route('dashboard') }}" class="grid gap-4 lg:grid-cols-12 lg:items-end">
+            <input type="hidden" name="tab" value="dep">
+
+            <div class="lg:col-span-3">
+                <label for="periode_dep" class="block text-sm font-semibold text-slate-700">
+                    Periode (Triwulan)
+                </label>
+                <select id="periode_dep" name="periode" class="mt-2 w-full rounded-lg border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="all" @selected((string)$selectedPeriode === 'all')>Semua Triwulan</option>
+                    @foreach ([1 => 'Triwulan I', 2 => 'Triwulan II', 3 => 'Triwulan III', 4 => 'Triwulan IV'] as $periodeNumber => $periodeName)
+                        <option value="{{ $periodeNumber }}" @selected((string)$selectedPeriode === (string)$periodeNumber)>
+                            {{ $periodeName }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="lg:col-span-3">
+                <label for="tahun_dep" class="block text-sm font-semibold text-slate-700">Tahun</label>
+                <input id="tahun_dep" type="number" name="tahun" value="{{ $selectedYear ?? date('Y') }}" min="2000" class="mt-2 w-full rounded-lg border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+
+            <div class="lg:col-span-6 lg:flex lg:justify-end">
+                <button type="submit"
+                    class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors duration-150 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 lg:w-auto">
+                    Tampilkan Dashboard Departemen
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 3. Summary Cards -->
     <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
         {{-- Card Total --}}
         <div class="group relative overflow-hidden rounded-lg border-2 border-slate-300 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-slate-400 hover:shadow-xl">
