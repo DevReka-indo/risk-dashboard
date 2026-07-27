@@ -15,9 +15,10 @@
             </button>
         </div>
 
-        <div id="ai-chat-messages" class="flex-1 p-4 overflow-y-auto bg-slate-50 space-y-4 text-sm scroll-smooth">
-            <div class="flex items-start gap-2">
-                <div class="bg-indigo-100 text-indigo-900 p-3 rounded-lg rounded-tl-sm max-w-[85%] shadow-sm">
+        <div id="ai-chat-messages" class="flex-1 p-4 overflow-y-auto bg-slate-50 space-y-3 text-sm scroll-smooth">
+            {{-- Pesan awal bot --}}
+            <div class="flex items-start gap-2" style="display:flex; justify-content:flex-start;">
+                <div class="p-3 rounded-2xl max-w-[85%] shadow-sm" style="background-color:#e0e7ff; color:#312e81; border-top-left-radius:0.25rem;">
                     Halo! Saya asisten AI untuk Manajemen Risiko. Coba tanyakan: <strong>"Bulan ini adakah risiko yang paling tinggi?"</strong>
                 </div>
             </div>
