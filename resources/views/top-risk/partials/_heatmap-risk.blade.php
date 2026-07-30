@@ -6,28 +6,43 @@ $probLabels = [
     2 => 'Jarang Terjadi',
     1 => 'Sangat Jarang Terjadi',
 ];
+
 $dampakLabels = [
-    1 => ['label' => 'Sangat rendah', 'num' => 1],
-    2 => ['label' => 'Rendah',        'num' => 2],
-    3 => ['label' => 'Moderat',       'num' => 3],
-    4 => ['label' => 'Tinggi',        'num' => 4],
-    5 => ['label' => 'Sangat tinggi', 'num' => 5],
+    1 => 'Sangat rendah',
+    2 => 'Rendah',
+    3 => 'Moderat',
+    4 => 'Tinggi',
+    5 => 'Sangat tinggi',
 ];
 
-$cellStyle = function(int $v): string {
-    if ($v >= 20) return 'background:#ef4444;color:#fff;';
-    if ($v >= 15) return 'background:#f97316;color:#fff;';
-    if ($v >= 10) return 'background:#eab308;color:#fff;';
-    if ($v >= 5)  return 'background:#84cc16;color:#fff;';
-    return               'background:#22c55e;color:#fff;';
+// Matrix Mapping sesuai gambar
+$getCellValue = function(int $p, int $d): int {
+    $matrix = [
+        5 => [7, 12, 17, 21, 25],
+        4 => [4,  9, 14, 19, 24],
+        3 => [3,  8, 13, 18, 23],
+        2 => [2,  6, 11, 16, 22],
+        1 => [1,  5, 10, 15, 20],
+    ];
+    return $matrix[$p][$d - 1] ?? ($p * $d);
 };
 
-$levelName = function(int $v): string {
-    if ($v >= 20) return 'High';
-    if ($v >= 15) return 'Moderate to High';
-    if ($v >= 10) return 'Moderate';
-    if ($v >= 5)  return 'Low to Moderate';
-    return               'Low';
+// Map Level Name berdasarkan Nilai
+$getLevelName = function(int $v): string {
+    if (in_array($v, [20, 21, 22, 23, 24, 25])) return 'High';
+    if (in_array($v, [16, 17, 18, 19]))          return 'Moderate to High';
+    if (in_array($v, [12, 13, 14, 15]))          return 'Moderate';
+    if (in_array($v, [6, 7, 8, 9, 10, 11]))      return 'Low to Moderate';
+    return 'Low';
+};
+
+// Styling warna latar & teks sel (Selalu cerah & kontras)
+$cellStyle = function(int $v): string {
+    if (in_array($v, [20, 21, 22, 23, 24, 25])) return 'background-color:#ff0000 !important; color:#ffffff !important;'; // Red
+    if (in_array($v, [16, 17, 18, 19]))          return 'background-color:#ff9900 !important; color:#ffffff !important;'; // Orange
+    if (in_array($v, [12, 13, 14, 15]))          return 'background-color:#ffff00 !important; color:#000000 !important;'; // Yellow Bright
+    if (in_array($v, [6, 7, 8, 9, 10, 11]))      return 'background-color:#92d050 !important; color:#000000 !important;'; // Light Green
+    return                                             'background-color:#107c41 !important; color:#ffffff !important;'; // Dark Green
 };
 
 // Kumpulkan risiko per nilai dari $heatmap
@@ -38,7 +53,6 @@ if (!empty($heatmap['risks'])) {
         if ($v > 0) $riskByValue[$v][] = $r['code'];
     }
 }
-// Fallback: ambil dari rows lama jika risks kosong
 if (empty($riskByValue) && !empty($heatmap['rows'])) {
     foreach ($heatmap['rows'] as $row) {
         foreach ($row as $cell) {
@@ -51,99 +65,102 @@ if (empty($riskByValue) && !empty($heatmap['rows'])) {
 }
 @endphp
 
-<div class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm">
+{{-- Main Container Kertas Putih (Dikunci agar Dark Mode tidak mengubah warna dalam tabel) --}}
+<div class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white p-6 shadow-sm text-slate-900">
 
-    {{-- Header --}}
-    <div class="mb-6">
-        <h2 class="text-base font-bold text-slate-900 dark:text-white">Heatmap Risiko</h2>
-        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Pemetaan risiko berdasarkan Probabilitas × Dampak pada periode terpilih.
-        </p>
-    </div>
+    <div class="overflow-x-auto pb-4">
+        <div style="min-width:850px; display:flex; gap:20px; align-items:flex-start;">
 
-    <div class="overflow-x-auto pb-2">
-        <div style="min-width:700px; display:flex; gap:14px; align-items:flex-start;">
-
-            {{-- ── LEGENDA VERTIKAL ── --}}
-            <div style="display:flex; flex-direction:column; gap:3px; margin-top:12px; flex-shrink:0;">
-                <div style="background:#ef4444; color:#fff; border-radius:4px; padding:7px 10px; font-size:11px; font-weight:700;">High</div>
-                <div style="background:#f97316; color:#fff; border-radius:4px; padding:7px 10px; font-size:11px; font-weight:700;">Moderate to High</div>
-                <div style="background:#eab308; color:#fff; border-radius:4px; padding:7px 10px; font-size:11px; font-weight:700;">Moderate</div>
-                <div style="background:#84cc16; color:#fff; border-radius:4px; padding:7px 10px; font-size:11px; font-weight:700;">Low to Moderate</div>
-                <div style="background:#22c55e; color:#fff; border-radius:4px; padding:7px 10px; font-size:11px; font-weight:700;">Low</div>
+            {{-- ── LEGENDA KIRI LUAR ── --}}
+            <div style="width:130px; display:flex; flex-direction:column; border:1px solid #000000; border-radius:2px; overflow:hidden; flex-shrink:0; font-family:sans-serif;">
+                <div style="background-color:#ff0000 !important; color:#ffffff !important; padding:6px 10px; font-size:11px; font-weight:700;">High</div>
+                <div style="background-color:#ff9900 !important; color:#ffffff !important; padding:6px 10px; font-size:11px; font-weight:700;">Moderate to High</div>
+                <div style="background-color:#ffff00 !important; color:#000000 !important; padding:6px 10px; font-size:11px; font-weight:700;">Moderate</div>
+                <div style="background-color:#92d050 !important; color:#000000 !important; padding:6px 10px; font-size:11px; font-weight:700;">Low to Moderate</div>
+                <div style="background-color:#107c41 !important; color:#ffffff !important; padding:6px 10px; font-size:11px; font-weight:700;">Low</div>
             </div>
 
-            {{-- ── MATRIKS + LABEL SUMBU ── --}}
-            <div style="flex:1;">
-                <div style="display:flex; align-items:stretch;">
+            {{-- ── CONTAINER UTAMA MATRIKS (Borders Dipaksa Hitam & BG Putih) ── --}}
+            <div style="flex:1; border:1.5px solid #000000 !important; padding:2px; background-color:#ffffff !important;">
 
-                    {{-- Label PROBABILITAS vertikal --}}
-                    <div style="writing-mode:vertical-rl; transform:rotate(180deg); font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.1em; text-transform:uppercase; padding:0 6px 38px 0; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        PROBABILITAS
-                    </div>
-
-                    {{-- Kolom kiri label prob + grid 5×5 --}}
-                    <div style="flex:1;">
-
-                        {{-- Baris 1–5 (prob 5 → 1) --}}
-                        @foreach ([5,4,3,2,1] as $prob)
-                        <div style="display:grid; grid-template-columns:115px repeat(5,1fr); gap:1px; margin-bottom:1px;">
-
-                            {{-- Label probabilitas --}}
-                            <div style="background:#f1f5f9; border:1px solid #e2e8f0; border-radius:2px; padding:6px 8px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-                                <span style="font-size:10px; font-weight:600; color:#64748b; line-height:1.3;">{{ $probLabels[$prob] }}</span>
-                                <span style="font-size:12px; font-weight:800; color:#1e293b; margin-top:2px;">{{ $prob }}</span>
-                            </div>
-
-                            {{-- 5 sel dampak --}}
-                            @foreach ([1,2,3,4,5] as $dampak)
-                                @php
-                                    $nilai  = $prob * $dampak;
-                                    $style  = $cellStyle($nilai);
-                                    $level  = $levelName($nilai);
-                                    $codes  = $riskByValue[$nilai] ?? [];
-                                @endphp
-                                <div style="{{ $style }} border-radius:6px; padding:8px 5px; min-height:px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; text-align:center; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.08);">
-                                    <div style="font-size:9px; font-weight:600; line-height:1.2; opacity:0.88;">{{ $level }}</div>
-                                    <div style="font-size:17px; font-weight:900; line-height:1;">{{ $nilai }}</div>
-                                    @if(count($codes))
-                                        <div style="display:flex; flex-wrap:wrap; gap:2px; justify-content:center;">
-                                            @foreach($codes as $code)
-                                                <span style="background:rgba(255,255,255,0.28); border-radius:20px; padding:1px 5px; font-size:9px; font-weight:700;">{{ $code }}</span>
-                                            @endforeach
+                <table style="width:100%; border-collapse:collapse; text-align:center; table-layout:fixed; font-family:sans-serif; background-color:#ffffff !important;">
+                    <tbody>
+                        @foreach([5, 4, 3, 2, 1] as $index => $prob)
+                            <tr>
+                                {{-- Label Vertikal "PROBABILITAS" --}}
+                                @if($index === 0)
+                                    <td rowspan="5" style="width:32px; border:1px solid #000000 !important; background-color:#ffffff !important; vertical-align:middle; text-align:center; padding:0;">
+                                        <div style="writing-mode:vertical-rl; transform:rotate(180deg); font-size:12px; font-weight:800; letter-spacing:0.15em; color:#000000 !important; text-transform:uppercase; white-space:nowrap; margin:0 auto;">
+                                            PROBABILITAS
                                         </div>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
+                                    </td>
+                                @endif
+
+                                {{-- Label Sumbu Probabilitas (Kiri) --}}
+                                <td style="width:130px; border:1px solid #000000 !important; background-color:#ffffff !important; padding:8px 4px; font-size:11px; font-weight:600; color:#000000 !important; vertical-align:middle;">
+                                    <div style="color:#000000 !important;">{{ $probLabels[$prob] }}</div>
+                                    <div style="font-weight:700; margin-top:2px; color:#000000 !important;">{{ $prob }}</div>
+                                </td>
+
+                                {{-- 5 Kolom Sel Matrix --}}
+                                @foreach([1, 2, 3, 4, 5] as $dampak)
+                                    @php
+                                        $nilai = $getCellValue($prob, $dampak);
+                                        $level = $getLevelName($nilai);
+                                        $style = $cellStyle($nilai);
+                                        $codes = $riskByValue[$nilai] ?? [];
+                                    @endphp
+                                    <td style="{{ $style }} border:1px solid #000000 !important; height:68px; vertical-align:middle; padding:4px; position:relative;">
+                                        <div style="font-size:11px; font-weight:600; line-height:1.1; margin-bottom:2px;">
+                                            {{ $level }}
+                                        </div>
+                                        <div style="font-size:16px; font-weight:800; line-height:1;">
+                                            {{ $nilai }}
+                                        </div>
+
+                                        {{-- Kode Risiko --}}
+                                        @if(count($codes))
+                                            <div style="margin-top:4px; display:flex; flex-wrap:wrap; gap:2px; justify-content:center;">
+                                                @foreach($codes as $code)
+                                                    <span style="background:rgba(0,0,0,0.35); color:#ffffff !important; border-radius:2px; padding:0px 3px; font-size:9px; font-weight:700;">
+                                                        {{ $code }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
                         @endforeach
 
-                        {{-- Label bawah: nama dampak --}}
-                        <div style="display:grid; grid-template-columns:115px repeat(5,1fr); gap:3px; margin-top:4px;">
-                            <div></div>
-                            @foreach($dampakLabels as $info)
-                                <div style="text-align:center; padding:5px 4px;">
-                                    <div style="font-size:10px; color:#64748b; font-weight:500; line-height:1.3;">{{ $info['label'] }}</div>
-                                    <div style="font-size:11px; font-weight:800; color:#1e293b;">{{ $info['num'] }}</div>
-                                </div>
+                        {{-- Baris Label Dampak (Sangat rendah, Rendah, dst) --}}
+                        <tr>
+                            <td colspan="2" style="border:none !important; background-color:#ffffff !important;"></td>
+                            @foreach([1, 2, 3, 4, 5] as $dNum)
+                                <td style="border:1px solid #000000 !important; background-color:#ffffff !important; padding:6px 2px; font-size:11px; font-weight:600; color:#000000 !important; vertical-align:middle;">
+                                    <div style="color:#000000 !important;">{{ $dampakLabels[$dNum] }}</div>
+                                    <div style="font-weight:700; margin-top:1px; color:#000000 !important;">{{ $dNum }}</div>
+                                </td>
                             @endforeach
-                        </div>
+                        </tr>
 
-                        {{-- Label sumbu DAMPAK --}}
-                        <div style="display:grid; grid-template-columns:115px 1fr; margin-top:2px;">
-                            <div></div>
-                            <div style="text-align:center; font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.1em; text-transform:uppercase; padding:4px 0; border-top:2px solid #e2e8f0;">
+                        {{-- Baris Sumbu DAMPAK (Footer) --}}
+                        <tr>
+                            <td colspan="2" style="border:none !important; background-color:#ffffff !important;"></td>
+                            <td colspan="5" style="border:1px solid #000000 !important; background-color:#ffffff !important; padding:6px; font-size:12px; font-weight:800; letter-spacing:0.15em; color:#000000 !important; text-transform:uppercase;">
                                 DAMPAK
-                            </div>
-                        </div>
+                            </td>
+                        </tr>
 
-                    </div>
-                </div>
+                    </tbody>
+                </table>
+
             </div>
+
         </div>
     </div>
 
-    {{-- ── KETERANGAN RISIKO ── --}}
+    {{-- ── KETERANGAN RISIKO (Mengikuti Dark Mode Sesuai Kartu Luar) ── --}}
     @if(!empty($heatmap['risks']))
     <div class="mt-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
         <h3 class="mb-3 text-sm font-bold text-slate-900 dark:text-white">Keterangan Risiko</h3>

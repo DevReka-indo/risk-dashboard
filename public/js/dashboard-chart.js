@@ -1,7 +1,28 @@
-document.addEventListener("DOMContentLoaded", function () {
+/**
+ * Fungsi Inisialisasi Chart SMAP
+ * Dibuat global agar bisa dipanggil dari switchTab() di index.blade.php
+ */
+function initSmapCharts() {
+    // 1. GUARD CLAUSE: Cek Tab Aktif di URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab');
+
+    // Jika parameter tab ada dan BUKAN 'smap', batalkan render!
+    if (activeTab && activeTab !== 'smap') {
+        return;
+    }
+
+    // ----------------------------------------------------
     // 1. Data Kategori (Bar Chart)
+    // ----------------------------------------------------
     const categoryChartEl = document.getElementById('categoryChart');
     if (categoryChartEl) {
+        // Hancurkan chart lama jika sudah terlanjur dirender
+        const existingCatChart = Chart.getChart(categoryChartEl);
+        if (existingCatChart) {
+            existingCatChart.destroy();
+        }
+
         const rawDataAttr = categoryChartEl.getAttribute('data-categories');
         const catRawData = rawDataAttr ? JSON.parse(rawDataAttr) : [];
         const catLabels = catRawData.map(item => item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name);
@@ -33,9 +54,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // ----------------------------------------------------
     // 2. Data Level (Donut Chart)
+    // ----------------------------------------------------
     const levelChartEl = document.getElementById('levelChart');
     if (levelChartEl) {
+        // Hancurkan chart lama jika sudah terlanjur dirender
+        const existingLevelChart = Chart.getChart(levelChartEl);
+        if (existingLevelChart) {
+            existingLevelChart.destroy();
+        }
+
         const rawDataAttr = levelChartEl.getAttribute('data-level-distribution');
         const levelRawData = rawDataAttr ? JSON.parse(rawDataAttr) : {};
         const levelLabels = Object.keys(levelRawData);
@@ -74,4 +103,9 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
     }
+}
+
+// Jalankan saat DOM Ready (Fungsi initSmapCharts sendiri sudah aman karena punya Guard Clause di atas)
+document.addEventListener("DOMContentLoaded", function () {
+    initSmapCharts();
 });

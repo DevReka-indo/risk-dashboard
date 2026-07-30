@@ -35,11 +35,12 @@
 
     {{-- MANAGEMENT INIALISASI SCRIPT DASHBOARD --}}
     <script>
-        // Data Payload untuk Chart dari Controller
+        // ✅ 1. Data Payload Lengkap Termasuk Departemen Data
         window.dashboardData = {
             topRisk: @json($nilaiTopRisk ?? []),
             unitLevel: @json($unitLevelDistribution ?? []),
-            smap: @json($smapData ?? [])
+            smap: @json($smapData ?? []),
+            departemen: @json($departemenData ?? [])
         };
 
         /**
@@ -70,21 +71,30 @@
                     activeCard.classList.add('ring-2', 'ring-slate-900', 'dark:ring-white');
                 }
 
-                // Trigger penyesuaian ukuran Chart setelah DOM ter-render
+                // Trigger penyesuaian ukuran & Re-render Chart setelah DOM ter-render
                 setTimeout(() => {
                     window.dispatchEvent(new Event('resize'));
                     if (typeof resizeTabCharts === 'function') {
                         resizeTabCharts(selectedContent);
                     }
 
-                    // Inisialisasi spesifik berdasarkan tab
-                    if (tabName === 'top_risk' && typeof initTopRiskCharts === 'function') {
-                        initTopRiskCharts();
+                    // ✅ 2. Inisialisasi spesifik berdasarkan tab (Termasuk Tab 'dep')
+                    if (tabName === 'top_risk') {
+                        if (typeof initTopRiskCharts === 'function') initTopRiskCharts();
                     } else if (tabName === 'smap') {
                         if (typeof initSmapCharts === 'function') {
                             initSmapCharts();
                         } else if (typeof renderSmapCharts === 'function') {
                             renderSmapCharts();
+                        } else if (typeof initSmapChart === 'function') {
+                            initSmapChart(); // Panggil fungsi JS list-departement SMAP
+                        }
+                    } else if (tabName === 'dep') {
+                        // 🎯 Panggil re-render chart departemen agar chart bersih & update
+                        if (typeof initDepartmentChart === 'function') {
+                            initDepartmentChart();
+                        } else if (typeof renderDepartmentCharts === 'function') {
+                            renderDepartmentCharts();
                         }
                     }
                 }, 150);

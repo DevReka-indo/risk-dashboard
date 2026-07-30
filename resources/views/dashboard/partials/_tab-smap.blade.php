@@ -47,7 +47,7 @@
         </form>
     </div>
 
-    <!-- 3. Dynamic Summary Metric Cards (Gaya Disamakan dengan Departemen) -->
+    <!-- 3. Dynamic Summary Metric Cards (KHUSUS DATA SMAP) -->
     <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
 
         {{-- Card 1: Total Risiko SMAP --}}
@@ -57,7 +57,11 @@
                 <div class="space-y-1">
                     <p class="text-xs font-bold uppercase tracking-wider text-purple-900">Total Risiko SMAP</p>
                     <p class="text-3xl font-extrabold text-slate-900 tracking-tight">
-                        {{ number_format($dashboardData['summary']['total_risiko'] ?? ($summary['smap'] ?? 0)) }}
+                        {{ number_format(
+                            data_get($smapSummary ?? [], 'total_risiko',
+                            data_get($summary ?? [], 'total_risiko',
+                            data_get($totalRisikoSmap ?? 0, null, 0)))
+                        ) }}
                     </p>
                     <p class="text-xs font-medium text-slate-500 pt-1">Terdaftar dalam sistem</p>
                 </div>
@@ -73,14 +77,18 @@
             </div>
         </div>
 
-        {{-- Card 2: Risiko Aktif --}}
+        {{-- Card 2: Risiko Aktif SMAP --}}
         <div class="group relative overflow-hidden rounded-lg border-2 border-indigo-300 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-indigo-500 hover:shadow-xl">
             <div class="absolute top-0 left-0 right-0 h-1.5" style="background-color: #4338ca !important;"></div>
             <div class="flex items-start justify-between pt-1">
                 <div class="space-y-1">
                     <p class="text-xs font-bold uppercase tracking-wider text-indigo-900">Risiko Aktif</p>
                     <p class="text-3xl font-extrabold text-slate-900 tracking-tight">
-                        {{ number_format($dashboardData['summary']['risiko_aktif'] ?? 0) }}
+                        {{ number_format(
+                            data_get($smapSummary ?? [], 'risiko_aktif',
+                            data_get($summary ?? [], 'risiko_aktif',
+                            data_get($risikoAktifSmap ?? 0, null, 0)))
+                        ) }}
                     </p>
                     <p class="text-xs font-medium text-slate-500 pt-1">Dalam pantauan periode</p>
                 </div>
@@ -96,14 +104,19 @@
             </div>
         </div>
 
-        {{-- Card 3: Mitigasi Selesai --}}
+        {{-- Card 3: Selesai / Sudah Progres SMAP --}}
         <div class="group relative overflow-hidden rounded-lg border-2 border-emerald-300 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500 hover:shadow-xl">
             <div class="absolute top-0 left-0 right-0 h-1.5" style="background-color: #059669 !important;"></div>
             <div class="flex items-start justify-between pt-1">
                 <div class="space-y-1">
                     <p class="text-xs font-bold uppercase tracking-wider text-emerald-900">Selesai / Sudah Progres</p>
                     <p class="text-3xl font-extrabold text-slate-900 tracking-tight">
-                        {{ number_format($dashboardData['summary']['mitigasi_selesai'] ?? 0) }}
+                        {{ number_format(
+                            data_get($smapSummary ?? [], 'progress_sudah',
+                            data_get($smapSummary ?? [], 'sudah_progres',
+                            data_get($summary ?? [], 'progress_sudah',
+                            data_get($summary ?? [], 'sudah_progres', 0))))
+                        ) }}
                     </p>
                     <p class="text-xs font-medium text-slate-500 pt-1">Tindakan pencegahan terlaksana</p>
                 </div>
@@ -119,12 +132,12 @@
             </div>
         </div>
 
-    </div>
+    </div> {{-- Penutup untuk <div class="grid grid-cols-1 ..."> --}}
 
-    <!-- 4. Sub-partials Chart & Tabel SMAP -->
+    <!-- 4. Sub-partials Chart & Tabel SMAP (SEKARANG SUDAH AMAN DI DALAM TAB SMAP) -->
     @include('smap.partials._list-departement')
     @include('smap.partials._chart-pie-risiko')
     @include('smap.partials._chart-pie-efektif')
     @include('smap.partials._chart-pie-penanganan')
 
-</div>
+</div> 

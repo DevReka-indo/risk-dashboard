@@ -175,7 +175,7 @@ class DashboardController extends Controller
         ];
 
         $levelData = $dashboardData['level_distribution'] ?? collect([]);
-        
+
         if ($levelData instanceof \Illuminate\Support\Collection) {
             $levelData = $levelData->toArray();
         }
@@ -210,7 +210,7 @@ class DashboardController extends Controller
     {
         $items = [];
         $categoryData = $dashboardData['category_distribution'] ?? collect([]);
-        
+
         if ($categoryData instanceof \Illuminate\Support\Collection) {
             $categoryData = $categoryData->toArray();
         }
@@ -238,7 +238,7 @@ class DashboardController extends Controller
     {
         $items = [];
         $statusData = $dashboardData['status_distribution'] ?? collect([]);
-        
+
         if ($statusData instanceof \Illuminate\Support\Collection) {
             $statusData = $statusData->toArray();
         }

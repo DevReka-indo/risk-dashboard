@@ -152,11 +152,24 @@ class SmapService
         $pieTarget = $baseArray;
         foreach ($this->smapRepo->getMasterDataCountsByYear($selectedYear, 'id_level_target') as $lvl => $tot) { if($lvl) $pieTarget[$lvl] = (int)$tot; }
 
-        // Progress Pie
-        $baseProgres = ['belum' => 0, 'proses' => 0, 'selesai' => 0];
+        $baseProgres = [
+            'belum'          => 0,
+            'proses'         => 0,
+            'sudah'          => 0,
+            'progress_sudah' => 0
+        ];
+
         foreach ($this->smapRepo->getProgresOffData($selectedYear, $quarterLookups) as $status => $tot) {
             $key = strtolower($status ?: 'belum');
-            if (array_key_exists($key, $baseProgres)) { $baseProgres[$key] = (int)$tot; }
+
+            // Map istilah 'selesai' atau 'progress_sudah' agar masuk ke key yang tepat
+            if ($key === 'progress_sudah' || $key === 'selesai') {
+                $key = 'sudah';
+            }
+
+            if (array_key_exists($key, $baseProgres)) {
+                $baseProgres[$key] = (int)$tot;
+            }
         }
 
         // Efektif Pie
@@ -177,6 +190,8 @@ class SmapService
         // Ambil Data Tabel Progres Unit Kerja
         $smapUnitTable = $this->smapRepo->getUnitProgressTableData($selectedYear, $quarterLookups);
 
+        $totalSudahProgres = (int) ($baseProgres['sudah'] ?? $baseProgres['progress_sudah'] ?? 0);
+
         return [
             'selectedPeriode' => $selectedPeriode, // ⬅️ Masukkan agar Blade tahu periode aktif
             'selectedYear' => $selectedYear,
@@ -184,6 +199,9 @@ class SmapService
                 'total_risiko'      => $metrics['totalRisiko'],
                 'risiko_aktif'      => $metrics['risikoAktif'],
                 'jumlah_departemen' => $allUnits->count(),
+                'progress_sudah'    => $totalSudahProgres, // ⬅️ Sekarang variabel ini sudah terdefinisi!
+                'sudah_progres'     => $totalSudahProgres,
+                'selesai'           => $totalSudahProgres,
             ],
             'periodText' => $periodText, // ⬅️ Menampilkan "Semua Triwulan - [Tahun]" saat mode all
             'labels' => array_values($labels),

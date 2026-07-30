@@ -18,16 +18,25 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const labels = {!! json_encode($labels ?? []) !!};
-        const dataValues = {!! json_encode($data ?? []) !!};
+        initSmapChart();
+    });
 
+    function initSmapChart() {
         const canvas = document.getElementById('chartDepartemenBaru');
-        const emptyMessage = document.getElementById('emptySmapChartMessage');
-
         if (!canvas) return;
 
-        // Cek data ketersediaan
-        const hasData = dataValues.some(val => val > 0);
+        // 🛑 BENTENG UTAMA: Cek apakah container tab SMAP sedang tersembunyi (hidden)
+        // Jika parent container SMAP sedang hidden, HENTIKAN RENDER CHART SMAP!
+        if (canvas.closest('.hidden') !== null || canvas.offsetParent === null) {
+            return;
+        }
+
+        // Ambil data spesifik SMAP
+        const labels = {!! json_encode($smapData['labels'] ?? $labels ?? []) !!};
+        const dataValues = {!! json_encode($smapData['data'] ?? $data ?? []) !!};
+
+        const emptyMessage = document.getElementById('emptySmapChartMessage');
+        const hasData = Array.isArray(dataValues) && dataValues.some(val => Number(val) > 0);
 
         if (labels.length === 0 || !hasData) {
             canvas.style.display = 'none';
@@ -38,82 +47,34 @@
         canvas.style.display = 'block';
         if (emptyMessage) emptyMessage.classList.add('hidden');
 
-        // Hapus instance lama jika ada (mencegah glitch/duplicate saat tab diganti/direload)
+        // Hancurkan instance chart lama jika ada
         let existingChart = Chart.getChart("chartDepartemenBaru");
         if (existingChart) existingChart.destroy();
 
         const ctx = canvas.getContext('2d');
-
         new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Jumlah Risiko',
+                    label: 'Jumlah Risiko SMAP',
                     data: dataValues,
-                    backgroundColor: '#4f46e5', // Warna Purple Khas SMAP (atau pakai #4f46e5 jika mau sama persis)
-                    maxBarThickness: 70,        // Batang bar dibuat montok & proporsional
+                    backgroundColor: '#6b21a8', // Warna ungu khas SMAP
+                    maxBarThickness: 70,
                     barPercentage: 0.8,
                     categoryPercentage: 0.9,
-                    borderRadius: {
-                        topLeft: 6,
-                        topRight: 6,
-                        bottomLeft: 0,
-                        bottomRight: 0
-                    }
+                    borderRadius: { topLeft: 6, topRight: 6 }
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: {
-                    padding: { top: 10, bottom: 10 }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 13 },
-                        padding: 14,
-                        cornerRadius: 8,
-                        displayColors: false,
-                        callbacks: {
-                            label: function(context) {
-                                return `Total Risiko SMAP: ${context.parsed.y}`;
-                            }
-                        }
-                    }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: {
-                            autoSkip: false,
-                            maxRotation: 45,
-                            minRotation: 0,
-                            font: { size: 12 }
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        border: { display: false },
-                        grid: {
-                            color: '#e2e8f0',
-                            drawTicks: false,
-                            borderDash: [5, 5] // Garis horizontal putus-putus
-                        },
-                        ticks: {
-                            stepSize: 1,
-                            precision: 0,
-                            padding: 15,
-                            font: { size: 12 }
-                        }
-                    }
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
                 }
             }
         });
-    });
+    }
 </script>

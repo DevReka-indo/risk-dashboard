@@ -99,42 +99,44 @@
         @endcanany
 
         {{-- MASTER DATA --}}
-        @canany(['risk.view', 'unit-kerja.view'])
-            <div class="pt-4">
-               <div class="px-3 mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                    Menu Lainnya
+        @if(!auth()->user()->hasRole('user'))
+            @canany(['risk.view', 'unit-kerja.view'])
+                <div class="pt-4">
+                <div class="px-3 mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                        Menu Lainnya
+                    </div>
+
+                    @can('risk.view')
+                        <a href="{{ route('kategori-risiko.index') }}"
+                            class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition
+                        {{ request()->routeIs('kategori-risiko.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                                </svg>
+                            </span>
+                            Kategori Risiko
+                        </a>
+                    @endcan
+
+                    @can('unit-kerja.view')
+                        <a href="{{ route('unit-kerja.index') }}"
+                            class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition
+                        {{ request()->routeIs('unit-kerja.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M8.25 7.5h1.5m-1.5 3h1.5m-1.5 3h1.5m4.5-6h1.5m-1.5 3h1.5m-1.5 3h1.5" />
+                                </svg>
+                            </span>
+                            Unit Kerja
+                        </a>
+                    @endcan
                 </div>
-
-                @can('risk.view')
-                    <a href="{{ route('kategori-risiko.index') }}"
-                        class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition
-                    {{ request()->routeIs('kategori-risiko.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
-                        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
-                            </svg>
-                        </span>
-                        Kategori Risiko
-                    </a>
-                @endcan
-
-                @can('unit-kerja.view')
-                    <a href="{{ route('unit-kerja.index') }}"
-                        class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition
-                       {{ request()->routeIs('unit-kerja.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950' }}">
-                        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M8.25 7.5h1.5m-1.5 3h1.5m-1.5 3h1.5m4.5-6h1.5m-1.5 3h1.5m-1.5 3h1.5" />
-                            </svg>
-                        </span>
-                        Unit Kerja
-                    </a>
-                @endcan
-            </div>
-        @endcanany
+            @endcanany
+        @endif
 
         @canany(['user.view', 'role.view', 'permission.view'])
             <div class="pt-4">

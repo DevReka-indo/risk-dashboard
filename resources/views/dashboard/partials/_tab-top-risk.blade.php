@@ -7,8 +7,8 @@
         $selectedTahun = (int) request('tahun', $currentYear);
 
         $monthNames = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
@@ -60,65 +60,70 @@
         </form>
     </div>
 
-    <!-- 3. Summary Cards -->
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {{-- Card Total --}}
-        <div class="group relative overflow-hidden rounded-lg border-2 border-slate-300 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-slate-400 hover:shadow-xl">
-            <div class="absolute top-0 left-0 right-0 h-1.5" style="background-color: #475569 !important;"></div>
-            <div class="flex items-start justify-between pt-1">
-                <div class="space-y-1">
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-700">Total Top Risk</p>
-                    <p class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ number_format($summary['total_risiko'] ?? 0) }}</p>
-                    <p class="text-xs font-medium text-slate-500 pt-1">Seluruh kategori risiko</p>
-                </div>
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-transform duration-300 group-hover:scale-110" style="background-color: #475569 !important; color: #ffffff !important; box-shadow: 0 4px 14px 0 rgba(71, 85, 105, 0.35) !important;">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
-                </div>
+    <!-- 3. Summary Cards (Top Risk) -->
+<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+    {{-- Card Total Top Risk --}}
+    <div class="group relative overflow-hidden rounded-lg border-2 border-slate-300 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-slate-400 hover:shadow-xl">
+        <div class="absolute top-0 left-0 right-0 h-1.5" style="background-color: #475569 !important;"></div>
+        <div class="flex items-start justify-between pt-1">
+            <div class="space-y-1">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-700">Total Top Risk</p>
+                <p class="text-3xl font-extrabold text-slate-900 tracking-tight">
+                    {{-- Mengambil data spesifik Top Risk (berisi 5) --}}
+                    {{ number_format($dashboardData['summary']['total_risiko'] ?? ($summary['top_risk'] ?? 0)) }}
+                </p>
+                <p class="text-xs font-medium text-slate-500 pt-1">Seluruh kategori risiko</p>
             </div>
-            <div class="mt-4 flex items-center gap-1.5 text-xs font-bold text-slate-600 border-t-2 border-slate-100 pt-3">
-                <span class="w-2 h-2 rounded-full" style="background-color: #475569 !important;"></span>
-                <span>Akumulasi Top Risk</span>
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-transform duration-300 group-hover:scale-110" style="background-color: #475569 !important; color: #ffffff !important; box-shadow: 0 4px 14px 0 rgba(71, 85, 105, 0.35) !important;">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
             </div>
         </div>
-
-        {{-- Card Aktif --}}
-        <div class="group relative overflow-hidden rounded-lg border-2 border-blue-300 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-blue-500 hover:shadow-xl">
-            <div class="absolute top-0 left-0 right-0 h-1.5" style="background-color: #2563eb !important;"></div>
-            <div class="flex items-start justify-between pt-1">
-                <div class="space-y-1">
-                    <p class="text-xs font-bold uppercase tracking-wider text-blue-900">Risiko Aktif</p>
-                    <p class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ number_format($summary['risiko_aktif'] ?? 0) }}</p>
-                    <p class="text-xs font-medium text-slate-500 pt-1">Dalam proses penanganan</p>
-                </div>
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-transform duration-300 group-hover:scale-110" style="background-color: #2563eb !important; color: #ffffff !important; box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.35) !important;">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                </div>
-            </div>
-            <div class="mt-4 flex items-center gap-1.5 text-xs font-bold text-blue-700 border-t-2 border-blue-100 pt-3">
-                <span class="w-2 h-2 rounded-full" style="background-color: #2563eb !important;"></span>
-                <span>Sedang Ditangani</span>
-            </div>
-        </div>
-
-        {{-- Card Rata-Rata Nilai --}}
-        <div class="group relative overflow-hidden rounded-lg border-2 border-amber-300 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-amber-500 hover:shadow-xl">
-            <div class="absolute top-0 left-0 right-0 h-1.5" style="background-color: #d97706 !important;"></div>
-            <div class="flex items-start justify-between pt-1">
-                <div class="space-y-1">
-                    <p class="text-xs font-bold uppercase tracking-wider text-amber-900">Rata-Rata Nilai</p>
-                    <p class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ number_format($summary['rata_rata_nilai'] ?? 0, 1) }}</p>
-                    <p class="text-xs font-medium text-slate-500 pt-1">Skor dampak & kemungkinan</p>
-                </div>
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-transform duration-300 group-hover:scale-110" style="background-color: #d97706 !important; color: #ffffff !important; box-shadow: 0 4px 14px 0 rgba(217, 119, 6, 0.35) !important;">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h3.75C8.496 12 9 12.504 9 13.125v6.75C9 20.496 8.496 21 7.875 21h-3.75A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 4.125C9.75 3.504 10.254 3 10.875 3h2.25c.621 0 1.125.504 1.125 1.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125ZM15 8.625C15 8.004 15.504 7.5 16.125 7.5h3.75c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-3.75A1.125 1.125 0 0 1 15 19.875V8.625Z" /></svg>
-                </div>
-            </div>
-            <div class="mt-4 flex items-center gap-1.5 text-xs font-bold text-amber-700 border-t-2 border-amber-100 pt-3">
-                <span class="w-2 h-2 rounded-full" style="background-color: #d97706 !important;"></span>
-                <span>Tren: {{ $summary['tren'] ?? 'Stagnan' }}</span>
-            </div>
+        <div class="mt-4 flex items-center gap-1.5 text-xs font-bold text-slate-600 border-t-2 border-slate-100 pt-3">
+            <span class="w-2 h-2 rounded-full" style="background-color: #475569 !important;"></span>
+            <span>Akumulasi Top Risk</span>
         </div>
     </div>
+
+    {{-- Card Risiko Aktif Top Risk --}}
+    <div class="group relative overflow-hidden rounded-lg border-2 border-blue-300 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-blue-500 hover:shadow-xl">
+        <div class="absolute top-0 left-0 right-0 h-1.5" style="background-color: #2563eb !important;"></div>
+        <div class="flex items-start justify-between pt-1">
+            <div class="space-y-1">
+                <p class="text-xs font-bold uppercase tracking-wider text-blue-900">Risiko Aktif</p>
+                <p class="text-3xl font-extrabold text-slate-900 tracking-tight">
+                    {{ number_format($dashboardData['summary']['risiko_aktif'] ?? ($summary['top_risk_aktif'] ?? 0)) }}
+                </p>
+                <p class="text-xs font-medium text-slate-500 pt-1">Dalam proses penanganan</p>
+            </div>
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-transform duration-300 group-hover:scale-110" style="background-color: #2563eb !important; color: #ffffff !important; box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.35) !important;">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+            </div>
+        </div>
+        <div class="mt-4 flex items-center gap-1.5 text-xs font-bold text-blue-700 border-t-2 border-blue-100 pt-3">
+            <span class="w-2 h-2 rounded-full" style="background-color: #2563eb !important;"></span>
+            <span>Sedang Ditangani</span>
+        </div>
+    </div>
+
+    {{-- Card Rata-Rata Nilai --}}
+    <div class="group relative overflow-hidden rounded-lg border-2 border-amber-300 bg-white p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-amber-500 hover:shadow-xl">
+        <div class="absolute top-0 left-0 right-0 h-1.5" style="background-color: #d97706 !important;"></div>
+        <div class="flex items-start justify-between pt-1">
+            <div class="space-y-1">
+                <p class="text-xs font-bold uppercase tracking-wider text-amber-900">Rata-Rata Nilai</p>
+                <p class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ number_format($dashboardData['summary']['rata_rata_nilai'] ?? ($summary['rata_rata_nilai'] ?? 0), 1) }}</p>
+                <p class="text-xs font-medium text-slate-500 pt-1">Skor dampak & kemungkinan</p>
+            </div>
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-transform duration-300 group-hover:scale-110" style="background-color: #d97706 !important; color: #ffffff !important; box-shadow: 0 4px 14px 0 rgba(217, 119, 6, 0.35) !important;">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h3.75C8.496 12 9 12.504 9 13.125v6.75C9 20.496 8.496 21 7.875 21h-3.75A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 4.125C9.75 3.504 10.254 3 10.875 3h2.25c.621 0 1.125.504 1.125 1.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125ZM15 8.625C15 8.004 15.504 7.5 16.125 7.5h3.75c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-3.75A1.125 1.125 0 0 1 15 19.875V8.625Z" /></svg>
+            </div>
+        </div>
+        <div class="mt-4 flex items-center gap-1.5 text-xs font-bold text-amber-700 border-t-2 border-amber-100 pt-3">
+            <span class="w-2 h-2 rounded-full" style="background-color: #d97706 !important;"></span>
+            <span>Tren: {{ $dashboardData['summary']['tren'] ?? ($summary['tren'] ?? 'Stagnan') }}</span>
+        </div>
+    </div>
+</div>
 
     {{-- Sub-partials chart Top Risk --}}
     @includeIf('top-risk.partials._chart-nilai', [
