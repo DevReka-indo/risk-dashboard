@@ -1,7 +1,7 @@
 <x-admin-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            {{-- 👇 UBAH BAGIAN INI: Gunakan session untuk tombol kembali 👇 --}}
+            {{-- Tombol kembali menggunakan session --}}
             <a href="{{ session('risk_index_url', route('department-risk.index', ['tab' => 'data'])) }}"
                class="flex h-7 w-7 items-center justify-center rounded text-slate-800 hover:bg-slate-100 transition">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -29,7 +29,7 @@
 
     <div class="space-y-5">
 
-        {{-- Flash --}}
+        {{-- Flash Messages --}}
         @if(session('success'))
             <div style="border:1px solid #6ee7b7; background:#ecfdf5; border-radius:12px; padding:12px 16px; font-size:13px; color:#065f46; font-weight:600;">{{ session('success') }}</div>
         @endif
@@ -54,60 +54,54 @@
                     <p style="font-size:12px; color:#94a3b8; margin:0;">Seluruh informasi data risiko ini</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    {{-- Tombol Edit --}}
-                    <a href="{{ route('department-risk.edit', $risk->id_monitoring) }}"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
-                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        Edit
-                    </a>
+                    {{-- PERMISSION CHECK: Edit Utama Risk --}}
+                    @can('department-risk.edit')
+                        <a href="{{ route('department-risk.edit', $risk->id_monitoring) }}"
+                           class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            Edit
+                        </a>
+                    @endcan
 
-                    {{-- Tombol Hapus (Sudah aman karena controllernya sudah pakai redirect session) --}}
-                    <form method="POST" action="{{ route('department-risk.destroy', $risk->id_monitoring) }}"
-                        onsubmit="return confirm('Yakin hapus?')" class="m-0">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit"
-                                class="inline-flex items-center gap-1 rounded-lg border border-rose-100 bg-white px-2.5 py-1.5 text-xs font-semibold text-rose-500 shadow-sm transition hover:bg-rose-50 hover:text-rose-600">
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            Hapus
-                        </button>
-                    </form>
+                    {{-- PERMISSION CHECK: Hapus Utama Risk --}}
+                    @can('department-risk.delete')
+                        <form method="POST" action="{{ route('department-risk.destroy', $risk->id_monitoring) }}"
+                              onsubmit="return confirm('Yakin hapus?')" class="m-0">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                    class="inline-flex items-center gap-1 rounded-lg border border-rose-100 bg-white px-2.5 py-1.5 text-xs font-semibold text-rose-500 shadow-sm transition hover:bg-rose-50 hover:text-rose-600">
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                Hapus
+                            </button>
+                        </form>
+                    @endcan
                 </div>
             </div>
 
             {{-- Isi Card 1 --}}
             <div style="display:flex; gap:24px;">
-
-                {{-- Kolom Kiri: 3 Kotak --}}
                 <div style="display:flex; flex-direction:column; gap:12px; flex:1;">
-                    {{-- Kotak 1: Unit Kerja --}}
                     <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
                         <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Unit Kerja</p>
                         <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->unitKerja->nama_unit ?? '-' }}</p>
                     </div>
 
-                    {{-- Kotak 2: Kategori --}}
                     <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
                         <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Kategori</p>
                         <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">{{ $risk->kategoriRisiko->nama_kategori ?? '-' }}</p>
                     </div>
 
-                    {{-- Kotak 3: Status --}}
                     <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
                         <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Status</p>
                         @if($risk->status)
-                            <span class="inline-flex rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                Aktif
-                            </span>
+                            <span class="inline-flex rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Aktif</span>
                         @else
-                            <span class="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                Tidak Aktif
-                            </span>
+                            <span class="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Tidak Aktif</span>
                         @endif
                     </div>
                 </div>
 
-                {{-- Kolom Kanan: 1 Kotak Peristiwa Resiko --}}
                 <div style="flex:4;">
                     <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc; height:100%; display:flex; flex-direction:column;">
                         <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Peristiwa Resiko</p>
@@ -119,12 +113,12 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
 
         {{-- ═══════════ CARD 2: Input Parameter Risiko Per Triwulan ═══════════ --}}
-        {{-- 👇 STRUKTUR ALPINE DIKEMBALIKAN KE BENTUK ASLI AGAR OTOMATISASI-LOGIC.JS BERJALAN 👇 --}}
+        {{-- PERMISSION CHECK: Hanya tampilkan form input jika user punya akses create / edit --}}
+        @canany(['department-risk.create', 'department-risk.edit'])
         <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);"
              x-data="smapRiskForm(@js($historyData), '{{ old('year', date('Y')) }}', '{{ $risk->inherent }}', '{{ $risk->target_value }}')">
 
@@ -134,7 +128,6 @@
             <form method="POST" action="{{ route('department-risk.update-period', $risk->id_monitoring) }}">
                 @csrf @method('PUT')
 
-                {{-- 👇 INLINE LOGIC ALPINE UNTUK INHERENT 👇 --}}
                 <input type="hidden" name="inherent" :value="(() => {
                     let q = quarter || 'TW1';
                     let y = parseInt(year || {{ date('Y') }});
@@ -149,13 +142,11 @@
 
                 <div style="display:grid; grid-template-columns:200px 1fr; gap:20px; align-items:start;">
 
-                    {{-- Kiri: Parameter Awal & Target (Read Only) --}}
+                    {{-- Read Only Parameter Awal --}}
                     <div style="border:1px solid #e2e8f0; border-radius:12px; padding:16px; background:#fafafa;">
                         <p style="font-size:12px; font-weight:700; color:#1e293b; margin:0 0 4px;">Parameter Awal dan Target</p>
                         <p style="font-size:11px; color:#94a3b8; margin:0 0 14px;">Acuan perkembangan statistik (Read Only)</p>
                         <div style="display:flex; flex-direction:column; gap:10px;">
-
-                            {{-- 👇 INLINE LOGIC ALPINE UNTUK TEKS INHERENT 👇 --}}
                             <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
                                 <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Nilai Inheren</p>
                                 <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;" x-text="(() => {
@@ -185,10 +176,8 @@
                         </div>
                     </div>
 
-                    {{-- Kanan: Form Input --}}
+                    {{-- Form Input Parameters --}}
                     <div style="display:flex; flex-direction:column; gap:16px;">
-
-                        {{-- Baris 1: Triwulan + Tahun --}}
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
                             <div>
                                 <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Triwulan</label>
@@ -205,19 +194,15 @@
                             </div>
                             <div>
                                 <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Tahun</label>
-                                <div style="position:relative;">
-                                    <input type="number" name="year" x-model="year" x-init="if('{{ old('year') }}') year = '{{ old('year') }}'"
-                                           style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box;">
-                                </div>
+                                <input type="number" name="year" x-model="year" x-init="if('{{ old('year') }}') year = '{{ old('year') }}'"
+                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box;">
                             </div>
                         </div>
 
-                        {{-- Baris 2: Nilai saat ini (input number) + Status Penanganan (3 input number) --}}
                         <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px;">
                             <div>
                                 <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Nilai saat ini (1-25)</label>
-                                <input type="number" name="value" x-model="value" min="1" max="25"
-                                       placeholder="1 - 25"
+                                <input type="number" name="value" x-model="value" min="1" max="25" placeholder="1 - 25"
                                        style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
                             </div>
                             <div>
@@ -237,7 +222,6 @@
                             </div>
                         </div>
 
-                        {{-- Baris 3: Status Monitoring + Level Badge + Trend --}}
                         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
                             <div>
                                 <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Status Monitoring</label>
@@ -277,25 +261,19 @@
                             </div>
                         </div>
 
-                    {{-- Tombol Form (Batal & Simpan) --}}
-                    <div class="flex items-center justify-end gap-2 pt-1">
-                        {{-- Tombol Batal --}}
-                        <button type="reset"
-                                class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
-                            Batal
-                        </button>
-
-                        {{-- Tombol Simpan --}}
-                        <button type="submit"
-                                class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
-                            Simpan
-                        </button>
-                    </div>
-
+                        <div class="flex items-center justify-end gap-2 pt-1">
+                            <button type="reset" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
+                                Batal
+                            </button>
+                            <button type="submit" class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
+                                Simpan
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
         </div>
+        @endcanany
 
         {{-- ═══════════ CARD 3: Riwayat Monitoring Triwulan ═══════════ --}}
         <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
@@ -344,76 +322,71 @@
                         <div style="padding:12px 20px; border-bottom:1px solid #f1f5f9;">
                             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
                                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                    {{-- TW --}}
                                     <span style="background:#1e293b; color:#fff; border-radius:20px; padding:4px 14px; font-size:13px; font-weight:700;">
                                         {{ $period->pivot->quarter }} {{ $period->pivot->year }}
                                     </span>
 
-                                    {{-- Nilai --}}
                                     <span style="background:#eff6ff; color:#4f46e5; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         Nilai {{ $period->pivot->value ?? '-' }}
                                     </span>
 
-                                    {{-- Level --}}
                                     <span style="{{ $lvlStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         {{ ucfirst($period->nama_level ?? $period->level ?? '-') }}
                                     </span>
 
-                                    {{-- Progres --}}
                                     <span style="background:#f8fafc; color:#475569; border:1px solid #e2e8f0; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         Progres (Belum: <span style="color:#64748b;">{{ $pBelum }}</span> | Proses: <span style="color:#3b82f6;">{{ $pProses }}</span> | Sudah: <span style="color:#10b981;">{{ $pSudah }}</span>)
                                     </span>
 
-                                    {{-- Status --}}
                                     <span style="{{ $statusStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         Status: {{ ($risk->status ?? 1) == 1 ? 'Aktif' : 'Tidak Aktif' }}
                                     </span>
                                 </div>
 
-
-                                {{-- Tombol Edit & Hapus --}}
+                                {{-- Aksi Edit & Hapus Periode --}}
                                 <div class="flex items-center gap-2">
-                                    {{-- Tombol Edit (Toggle Alpine.js) --}}
-                                    <button type="button" @click="editOpen = !editOpen"
-                                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
-                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                        </svg>
-                                        Edit
-                                    </button>
-
-                                    {{-- Tombol Hapus Periode --}}
-                                    <form method="POST" action="{{ route('department-risk.destroy-period', [$risk->id_monitoring, $period->pivot->id]) }}"
-                                        onsubmit="return confirm('Hapus periode ini?')" class="m-0">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="inline-flex items-center gap-1 rounded-lg border border-rose-100 bg-white px-2.5 py-1.5 text-xs font-semibold text-rose-500 shadow-sm transition hover:bg-rose-50 hover:text-rose-600">
+                                    {{-- PERMISSION CHECK: Edit Periode Riwayat --}}
+                                    @can('department-risk.edit')
+                                        <button type="button" @click="editOpen = !editOpen"
+                                                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                             </svg>
-                                            Hapus
+                                            Edit
                                         </button>
-                                    </form>
+                                    @endcan
+
+                                    {{-- PERMISSION CHECK: Hapus Periode Riwayat --}}
+                                    @can('department-risk.delete')
+                                        <form method="POST" action="{{ route('department-risk.destroy-period', [$risk->id_monitoring, $period->pivot->id]) }}"
+                                              onsubmit="return confirm('Hapus periode ini?')" class="m-0">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="inline-flex items-center gap-1 rounded-lg border border-rose-100 bg-white px-2.5 py-1.5 text-xs font-semibold text-rose-500 shadow-sm transition hover:bg-rose-50 hover:text-rose-600">
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Row 2: 4 Kotak Info --}}
+                        {{-- Row 2: Statistik Ringkas --}}
                         <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:16px 20px;">
-                            {{-- Kotak 1: Nilai Inheren --}}
                             <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
                                 <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nilai Inheren</p>
                                 <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $period->pivot->inherent ?? $risk->inherent ?? '-' }}</p>
                             </div>
 
-                            {{-- Kotak 2: Nilai Target --}}
                             <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
                                 <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nilai Target</p>
                                 <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $period->pivot->target_value ?? $risk->target_value ?? '-' }}</p>
                             </div>
 
-                            {{-- Kotak 3: Statistik Progres --}}
                             <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
                                 <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Statistik Progres (B/P/S)</p>
                                 <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">
@@ -423,7 +396,6 @@
                                 </p>
                             </div>
 
-                            {{-- Kotak 4: Tren Perubahan --}}
                             <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
                                 <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Tren Perubahan</p>
                                 <p style="font-size:16px; font-weight:700; color:{{ $trendColor }}; margin:0;">
@@ -432,7 +404,8 @@
                             </div>
                         </div>
 
-                        {{-- Edit Form (collapse) --}}
+                        {{-- PERMISSION CHECK: Inline Form Edit Periode --}}
+                        @can('department-risk.edit')
                         <div x-show="editOpen" x-transition style="display:none; border-top:1px solid #f1f5f9; padding:16px 20px; background:#fafbfc;">
                             <form method="POST" action="{{ route('department-risk.update-existing-period', [$risk->id_monitoring, $period->pivot->id]) }}">
                                 @csrf @method('PUT')
@@ -482,22 +455,19 @@
                                 <input type="hidden" name="calculated_level" value="{{ $period->nama_level ?? $period->level ?? $risk->levelRisiko->nama_level }}">
                                 <input type="hidden" name="calculated_trend" value="{{ $trend }}">
 
-                            {{-- Tombol Form (Batal & Simpan Card Bawah) --}}
-                            <div class="flex items-center justify-end gap-2 pt-1">
-                                {{-- Tombol Batal --}}
-                                <button type="button" @click="editOpen = !editOpen"
-                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
-                                    Batal
-                                </button>
-
-                                {{-- Tombol Simpan --}}
-                                <button type="submit"
-                                        class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
-                                    Simpan
-                                </button>
-                            </div>
+                                <div class="flex items-center justify-end gap-2 pt-1">
+                                    <button type="button" @click="editOpen = !editOpen"
+                                            class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
+                                        Batal
+                                    </button>
+                                    <button type="submit"
+                                            class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
+                                        Simpan
+                                    </button>
+                                </div>
                             </form>
                         </div>
+                        @endcan
 
                     </div>
                 @empty

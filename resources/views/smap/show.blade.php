@@ -15,6 +15,10 @@
     </x-slot>
 
     @php
+        // Pengecekan Akses User (Dapat disesuaikan jika menggunakan Spatie / Gate / Check Role Bawaan)
+        $user = auth()->user();
+        $canManage = $user->can('manage-smap') || $user->hasRole('admin') || ($user->role ?? '') === 'admin';
+
         $historyData = [];
 
         // Sorting urutan riwayat dari yang paling tua ke baru untuk pencarian inheren
@@ -75,6 +79,9 @@
                     <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Detail Lengkap</h2>
                     <p style="font-size:12px; color:#94a3b8; margin:0;">Seluruh informasi data risiko ini</p>
                 </div>
+
+                {{-- HANYA TAMPIL UNTUK USER DENGAN PERMISSION MANAGEMENT --}}
+                @if($canManage)
                 <div style="display:flex; gap:8px;">
                     <a href="{{ route('smap-risk.edit', $risk->id_smap) }}"
                     class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
@@ -91,6 +98,7 @@
                         </button>
                     </form>
                 </div>
+                @endif
             </div>
 
             {{-- Isi Card 1 --}}
@@ -138,6 +146,8 @@
         </div>
 
         {{-- ═══════════ CARD 2: Input Parameter Risiko Per Triwulan ═══════════ --}}
+        {{-- HANYA TAMPILKAN FORM JIKA USER MEMILIKI AKSES INPUT --}}
+        @if($canManage)
         <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);"
              x-data="smapRiskForm(@js($historyData), '{{ old('year', date('Y')) }}', '{{ $risk->inherent }}', '{{ $risk->inherent_target }}')">
 
@@ -287,6 +297,7 @@
                 </div>
             </form>
         </div>
+        @endif
 
         {{-- ═══════════ CARD 3: Riwayat monitoring Triwulan ═══════════ --}}
         <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
@@ -297,7 +308,6 @@
             <div style="display:flex; flex-direction:column; gap:12px;">
                 @forelse($risk->detailPeriode as $history)
                     @php
-                        // HITUNG DINAMIS INHEREN DINAMIS UNTUK DITAMPILKAN DI BADGE ATAS
                         $currQNum = match((string)$history->quarter) { 'TW1','1','Q1'=>1, 'TW2','2','Q2'=>2, 'TW3','3','Q3'=>3, 'TW4','4','Q4'=>4, default=>1 };
                         $currTimeKey = (int)($history->year . $currQNum);
 
@@ -310,7 +320,6 @@
                             return $item->year . $itemQNum;
                         })->last();
 
-                        // Nilai Inherent periode ini (diambil dari nilai kuartal sebelumnya / master)
                         $displayInherent = $history->inherent ?? ($prevItem ? $prevItem->value : $risk->inherent);
 
                         $lvl = strtolower($history->levelRisiko->nama_level ?? $history->levelRisiko->level ?? '');
@@ -342,7 +351,7 @@
                     <div x-data="{ editOpen: false }"
                         style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
 
-                        {{-- Row 1: Badge Info (DITUKAR: Tampilkan Inherent di Badge Atas) --}}
+                        {{-- Row 1: Badge Info --}}
                         <div style="padding:12px 20px; border-bottom:1px solid #f1f5f9;">
                             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
                                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -359,7 +368,7 @@
                                         {{ $displayQ }} {{ $history->year }}
                                     </span>
 
-                                    {{-- Inherent (SEKARANG DI ATAS) --}}
+                                    {{-- Inherent --}}
                                     <span style="background:#eff6ff; color:#4f46e5; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         Inherent {{ $displayInherent }}
                                     </span>
@@ -380,7 +389,8 @@
                                     </span>
                                 </div>
 
-                                {{-- Tombol Edit & Hapus --}}
+                                {{-- Tombol Edit & Hapus (SEMBUNYIKAN UNTUK USER BIASA) --}}
+                                @if($canManage)
                                 <div style="display:flex; gap:4px; align-items:center;">
                                     <button type="button" @click="editOpen = !editOpen"
                                             style="font-size:12px; font-weight:600; color:#475569; background:none; border:none; cursor:pointer; transition:color 0.2s; padding:4px 8px;"
@@ -399,12 +409,13 @@
                                         </button>
                                     </form>
                                 </div>
+                                @endif
                             </div>
                         </div>
 
-                        {{-- Row 2: 4 Kotak Info (DITUKAR: Kotak 1 Menampilkan NILAI SAAT INI / MONITORING) --}}
+                        {{-- Row 2: 4 Kotak Info --}}
                         <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:16px 20px;">
-                            {{-- Kotak 1: NILAI MONITORING (SEKARANG DI BAWAH) --}}
+                            {{-- Kotak 1: NILAI MONITORING --}}
                             <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
                                 <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.3px;">Nilai</p>
                                 <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $history->value ?? '-' }}</p>
@@ -433,7 +444,8 @@
                             </div>
                         </div>
 
-                        {{-- Edit Form (collapse) --}}
+                        {{-- Edit Form (collapse) - HANYA UNTUK DENGAN PERMISSION MANAGEMENT --}}
+                        @if($canManage)
                         <div x-show="editOpen" x-transition style="display:none; border-top:1px solid #f1f5f9; padding:16px 20px; background:#fafbfc;">
                             <form method="POST" action="{{ route('smap-risk.update-monitoring', $history->id_detail) }}">
                                 @csrf @method('PUT')
@@ -494,18 +506,19 @@
                                     </div>
                                 </div>
 
-                            <div class="flex items-center justify-end gap-2 pt-1">
-                                <button type="button" @click="editOpen = !editOpen"
-                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
-                                    Batal
-                                </button>
-                                <button type="submit"
-                                        class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
-                                    Simpan
-                                </button>
-                            </div>
+                                <div class="flex items-center justify-end gap-2 pt-1">
+                                    <button type="button" @click="editOpen = !editOpen"
+                                            class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
+                                        Batal
+                                    </button>
+                                    <button type="submit"
+                                            class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
+                                        Simpan
+                                    </button>
+                                </div>
                             </form>
                         </div>
+                        @endif
 
                     </div>
                 @empty

@@ -15,22 +15,15 @@
     </x-slot>
 
     @php
+        // Check Role & Permission
+        $user = auth()->user();
+        $canManage = $user->can('manage-top-risk') || $user->hasRole('admin') || ($user->role ?? '') === 'admin';
+
         $monthNames = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
             5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
         ];
-
-        function getLevelName($id) {
-            $levels = [
-                1 => 'Low',
-                2 => 'Low to Moderate',
-                3 => 'Moderate',
-                4 => 'Moderate to High',
-                5 => 'High'
-            ];
-            return $levels[$id] ?? '-';
-        }
     @endphp
 
     <div class="space-y-5">
@@ -57,6 +50,8 @@
                     <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Detail Lengkap</h2>
                     <p style="font-size:12px; color:#94a3b8; margin:0;">Seluruh informasi data risiko ini</p>
                 </div>
+
+                @if($canManage)
                 <div style="display:flex; gap:8px;">
                     <a href="{{ route('top-risk.edit', $topRisk) }}"
                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
@@ -73,6 +68,7 @@
                         </button>
                     </form>
                 </div>
+                @endif
             </div>
 
             <div style="display:flex; gap:24px;">
@@ -85,9 +81,13 @@
                     <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
                         <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase;">Unit Kerja</p>
                         <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">
-                            @foreach ($topRisk->unitKerja as $unit)
-                                <span style="display:inline-block; background:#f1f5f9; border-radius:6px; padding:2px 10px; margin:2px 4px 2px 0; font-size:12px;">{{ $unit->nama_unit }}</span>
-                            @endforeach
+                            @if($topRisk->unitKerja && is_iterable($topRisk->unitKerja))
+                                @foreach ($topRisk->unitKerja as $unit)
+                                    <span style="display:inline-block; background:#f1f5f9; border-radius:6px; padding:2px 10px; margin:2px 4px 2px 0; font-size:12px;">{{ $unit->nama_unit ?? $unit->nama }}</span>
+                                @endforeach
+                            @else
+                                {{ $topRisk->unitKerja->nama_unit ?? '-' }}
+                            @endif
                         </p>
                     </div>
 
@@ -100,10 +100,9 @@
                         @endif
                     </div>
 
-                    {{-- INI ADALAH KOTAK TAMBAHAN UNTUK NILAI INHEREN AWAL --}}
                     <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
                         <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase;">Nilai Inheren Awal</p>
-                        <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">{{ $topRisk->inherent ?? '-' }}</p>
+                        <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">{{ $topRisk->inherent ?? $inherentAwal ?? '-' }}</p>
                     </div>
                 </div>
 
@@ -111,10 +110,10 @@
                     <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc; height:100%; display:flex; flex-direction:column;">
                         <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase;">Nama Peristiwa Risiko</p>
                         <p style="font-size:13px; color:#475569; line-height:1.8; margin:0; text-align:justify; flex:1;">
-                            {{ $topRisk->nama_peristiwa_risiko ?? '-' }}
+                            {{ $topRisk->nama_peristiwa_risiko ?? $topRisk->peristiwa_risiko ?? '-' }}
                         </p>
                         <div style="margin-top:12px; padding-top:10px; border-top:1px solid #e2e8f0;">
-                            <p style="font-size:10px; color:#94a3b8; margin:0;">Dibuat: {{ optional($topRisk->tanggal_dibuat)->translatedFormat('d F Y') ?? '-' }}</p>
+                            <p style="font-size:10px; color:#94a3b8; margin:0;">Dibuat: {{ optional($topRisk->tanggal_dibuat ?? $topRisk->created_at)->translatedFormat('d F Y') ?? '-' }}</p>
                         </div>
                     </div>
                 </div>
@@ -122,8 +121,9 @@
         </div>
 
         {{-- ═══════════ CARD 2: Form Input Monitoring Bulanan ═══════════ --}}
+        @if($canManage)
         <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);"
-             x-data="topRiskMonitoring({{ $topRisk->id_risiko }}, {{ $inherentAwal }})">
+             x-data="topRiskMonitoring({{ $topRisk->id_risiko ?? $topRisk->id }}, {{ $inherentAwal ?? $topRisk->inherent ?? 0 }})">
 
             <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Input Monitoring Bulanan</h2>
             <p style="font-size:12px; color:#94a3b8; margin:0 0 20px;">Perbarui nilai realisasi, status, dan progres penanganan untuk bulan ini</p>
@@ -133,13 +133,12 @@
 
                 <div style="display:grid; grid-template-columns:220px 1fr; gap:20px; align-items:start;">
 
-                    {{-- KOTAK KIRI: Informasi Risiko (Dinamis Berdasarkan Bulan Dropdown) --}}
+                    {{-- Informasi Risiko Dinamis --}}
                     <div style="border:1px solid #e2e8f0; border-radius:12px; padding:16px; background:#fafafa;">
                         <p style="font-size:12px; font-weight:700; color:#1e293b; margin:0 0 4px;">Informasi Risiko</p>
                         <p style="font-size:11px; color:#94a3b8; margin:0 0 14px;">Acuan Baseline & Realisasi Lalu</p>
 
                         <div style="display:flex; flex-direction:column; gap:10px;">
-                            {{-- Nilai Inheren Dinamis --}}
                             <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
                                     <p style="font-size:11px; color:#94a3b8; margin:0;">Nilai Inheren</p>
@@ -148,13 +147,11 @@
                                 <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;" x-text="inherentDisplay"></p>
                             </div>
 
-                            {{-- Level Inheren Dinamis --}}
                             <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
                                 <p style="font-size:11px; color:#94a3b8; margin:0 0 2px;">Level Inheren</p>
                                 <p style="font-size:13px; font-weight:700; color:#f59e0b; margin:0;" x-text="levelDisplay"></p>
                             </div>
 
-                            {{-- Skala Target TW1 - TW4 --}}
                             <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:#fff;">
                                 <p style="font-size:11px; color:#94a3b8; margin:0 0 6px;">Skala Target</p>
                                 <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px;">
@@ -179,15 +176,12 @@
                         </div>
                     </div>
 
-                    {{-- KANAN: Form Input Monitoring --}}
+                    {{-- Controls Input --}}
                     <div style="display:flex; flex-direction:column; gap:16px;">
-
-                        {{-- Baris 1: Bulan + Tahun --}}
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
                             <div>
                                 <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Bulan <span style="color:#ef4444;">*</span></label>
                                 <div style="position:relative;">
-                                    {{-- EVENT @change memicu perubahan Inherent Kiri secara instant --}}
                                     <select name="bulan" x-model="bulan" @change="fetchInherentPeriod()" required
                                             style="width:100%; appearance:none; border:1px solid #e2e8f0; border-radius:10px; padding:9px 36px 9px 12px; font-size:13px; color:#475569; background:#fff; outline:none;">
                                         <option value="" disabled>Pilih Bulan</option>
@@ -208,12 +202,10 @@
                             </div>
                         </div>
 
-                        {{-- Baris 2: Nilai Realisasi + Level Realisasi Auto + Status --}}
                         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
                             <div>
                                 <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Nilai Realisasi (1-25) <span style="color:#ef4444;">*</span></label>
-                                <input type="number" name="nilai" x-model="nilaiInput" min="1" max="25" required
-                                       placeholder="1 - 25"
+                                <input type="number" name="nilai" x-model="nilaiInput" min="1" max="25" required placeholder="1 - 25"
                                        style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:9px 12px; font-size:13px; color:#475569; background:#fff; outline:none; box-sizing:border-box; height:38px;">
                             </div>
 
@@ -238,7 +230,6 @@
                             </div>
                         </div>
 
-                        {{-- Baris 3: Progres Belum + Proses + Sudah --}}
                         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
                             <div>
                                 <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Progres Belum</label>
@@ -257,32 +248,28 @@
                             </div>
                         </div>
 
-                        {{-- Baris 4: Catatan --}}
                         <div>
                             <label style="display:block; font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Catatan</label>
                             <textarea name="catatan" placeholder="Catatan atau keterangan evaluasi bulanan..."
                                       style="width:100%; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; font-size:13px; color:#475569; background:#fff; resize:none; outline:none; min-height:60px; font-family:inherit; line-height:1.6;">{{ old('catatan') }}</textarea>
                         </div>
 
-                        {{-- Tombol Aksi --}}
                         <div class="flex items-center justify-end gap-2 pt-1">
-                        {{-- Tombol Batal --}}
-                        <button type="reset"
-                                class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
-                            Batal
-                        </button>
-                        <button type="submit"
-                                class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
-                            Simpan
-                        </button>
+                            <button type="reset" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
+                                Batal
+                            </button>
+                            <button type="submit" class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
+                                Simpan
+                            </button>
                         </div>
 
                     </div>
                 </div>
             </form>
         </div>
+        @endif
 
-       {{-- ═══════════ CARD 3: Riwayat Monitoring Bulanan ═══════════ --}}
+        {{-- ═══════════ CARD 3: Riwayat Monitoring Bulanan ═══════════ --}}
         <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
             <h2 style="font-size:15px; font-weight:700; color:#1e293b; margin:0 0 4px;">Riwayat Monitoring Bulanan</h2>
             <p style="font-size:12px; color:#94a3b8; margin:0 0 20px;">Daftar riwayat yang telah dimasukkan untuk risiko ini</p>
@@ -290,7 +277,7 @@
             <div style="display:flex; flex-direction:column; gap:12px;">
                 @forelse ($topRisk->monitoringBulanan as $monitoring)
                     @php
-                        $levelUrutan = (int) ($monitoring->level->urutan ?? 0);
+                        $levelUrutan = (int) ($monitoring->level->urutan ?? $monitoring->id_level ?? 0);
                         $lvlStyle = match($levelUrutan) {
                             1 => 'background:#ecfdf5;color:#10b981;',
                             2 => 'background:#eff6ff;color:#3b82f6;',
@@ -311,28 +298,24 @@
                         <div style="padding:12px 20px; border-bottom:1px solid #f1f5f9;">
                             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
                                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                    {{-- 1. Bulan & Tahun --}}
                                     <span style="background:#1e293b; color:#fff; border-radius:20px; padding:4px 14px; font-size:13px; font-weight:700;">
                                         {{ $monthNames[(int) $monitoring->bulan] ?? $monitoring->bulan }} {{ $monitoring->tahun }}
                                     </span>
 
-                                    {{-- 2. Inherent (Tepat di kanan Bulan) --}}
                                     <span style="background:#f8fafc; border:1px solid #e2e8f0; color:#475569; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         Inherent {{ $monitoring->inherent ?? '-' }}
                                     </span>
 
-                                    {{-- 3. Level --}}
                                     <span style="{{ $lvlStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         {{ $monitoring->level->nama_level ?? '-' }}
                                     </span>
 
-                                    {{-- 4. Status --}}
                                     <span style="{{ $statusStyle }} border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600;">
                                         {{ $monitoring->status }}
                                     </span>
                                 </div>
 
-                                {{-- Tombol Edit & Hapus --}}
+                                @if($canManage)
                                 <div style="display:flex; gap:4px; align-items:center;">
                                     <button type="button" @click="editOpen = !editOpen"
                                             class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
@@ -349,40 +332,36 @@
                                         </button>
                                     </form>
                                 </div>
+                                @endif
                             </div>
                         </div>
 
-                        {{-- Details Grid (Sekarang 5 Kolom: Nilai + 3 Progres + Efektivitas) --}}
+                        {{-- Details Grid --}}
                         <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:12px; padding:16px 20px;">
-                            {{-- Kotak 1: NILAI --}}
                             <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
                                 <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase;">Nilai</p>
                                 <p style="font-size:16px; font-weight:700; color:#4f46e5; margin:0;">{{ $monitoring->nilai ?? '-' }}</p>
                             </div>
 
-                            {{-- Kotak 2: Progres Belum --}}
                             <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
                                 <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase;">Progres Belum</p>
                                 <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $monitoring->progres_belum ?? 0 }}</p>
                             </div>
 
-                            {{-- Kotak 3: Progres Proses --}}
                             <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
                                 <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase;">Progres Proses</p>
                                 <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $monitoring->progres_proses ?? 0 }}</p>
                             </div>
 
-                            {{-- Kotak 4: Progres Sudah --}}
                             <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
                                 <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase;">Progres Sudah</p>
                                 <p style="font-size:16px; font-weight:700; color:#1e293b; margin:0;">{{ $monitoring->progres_sudah ?? 0 }}</p>
                             </div>
 
-                            {{-- Kotak 5: Efektivitas --}}
                             <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; background:#fafbfc;">
                                 <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase;">Efektivitas</p>
                                 <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">
-                                    {{ $monitoring->aturanEfektivitas->hasil ?? 'Belum ada pembanding' }}
+                                    {{ $monitoring->aturanEfektivitas->hasil ?? $monitoring->efektivitas ?? 'Belum ada pembanding' }}
                                 </p>
                             </div>
                         </div>
@@ -395,7 +374,8 @@
                             </div>
                         @endif
 
-                        {{-- Collapse Form Edit Inline --}}
+                        {{-- Inline Edit Form --}}
+                        @if($canManage)
                         <div x-show="editOpen" x-transition style="display:none; border-top:1px solid #f1f5f9; padding:16px 20px; background:#fafbfc;">
                             <form method="POST" action="{{ route('top-risk.monitoring.update', [$topRisk, $monitoring]) }}">
                                 @csrf @method('PUT')
@@ -460,13 +440,14 @@
                                             class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800">
                                         Batal
                                     </button>
-                        <button type="submit"
-                                class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
-                            Simpan
-                        </button>
+                                    <button type="submit"
+                                            class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700">
+                                        Simpan
+                                    </button>
                                 </div>
                             </form>
                         </div>
+                        @endif
 
                     </div>
                 @empty
@@ -494,16 +475,17 @@
                 tahun: '{{ old('tahun', now()->year) }}',
 
                 init() {
-                    // Jalankan fetch pertama kali saat halaman di-load
                     this.fetchInherentPeriod();
 
-                    // Watcher untuk update level realisasi otomatis saat input angka berubah
                     this.$watch('nilaiInput', (value) => {
                         this.updateLevel(value);
                     });
+
+                    if (this.nilaiInput) {
+                        this.updateLevel(this.nilaiInput);
+                    }
                 },
 
-                // Fungsi penarik data inherent dinamis via AJAX
                 fetchInherentPeriod() {
                     if (!this.bulan || !this.tahun) return;
 
@@ -517,7 +499,7 @@
                     })
                     .then(res => res.json())
                     .then(data => {
-                        this.inherentDisplay = data.inherent ?? '-';
+                        this.inherentDisplay = data.inherent ?? defaultInherent;
                         this.levelDisplay = data.level_name ?? '-';
                     })
                     .catch(() => {
@@ -541,9 +523,9 @@
 
                     if (val >= 1 && val <= 5) {
                         levelData = { name: 'Low', id: 1, color: '#166534', bg: '#ecfdf5' };
-                    } else if (val >= 6 && val <= 11) { // 6-11
+                    } else if (val >= 6 && val <= 11) {
                         levelData = { name: 'Low to Moderate', id: 2, color: '#1d4ed8', bg: '#eff6ff' };
-                    } else if (val >= 12 && val <= 15) { // 12-15
+                    } else if (val >= 12 && val <= 15) {
                         levelData = { name: 'Moderate', id: 3, color: '#b45309', bg: '#fffbeb' };
                     } else if (val >= 16 && val <= 19) {
                         levelData = { name: 'Moderate to High', id: 4, color: '#c2410c', bg: '#fff7ed' };
