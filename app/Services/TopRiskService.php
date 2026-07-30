@@ -36,19 +36,18 @@ class TopRiskService
     public function updateTopRisk(TopRisiko $topRisk, array $data): void
     {
         DB::transaction(function () use ($data, $topRisk): void {
-            TopRisiko::query()
-                ->where('id_risiko', $topRisk->id_risiko)
-                ->update([
-                    'nama_peristiwa_risiko' => $data['nama_peristiwa_risiko'],
-                    'id_kategori'           => $data['id_kategori'],
-                    'tanggal_dibuat'        => $data['tanggal_dibuat'],
-                    'is_aktif'              => $data['is_aktif'] ?? false,
-                    'inherent'              => $data['inherent'] ?? $topRisk->inherent,
-                    'target_tw1'            => $data['target_tw1'] ?? $topRisk->target_tw1,
-                    'target_tw2'            => $data['target_tw2'] ?? $topRisk->target_tw2,
-                    'target_tw3'            => $data['target_tw3'] ?? $topRisk->target_tw3,
-                    'target_tw4'            => $data['target_tw4'] ?? $topRisk->target_tw4,
-                ]);
+            // ✅ DIPERBAIKI: Menggunakan Model Object untuk memicu Observer 'updated'
+            $topRisk->update([
+                'nama_peristiwa_risiko' => $data['nama_peristiwa_risiko'],
+                'id_kategori'           => $data['id_kategori'],
+                'tanggal_dibuat'        => $data['tanggal_dibuat'],
+                'is_aktif'              => $data['is_aktif'] ?? false,
+                'inherent'              => $data['inherent'] ?? $topRisk->inherent,
+                'target_tw1'            => $data['target_tw1'] ?? $topRisk->target_tw1,
+                'target_tw2'            => $data['target_tw2'] ?? $topRisk->target_tw2,
+                'target_tw3'            => $data['target_tw3'] ?? $topRisk->target_tw3,
+                'target_tw4'            => $data['target_tw4'] ?? $topRisk->target_tw4,
+            ]);
 
             $topRisk->unitKerja()->sync($data['unit_kerja']);
         });
@@ -106,21 +105,20 @@ class TopRiskService
             $monitoring->id_risiko, (int) $data['bulan'], (int) $data['tahun'], (int) $data['nilai'], $idLevel
         );
 
-        TopMonitoringBulanan::query()
-            ->where('id_monitoring', $monitoring->id_monitoring)
-            ->update([
-                'bulan'                 => $data['bulan'],
-                'tahun'                 => $data['tahun'],
-                'nilai'                 => $data['nilai'],
-                'id_level'              => $idLevel,
-                'status'                => $data['status'],
-                'inherent'              => $data['inherent'] ?? $monitoring->inherent,
-                'progres_belum'         => $data['progres_belum'] ?? 0,
-                'progres_proses'        => $data['progres_proses'] ?? 0,
-                'progres_sudah'         => $data['progres_sudah'] ?? 0,
-                'id_aturan_efektivitas' => $idAturanEfektivitas,
-                'catatan'               => $data['catatan'] ?? null,
-            ]);
+        // ✅ DIPERBAIKI: Menggunakan Model Object untuk memicu Observer 'updated'
+        $monitoring->update([
+            'bulan'                 => $data['bulan'],
+            'tahun'                 => $data['tahun'],
+            'nilai'                 => $data['nilai'],
+            'id_level'              => $idLevel,
+            'status'                => $data['status'],
+            'inherent'              => $data['inherent'] ?? $monitoring->inherent,
+            'progres_belum'         => $data['progres_belum'] ?? 0,
+            'progres_proses'        => $data['progres_proses'] ?? 0,
+            'progres_sudah'         => $data['progres_sudah'] ?? 0,
+            'id_aturan_efektivitas' => $idAturanEfektivitas,
+            'catatan'               => $data['catatan'] ?? null,
+        ]);
     }
 
     // Logika penetapan range level.

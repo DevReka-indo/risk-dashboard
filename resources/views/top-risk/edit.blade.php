@@ -195,25 +195,32 @@
 
             {{-- BARIS BAWAH: Unit Kerja Terkait --}}
             <div style="padding:24px;">
-                <label style="display:block; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:4px;">Unit Kerja Terkait <span style="color:#ef4444;">*</span></label>
-                <p style="font-size:12px; color:#94a3b8; margin-bottom:14px;">Perbarui unit kerja yang berkaitan dengan risiko ini.</p>
+                <label style="display:block; font-size:13px; font-weight:700; color:inherit; margin-bottom:4px;">
+                    Unit Kerja Terkait <span style="color:#ef4444;">*</span>
+                </label>
+                <p style="font-size:12px; opacity:0.7; margin-bottom:14px;">
+                    Pilih satu atau lebih unit kerja yang berkaitan dengan risiko ini.
+                </p>
 
-                @error('unit_kerja') <p style="margin-bottom:10px; font-size:11px; color:#ef4444;">{{ $message }}</p> @enderror
+                @error('unit_kerja') 
+                    <p style="margin-bottom:10px; font-size:11px; color:#ef4444;">{{ $message }}</p> 
+                @enderror
 
                 @if ($unitKerja->isEmpty())
-                    <p style="font-size:13px; color:#94a3b8; text-align:center; padding:24px 0;">Belum ada unit kerja.
+                    <p style="font-size:13px; opacity:0.6; text-align:center; padding:24px 0;">
+                        Belum ada unit kerja.
                         <a href="{{ route('unit-kerja.create') }}" style="color:#4F7EF0; font-weight:600;">Tambah →</a>
                     </p>
                 @else
                     <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
                         @foreach ($unitKerja as $unit)
-                            <label style="display:flex; align-items:center; gap:10px; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; cursor:pointer; background:#fff; transition:border-color 0.2s;"
-                                   onmouseover="this.style.borderColor='#4F7EF0'; this.style.background='#f0f5ff';"
-                                   onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#fff';">
+                            <label class="unit-checkbox-card" style="display:flex; align-items:center; gap:10px; border:1px solid rgba(0,0,0,0.12); border-radius:10px; padding:10px 14px; cursor:pointer; transition:all 0.2s;">
                                 <input type="checkbox" name="unit_kerja[]" value="{{ $unit->id_unit }}"
-                                       style="width:15px; height:15px; accent-color:#4F7EF0; cursor:pointer; flex-shrink:0;"
+                                       style="width:16px; height:16px; accent-color:#4F7EF0; cursor:pointer; flex-shrink:0;"
                                        @checked(in_array($unit->id_unit, $selectedUnitKerja))>
-                                <span style="font-size:13px; color:#475569; font-weight:500;">{{ $unit->nama_unit }}</span>
+                                <span class="unit-label-text" style="font-size:13px; font-weight:500;">
+                                    {{ $unit->nama_unit }}
+                                </span>
                             </label>
                         @endforeach
                     </div>
@@ -235,6 +242,27 @@
         </div>
 
     </form>
+
+    {{-- CSS KHUSUS SUPAYA HANYA YANG DICENTANG YANG JADI PUTIH --}}
+    <style>
+        /* Styling saat Hover (Geser Mouse) */
+        .unit-checkbox-card:hover {
+            border-color: #4F7EF0 !important;
+        }
+
+        /* Hanya Kotak yang DICENTANG / DITEKAN yang latar belakangnya jadi PUTIH */
+        .unit-checkbox-card:has(input:checked) {
+            background-color: #ffffff !important;
+            border-color: #4F7EF0 !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* Warna teks saat DICENTANG jadi GELAP agar terbaca di atas background putih */
+        .unit-checkbox-card:has(input:checked) .unit-label-text {
+            color: #0f172a !important;
+            font-weight: 600;
+        }
+    </style>
 
     <script>
         document.addEventListener('alpine:init', () => {

@@ -122,8 +122,8 @@ class TopRiskController extends Controller
 
     public function destroy(TopRisiko $topRisk): RedirectResponse
     {
-        // Logic destroy bawaan dari resource.
-        TopRisiko::query()->where('id_risiko', $topRisk->id_risiko)->delete();
+        // ✅ BENAR: Menggunakan objek $topRisk agar memicu Observer 'deleted'
+        $topRisk->delete();
 
         return redirect()->route('top-risk.index')->with('success', 'Data Top Risk berhasil dihapus.');
     }
@@ -148,7 +148,8 @@ class TopRiskController extends Controller
     {
         abort_if($monitoring->id_risiko !== $topRisk->id_risiko, 404);
 
-        TopMonitoringBulanan::query()->where('id_monitoring', $monitoring->id_monitoring)->delete();
+        // ✅ BENAR: Menggunakan objek $monitoring agar memicu Observer (jika ada observer-nya nanti)
+        $monitoring->delete();
 
         return redirect()->route('top-risk.show', $topRisk)->with('success', 'Data monitoring bulanan berhasil dihapus.');
     }
