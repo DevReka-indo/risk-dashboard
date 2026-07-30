@@ -29,7 +29,7 @@ class DashboardController extends Controller
         // 1. Tangkap parameter filter (Default bulan diset ke 0 = Semua Bulan)
         $selectedPeriode = $request->query('periode', 'all');
         $selectedYear    = $request->query('tahun') ? (int) $request->query('tahun') : (int) date('Y');
-        $selectedBulan   = $request->has('bulan') ? (int) $request->query('bulan') : 0; // ⬅️ UBAH DISINI: Default 0
+        $selectedBulan   = $request->has('bulan') ? (int) $request->query('bulan') : 0; // Default 0
         $selectedTab     = $request->query('tab', 'top_risk');
 
         // 2. Ambil data Dashboard (Departemen)
@@ -40,6 +40,10 @@ class DashboardController extends Controller
 
         // 4. Ambil data Top Risk (Memakai $selectedBulan = 0)
         $topRiskData = $this->getTopRiskDashboardData($selectedBulan, $selectedYear);
+
+        // 💡 FOKUS PERBAIKAN: Samakan angka KPI Card 'Top Risk' paling atas
+        // dengan Total Top Risk riil dari TopRiskDashboardService ($totalRisikoVal)
+        $mainDashboardData['stats']['high_risks'] = $topRiskData['totalRisikoVal'] ?? 0;
 
         // 5. Merge & kirim ke view
         return view('dashboard.index', array_merge(
