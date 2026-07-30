@@ -29,7 +29,9 @@ class TopRiskController extends Controller
         $kategoriId = $request->integer('id_kategori');
         $unitId = $request->integer('id_unit');
         $statusAktif = $request->string('status')->toString();
-        $selectedMonth = (int) $request->integer('bulan', now()->month);
+
+        // Atur default bulan ke 0 saat pertama kali dibuka, konversi ke (int) agar terhindar dari TypeError di Service.
+        $selectedMonth = (int) $request->input('bulan', 0);
         $selectedYear = (int) $request->integer('tahun', now()->year);
 
         // Memanggil layanan dan repositori untuk mendapatkan data.
@@ -52,6 +54,7 @@ class TopRiskController extends Controller
             ];
         })->filter()->values();
 
+        // Parameter yang dikirim sekarang murni integer (0 sampai 12)
         $dashboardData = $this->dashboardService->buildTopRiskDashboardData($selectedMonth, $selectedYear);
 
         return view('top-risk.index', compact(

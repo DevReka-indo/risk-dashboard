@@ -130,7 +130,7 @@ class TopRiskService
             $nilai >= 20 && $nilai <= 25 => 5,
             $nilai >= 16 && $nilai <= 19 => 4,
             $nilai >= 12 && $nilai <= 15 => 3,
-            $nilai >= 6  && $nilai <= 11 => 2, 
+            $nilai >= 6  && $nilai <= 11 => 2,
             $nilai >= 1  && $nilai <= 5  => 1,
             default => throw new \InvalidArgumentException('Nilai risiko tidak valid.'),
         };
@@ -138,11 +138,12 @@ class TopRiskService
         return (int) LevelRisiko::query()->where('urutan', $urutanLevel)->valueOrFail('id_level');
     }
 
-    // Logika penarikan aturan efektivitas dari kueri periode bulan sebelumnya.
+    // Logika penarikan aturan efektivitas dari kueri periode bulan sebelumnya atau inherent awal.
     private function resolveAturanEfektivitasId(int $idRisiko, int $bulan, int $tahun, int $nilaiBulanIni, int $idLevelBulanIni): ?int
     {
         $periodeSekarang = sprintf('%04d-%02d-01', $tahun, $bulan);
 
+        // 1. Coba cari data monitoring bulan-bulan sebelumnya
         $monitoringSebelumnya = TopMonitoringBulanan::query()
             ->with('level')
             ->where('id_risiko', $idRisiko)
@@ -151,21 +152,46 @@ class TopRiskService
             ->orderByDesc('bulan')
             ->first();
 
-        if ($monitoringSebelumnya === null || $monitoringSebelumnya->level === null) {
-            return null;
+        $nilaiPembanding = 0;
+        $urutanLevelPembanding = 0;
+
+        // 2. Tentukan Nilai dan Level Pembanding
+        if ($monitoringSebelumnya !== null && $monitoringSebelumnya->level !== null) {
+            // Jika ada bulan sebelumnya, gunakan data tersebut
+            $nilaiPembanding = (int) $monitoringSebelumnya->nilai;
+            $urutanLevelPembanding = (int) $monitoringSebelumnya->level->urutan;
+        } else {
+            // Jika tidak ada (misal input pertama di Januari), gunakan Inherent Awal dari master risiko
+            $topRisk = TopRisiko::query()->findOrFail($idRisiko);
+
+            // Jika nilai inherent awal juga kosong/0, maka memang belum bisa dibandingkan
+            if (empty($topRisk->inherent)) {
+                return null;
+            }
+
+            $nilaiPembanding = (int) $topRisk->inherent;
+
+            // Hitung ID level berdasarkan nilai inherent, lalu cari urutan levelnya
+            $idLevelInherent = $this->resolveLevelRisikoIdByNilai($nilaiPembanding);
+            $levelInherent = LevelRisiko::query()->findOrFail($idLevelInherent);
+            $urutanLevelPembanding = (int) $levelInherent->urutan;
         }
 
-        $levelBulanIni = LevelRisiko::query()->where('id_level', $idLevelBulanIni)->firstOrFail();
+        // 3. Ambil data level untuk bulan ini
+        $levelBulanIni = LevelRisiko::query()->findOrFail($idLevelBulanIni);
 
-        $kondisiNilai = $this->compareValue($nilaiBulanIni, (int) $monitoringSebelumnya->nilai);
-        $kondisiLevel = $this->compareValue((int) $levelBulanIni->urutan, (int) $monitoringSebelumnya->level->urutan);
+        // 4. Bandingkan
+        $kondisiNilai = $this->compareValue($nilaiBulanIni, $nilaiPembanding);
+        $kondisiLevel = $this->compareValue((int) $levelBulanIni->urutan, $urutanLevelPembanding);
 
+        // 5. Tentukan jenis aturan
         $jenisAturan = match (true) {
             (int) $levelBulanIni->urutan <= 2 && $kondisiNilai === '=' && $kondisiLevel === '=' => 'level_rendah',
             (int) $levelBulanIni->urutan <= 2 && $kondisiNilai === '<' && in_array($kondisiLevel, ['<', '='], true) => 'level_rendah',
             default => 'umum',
         };
 
+        // 6. Ambil ID aturan efektivitas
         return TopAturanEfektivitas::query()
             ->where('kondisi_nilai', $kondisiNilai)
             ->where('kondisi_level', $kondisiLevel)

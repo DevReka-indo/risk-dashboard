@@ -1,5 +1,16 @@
 @php
-    $maxTotal = max((int) $items->max('total'), 1);
+    $items = $items ?? [];
+    
+    // Konversi Collection ke array jika diperlukan
+    if ($items instanceof \Illuminate\Support\Collection) {
+        $items = $items->toArray();
+    }
+    
+    // Hitung total keseluruhan untuk kalkulasi persentase yang akurat
+    $sumTotal = 0;
+    foreach ($items as $item) {
+        $sumTotal += (int) ($item['total'] ?? 0);
+    }
 @endphp
 
 <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
@@ -13,28 +24,38 @@
     </div>
 
     <div class="space-y-4">
-        @foreach ($items as $item)
+        @forelse ($items as $item)
             @php
-                $percentage = ((int) $item['total'] / $maxTotal) * 100;
+                $total = (int) ($item['total'] ?? 0);
+                // Hitung persentase terhadap total keseluruhan data
+                $percentage = $sumTotal > 0 ? round(($total / $sumTotal) * 100, 1) : 0;
+                $label = $item['label'] ?? 'Tidak Diketahui';
             @endphp
 
             <div>
                 <div class="mb-2 flex items-center justify-between gap-3">
                     <div class="text-sm font-semibold text-slate-700">
-                        {{ $item['label'] }}
+                        {{ $label }}
                     </div>
-                    <div class="text-sm font-bold text-slate-900">
-                        {{ $item['total'] }}
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-400">({{ $percentage }}%)</span>
+                        <span class="text-sm font-bold text-slate-900">{{ $total }}</span>
                     </div>
                 </div>
 
-                <div class="h-3 overflow-hidden rounded-full bg-slate-100">
+                <!-- Progress Bar Container (Warna Biru #2563eb / Tailwind blue-600) -->
+                <div class="h-3.5 w-full overflow-hidden rounded-full bg-slate-100">
                     <div
-                        class="h-full rounded-full bg-slate-900"
-                        style="width: {{ $percentage }}%">
+                        class="h-full rounded-full transition-all duration-500 ease-out"
+                        style="width: {{ $percentage }}%; background-color: #2563eb; min-width: {{ $total > 0 ? '8px' : '0' }};">
                     </div>
                 </div>
             </div>
-        @endforeach
+        @empty
+            <div class="py-8 text-center">
+                <p class="text-sm font-medium text-slate-600">Belum Ada Data Kategori Risiko</p>
+                <p class="text-xs text-slate-400">Data akan muncul setelah ada monitoring risiko</p>
+            </div>
+        @endforelse
     </div>
 </div>

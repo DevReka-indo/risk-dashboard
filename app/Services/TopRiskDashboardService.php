@@ -11,29 +11,55 @@ use App\Models\TopUnitKerja;
 
 class TopRiskDashboardService
 {
-    //[cite: 1] Membangun data array dashboard.
     public function buildTopRiskDashboardData(int $selectedMonth, int $selectedYear): array
     {
-        $currentMonitoring = TopMonitoringBulanan::query()
+        // 1. Ambil Data Current Monitoring
+        $currentQuery = TopMonitoringBulanan::query()
             ->with(['risiko.kategori', 'risiko.unitKerja', 'level', 'aturanEfektivitas'])
-            ->where('bulan', $selectedMonth)
-            ->where('tahun', $selectedYear)
-            ->get();
+            ->where('tahun', $selectedYear);
 
+        if ($selectedMonth > 0) {
+            $currentQuery->where('bulan', $selectedMonth);
+        } else {
+            $currentQuery->whereIn('id_monitoring', function ($subQuery) use ($selectedYear) {
+                $subQuery->selectRaw('MAX(id_monitoring)')
+                    ->from('top_monitoring_bulanan')
+                    ->where('tahun', $selectedYear)
+                    ->groupBy('id_risiko');
+            });
+        }
+        $currentMonitoring = $currentQuery->get();
+
+        // 2. Ambil Data Previous Monitoring
         [$previousMonth, $previousYear] = $this->resolvePreviousPeriod($selectedMonth, $selectedYear);
 
-        $previousMonitoring = TopMonitoringBulanan::query()
-            ->where('bulan', $previousMonth)->where('tahun', $previousYear)->get();
+        $previousQuery = TopMonitoringBulanan::query()->where('tahun', $previousYear);
 
+        if ($previousMonth > 0) {
+            $previousQuery->where('bulan', $previousMonth);
+        } else {
+            $previousQuery->whereIn('id_monitoring', function ($subQuery) use ($previousYear) {
+                $subQuery->selectRaw('MAX(id_monitoring)')
+                    ->from('top_monitoring_bulanan')
+                    ->where('tahun', $previousYear)
+                    ->groupBy('id_risiko');
+            });
+        }
+        $previousMonitoring = $previousQuery->get();
+
+        // 3. Hitung Rata-rata & Label
         $averageCurrentValue = round((float) ($currentMonitoring->avg('nilai') ?? 0), 2);
         $averagePreviousValue = round((float) ($previousMonitoring->avg('nilai') ?? 0), 2);
+
+        $currentLabel = $selectedMonth > 0 ? $this->monthName($selectedMonth).' '.$selectedYear : 'Tahun '.$selectedYear;
+        $previousLabel = $previousMonth > 0 ? $this->monthName($previousMonth).' '.$previousYear : 'Tahun '.$previousYear;
 
         return [
             'period' => [
                 'month' => $selectedMonth,
                 'year' => $selectedYear,
-                'label' => $this->monthName($selectedMonth).' '.$selectedYear,
-                'previous_label' => $this->monthName($previousMonth).' '.$previousYear,
+                'label' => $currentLabel,
+                'previous_label' => $previousLabel,
             ],
             'summary' => [
                 'total_risiko' => TopRisiko::query()->count('*'),
@@ -53,7 +79,6 @@ class TopRiskDashboardService
         ];
     }
 
-    //[cite: 1] Logika heatmap dari range 1 - 25.
     private function buildHeatmapData(Collection $currentMonitoring): array
     {
         $monitoringRows = $currentMonitoring->sortByDesc('nilai')->values()
@@ -78,7 +103,6 @@ class TopRiskDashboardService
         return ['rows' => $cells, 'risks' => $monitoringRows];
     }
 
-    //[cite: 1] Kelas Tailwind khusus heatmap berdasarkan nilai.
     private function resolveHeatmapCellClass(int $value): string
     {
         if ($value >= 21) { return 'bg-rose-100 text-rose-900 ring-rose-200'; }
@@ -88,7 +112,6 @@ class TopRiskDashboardService
         return 'bg-emerald-100 text-emerald-900 ring-emerald-200';
     }
 
-    //[cite: 1] Distribusi level, kategori, status, dan tren dikemas dalam private helpers berikut.
     private function buildLevelDistribution(Collection $currentMonitoring): Collection
     {
         return LevelRisiko::query()->orderBy('urutan', 'asc')->get()
@@ -176,6 +199,9 @@ class TopRiskDashboardService
 
     private function resolvePreviousPeriod(int $selectedMonth, int $selectedYear): array
     {
+        if ($selectedMonth === 0) {
+            return [0, $selectedYear - 1];
+        }
         return $selectedMonth === 1 ? [12, $selectedYear - 1] : [$selectedMonth - 1, $selectedYear];
     }
 
@@ -199,14 +225,11 @@ class TopRiskDashboardService
     private function buildUnitLevelDistribution(Collection $currentMonitoring): array
     {
         $units = TopUnitKerja::query()->orderBy('nama_unit', 'asc')->get();
-
-        // Urutkan level dari yang tertinggi agar tumpukan (stack) warna merah ada di paling bawah grafik
         $levels = LevelRisiko::query()->orderBy('urutan', 'desc')->get();
 
         $labels = [];
         $datasets = [];
 
-        // Inisialisasi struktur dataset Chart.js untuk setiap level
         foreach ($levels as $level) {
             $datasets[$level->id_level] = [
                 'label' => $level->nama_level,
@@ -217,20 +240,14 @@ class TopRiskDashboardService
             ];
         }
 
-        // Isi data untuk setiap Unit Kerja
         foreach ($units as $unit) {
-            $labels[] = $unit->nama_unit; // Nama Unit untuk Sumbu X
-
-            // Cari monitoring yang unit kerjanya sesuai dengan unit ini
+            $labels[] = $unit->nama_unit;
             $monitoringsForUnit = $currentMonitoring->filter(function ($monitoring) use ($unit): bool {
                 return $monitoring->risiko !== null
                     && $monitoring->risiko->unitKerja->contains('id_unit', $unit->id_unit);
             });
-
-            // Hitung jumlah masing-masing level di unit tersebut
             $countsByLevel = $monitoringsForUnit->countBy('id_level');
 
-            // Masukkan jumlah ke dalam dataset masing-masing level
             foreach ($levels as $level) {
                 $datasets[$level->id_level]['data'][] = $countsByLevel->get($level->id_level, 0);
             }
@@ -238,27 +255,33 @@ class TopRiskDashboardService
 
         return [
             'labels' => $labels,
-            'datasets' => array_values($datasets), // Reset key array
+            'datasets' => array_values($datasets),
         ];
     }
 
     private function buildProgressDistribution(Collection $currentMonitoring): array
     {
-        // Menggunakan sum() untuk menjumlahkan total angka dari masing-masing kolom INT
+        $belum = (int) $currentMonitoring->sum('progres_belum');
+        $proses = (int) $currentMonitoring->sum('progres_proses');
+        $sudah = (int) $currentMonitoring->sum('progres_sudah');
+
+        if ($belum === 0 && $proses === 0 && $sudah === 0) {
+            return [
+                'labels' => ['Belum', 'Proses', 'Sudah'],
+                'data' => [1, 0, 0],
+                'colors' => ['#FCD34D', '#A3E635', '#93C5FD']
+            ];
+        }
+
         return [
             'labels' => ['Belum', 'Proses', 'Sudah'],
-            'data' => [
-                (int) $currentMonitoring->sum('progres_belum'),
-                (int) $currentMonitoring->sum('progres_proses'),
-                (int) $currentMonitoring->sum('progres_sudah'),
-            ],
-            'colors' => ['#FCD34D', '#A3E635', '#93C5FD'] // Kuning, Lime, Biru
+            'data' => [$belum, $proses, $sudah],
+            'colors' => ['#FCD34D', '#A3E635', '#93C5FD']
         ];
     }
 
     private function buildEffectivenessDistribution(Collection $currentMonitoring): array
     {
-        // Mengelompokkan data berdasarkan hasil efektivitas
         $stats = $currentMonitoring->groupBy('aturanEfektivitas.hasil')
             ->map(function ($items, $key) {
                 return [
@@ -267,13 +290,18 @@ class TopRiskDashboardService
                 ];
             });
 
+        if ($stats->isEmpty()) {
+            return [
+                'labels' => ['Belum Dinilai'],
+                'data' => [1],
+                'colors' => ['#bbf7d0']
+            ];
+        }
+
         return [
             'labels' => $stats->pluck('label')->toArray(),
             'data' => $stats->pluck('count')->toArray(),
-            // Anda bisa menyesuaikan warna berdasarkan label jika diperlukan
-            'colors' => ['#bbf7d0', '#f87171']
+            'colors' => ['#bbf7d0', '#f87171', '#fbbf24', '#94a3b8']
         ];
     }
-
 }
-

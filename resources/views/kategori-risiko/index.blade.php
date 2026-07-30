@@ -61,20 +61,20 @@
         <div class="grid gap-6 md:grid-cols-3">
 
             {{-- Total --}}
-            <div 
+            <div
                 @click="setFilter('')"
-                class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer"
-                :class="filterType === '' ? 'ring-2 ring-indigo-500 ring-offset-2' : ''">
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer"
+                :class="filterType === '' ? 'ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-slate-950' : ''">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-slate-500">
+                        <p class="text-sm text-slate-500 dark:text-slate-400">
                             Total Kategori
                         </p>
-                        <h2 class="mt-2 text-3xl font-bold text-slate-900">
+                        <h2 class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
                             {{ $categories->count() }}
                         </h2>
                     </div>
-                    <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400">
                         <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M20.59 13.41L11 3.83a2 2 0 00-2.83 0L3.83 8.17a2 2 0 000 2.83L13.41 20.6a2 2 0 002.83 0l4.35-4.35a2 2 0 000-2.84z"/>
@@ -85,20 +85,20 @@
             </div>
 
             {{-- SMAP --}}
-            <div 
+            <div
                 @click="setFilter('smap')"
-                class="rounded-lg border border-purple-200 bg-purple-50 p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer"
-                :class="filterType === 'smap' ? 'ring-2 ring-purple-500 ring-offset-2' : ''">
+                class="rounded-lg border border-purple-200 dark:border-purple-800/60 bg-purple-50 dark:bg-slate-900 p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer"
+                :class="filterType === 'smap' ? 'ring-2 ring-purple-500 ring-offset-2 dark:ring-offset-slate-950' : ''">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-purple-600">
+                        <p class="text-sm text-purple-600 dark:text-purple-400">
                             Kategori SMAP
                         </p>
-                        <h2 class="mt-2 text-3xl font-bold text-purple-700">
+                        <h2 class="mt-2 text-3xl font-bold text-purple-700 dark:text-purple-300">
                             {{ $categories->where('type','smap')->count() }}
                         </h2>
                     </div>
-                    <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-white text-purple-600">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-400">
                         <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M9 12h6m-3-3v6"/>
@@ -109,20 +109,20 @@
             </div>
 
             {{-- Departemen --}}
-            <div 
+            <div
                 @click="setFilter('departemen')"
-                class="rounded-lg border border-blue-200 bg-blue-50 p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer"
-                :class="filterType === 'departemen' ? 'ring-2 ring-blue-500 ring-offset-2' : ''">
+                class="rounded-lg border border-blue-200 dark:border-blue-800/60 bg-blue-50 dark:bg-slate-900 p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer"
+                :class="filterType === 'departemen' ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-slate-950' : ''">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-blue-600">
+                        <p class="text-sm text-blue-600 dark:text-blue-400">
                             Kategori Departemen
                         </p>
-                        <h2 class="mt-2 text-3xl font-bold text-blue-700">
+                        <h2 class="mt-2 text-3xl font-bold text-blue-700 dark:text-blue-300">
                             {{ $categories->where('type','departemen')->count() }}
                         </h2>
                     </div>
-                    <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-white text-blue-600">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-lg bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400">
                         <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M4 6h16M4 12h16M4 18h16"/>
@@ -202,9 +202,9 @@
                             @php
                                 $typeLower = strtolower($category->type ?? '');
                                 $badgeClass = match($typeLower) {
-                                    'smap' => 'bg-purple-50 text-purple-700 border border-purple-100',
-                                    'departemen' => 'bg-blue-50 text-blue-700 border border-blue-100',
-                                    default => 'bg-slate-100 text-slate-600 border border-slate-200',
+                                    'smap'       => 'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-slate-800 dark:border-slate-700 dark:text-violet-400',
+                                    'departemen' => 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-slate-800 dark:border-slate-700 dark:text-blue-400',
+                                    default      => 'bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400',
                                 };
                             @endphp
                             <span class="inline-flex rounded-md px-2.5 py-1 text-xs font-semibold {{ $badgeClass }}">

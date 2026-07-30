@@ -12,6 +12,12 @@
                     id="bulan"
                     name="bulan"
                     class="mt-2 w-full rounded-lg border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+
+                    <!-- Opsi Semua Bulan dengan value 0 -->
+                    <option value="0" @selected((int) $selectedMonth === 0)>
+                        Semua Bulan
+                    </option>
+
                     @foreach ([
                         1 => 'Januari',
                         2 => 'Februari',
@@ -92,15 +98,12 @@
             'items' => $dashboardData['status_distribution'],
         ])
     </div>
-    {{-- <div class="grid grid-cols-1 lg:grid-cols-2 gap-6"> --}}
+
     @include('top-risk.partials._chart-progress', [
         'progressDistribution' => $dashboardData['progress_distribution']
     ])
 
-    {{-- @include('top-risk.partials._chart-effectiveness', [
+    @include('top-risk.partials._chart-effectiveness', [
         'effectivenessDistribution' => $dashboardData['effectiveness_distribution']
-    ]) --}}
-    {{-- </div> --}}
+    ])
 </div>
-
-

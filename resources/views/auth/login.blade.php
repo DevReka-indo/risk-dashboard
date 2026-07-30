@@ -1,5 +1,39 @@
 <x-guest-layout>
-    <div class="text-center">
+    {{-- Memaksa background pembungkus Breeze transparan dan menambahkan Overlay Gambar bg-risk.jpg --}}
+    <style>
+        /* Buat background body bergradasi biru halus */
+        body {
+            background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 50%, #bfdbfe 100%) !important;
+        }
+
+        /* Paksa pembungkus utama Breeze (yang biasanya punya bg-gray-100) menjadi transparan & relatif */
+        div.min-h-screen {
+            background-color: transparent !important;
+            position: relative !important;
+        }
+
+        /* Overlay gambar bg-risk.jpg tepat di belakang card login */
+        div.min-h-screen::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: url("{{ asset('1.png') }}");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            opacity: 0.25; /* Transparansi gambar 25% agar jelas terlihat */
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Pastikan elemen di dalam guest-layout berada di atas layer gambar */
+        div.min-h-screen > * {
+            position: relative;
+            z-index: 10;
+        }
+    </style>
+
+    <div class="text-center">aq
         <h2 class="text-xl font-bold text-slate-900">
             Masuk ke Aplikasi
         </h2>
@@ -17,22 +51,7 @@
         </div>
     @endif
 
-    {{--
-        ========================================================================
-        LOGIN MANUAL DEVELOPER
-        ========================================================================
-
-        Saat tahap development, form login manual ini ditampilkan agar bisa login
-        menggunakan email atau NIP/employee_id.
-
-        Kalau nanti production dan ingin login hanya SSO:
-        comment mulai dari:
-            <form method="POST" action="{{ route('login') }}" class="mt-6 space-y-5">
-        sampai:
-            </form>
-
-        Setelah itu tombol SSO di bawah tetap aktif.
-    --}}
+    {{-- Form Login Manual Developer --}}
     <form method="POST" action="{{ route('login') }}" class="mt-6 space-y-5">
         @csrf
 

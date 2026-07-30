@@ -99,6 +99,12 @@
                             <span style="background:#f1f5f9; color:#94a3b8; border-radius:6px; padding:4px 14px; font-size:12px; font-weight:600; display:inline-block;">Tidak Aktif</span>
                         @endif
                     </div>
+
+                    {{-- INI ADALAH KOTAK TAMBAHAN UNTUK NILAI INHEREN AWAL --}}
+                    <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fafbfc;">
+                        <p style="font-size:10px; font-weight:600; color:#94a3b8; margin:0 0 4px; text-transform:uppercase;">Nilai Inheren Awal</p>
+                        <p style="font-size:14px; font-weight:700; color:#1e293b; margin:0;">{{ $topRisk->inherent ?? '-' }}</p>
+                    </div>
                 </div>
 
                 <div style="flex:4;">
