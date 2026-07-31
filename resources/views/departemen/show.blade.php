@@ -54,17 +54,17 @@
                     <p style="font-size:12px; color:#94a3b8; margin:0;">Seluruh informasi data risiko ini</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    {{-- PERMISSION CHECK: Edit Utama Risk --}}
-                    @can('department-risk.edit')
+                    {{-- PERMISSION / ROLE CHECK: Edit Utama Risk --}}
+                    @if(auth()->user()->hasAnyRole(['admin', 'superadmin']) || auth()->user()->can('department-risk.edit'))
                         <a href="{{ route('department-risk.edit', $risk->id_monitoring) }}"
                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             Edit
                         </a>
-                    @endcan
+                    @endif
 
-                    {{-- PERMISSION CHECK: Hapus Utama Risk --}}
-                    @can('department-risk.delete')
+                    {{-- PERMISSION / ROLE CHECK: Hapus Utama Risk --}}
+                    @if(auth()->user()->hasAnyRole(['admin', 'superadmin']) || auth()->user()->can('department-risk.delete'))
                         <form method="POST" action="{{ route('department-risk.destroy', $risk->id_monitoring) }}"
                               onsubmit="return confirm('Yakin hapus?')" class="m-0">
                             @csrf
@@ -75,7 +75,7 @@
                                 Hapus
                             </button>
                         </form>
-                    @endcan
+                    @endif
                 </div>
             </div>
 
@@ -117,8 +117,8 @@
         </div>
 
         {{-- ═══════════ CARD 2: Input Parameter Risiko Per Triwulan ═══════════ --}}
-        {{-- PERMISSION CHECK: Hanya tampilkan form input jika user punya akses create / edit --}}
-        @canany(['department-risk.create', 'department-risk.edit'])
+        {{-- PERMISSION / ROLE CHECK: Tampilkan jika user role admin/superadmin ATAU punya permission create/edit --}}
+        @if(auth()->user()->hasAnyRole(['admin', 'superadmin']) || auth()->user()->canAny(['department-risk.create', 'department-risk.edit']))
         <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);"
              x-data="smapRiskForm(@js($historyData), '{{ old('year', date('Y')) }}', '{{ $risk->inherent }}', '{{ $risk->target_value }}')">
 
@@ -273,7 +273,7 @@
                 </div>
             </form>
         </div>
-        @endcanany
+        @endif
 
         {{-- ═══════════ CARD 3: Riwayat Monitoring Triwulan ═══════════ --}}
         <div style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.04);">
@@ -345,8 +345,8 @@
 
                                 {{-- Aksi Edit & Hapus Periode --}}
                                 <div class="flex items-center gap-2">
-                                    {{-- PERMISSION CHECK: Edit Periode Riwayat --}}
-                                    @can('department-risk.edit')
+                                    {{-- PERMISSION / ROLE CHECK: Edit Periode Riwayat --}}
+                                    @if(auth()->user()->hasAnyRole(['admin', 'superadmin']) || auth()->user()->can('department-risk.edit'))
                                         <button type="button" @click="editOpen = !editOpen"
                                                 class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -354,10 +354,10 @@
                                             </svg>
                                             Edit
                                         </button>
-                                    @endcan
+                                    @endif
 
-                                    {{-- PERMISSION CHECK: Hapus Periode Riwayat --}}
-                                    @can('department-risk.delete')
+                                    {{-- PERMISSION / ROLE CHECK: Hapus Periode Riwayat --}}
+                                    @if(auth()->user()->hasAnyRole(['admin', 'superadmin']) || auth()->user()->can('department-risk.delete'))
                                         <form method="POST" action="{{ route('department-risk.destroy-period', [$risk->id_monitoring, $period->pivot->id]) }}"
                                               onsubmit="return confirm('Hapus periode ini?')" class="m-0">
                                             @csrf
@@ -370,7 +370,7 @@
                                                 Hapus
                                             </button>
                                         </form>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -404,8 +404,8 @@
                             </div>
                         </div>
 
-                        {{-- PERMISSION CHECK: Inline Form Edit Periode --}}
-                        @can('department-risk.edit')
+                        {{-- PERMISSION / ROLE CHECK: Inline Form Edit Periode --}}
+                        @if(auth()->user()->hasAnyRole(['admin', 'superadmin']) || auth()->user()->can('department-risk.edit'))
                         <div x-show="editOpen" x-transition style="display:none; border-top:1px solid #f1f5f9; padding:16px 20px; background:#fafbfc;">
                             <form method="POST" action="{{ route('department-risk.update-existing-period', [$risk->id_monitoring, $period->pivot->id]) }}">
                                 @csrf @method('PUT')
@@ -467,7 +467,7 @@
                                 </div>
                             </form>
                         </div>
-                        @endcan
+                        @endif
 
                     </div>
                 @empty

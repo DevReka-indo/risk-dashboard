@@ -33,7 +33,7 @@
         }
     </style>
 
-    <div class="text-center">aq
+    <div class="text-center">
         <h2 class="text-xl font-bold text-slate-900">
             Masuk ke Aplikasi
         </h2>
