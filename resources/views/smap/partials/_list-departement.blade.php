@@ -18,20 +18,22 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        initSmapChart();
+        setTimeout(() => {
+            initSmapChart();
+        }, 100);
+
+        const smapTabBtn = document.querySelector('[data-tab="smap"]') || document.getElementById('tab-smap');
+        if (smapTabBtn) {
+            smapTabBtn.addEventListener('click', function() {
+                setTimeout(initSmapChart, 50);
+            });
+        }
     });
 
     function initSmapChart() {
         const canvas = document.getElementById('chartDepartemenBaru');
         if (!canvas) return;
 
-        // 🛑 BENTENG UTAMA: Cek apakah container tab SMAP sedang tersembunyi (hidden)
-        // Jika parent container SMAP sedang hidden, HENTIKAN RENDER CHART SMAP!
-        if (canvas.closest('.hidden') !== null || canvas.offsetParent === null) {
-            return;
-        }
-
-        // Ambil data spesifik SMAP
         const labels = {!! json_encode($smapData['labels'] ?? $labels ?? []) !!};
         const dataValues = {!! json_encode($smapData['data'] ?? $data ?? []) !!};
 
@@ -47,9 +49,10 @@
         canvas.style.display = 'block';
         if (emptyMessage) emptyMessage.classList.add('hidden');
 
-        // Hancurkan instance chart lama jika ada
         let existingChart = Chart.getChart("chartDepartemenBaru");
-        if (existingChart) existingChart.destroy();
+        if (existingChart) {
+            existingChart.destroy();
+        }
 
         const ctx = canvas.getContext('2d');
         new Chart(ctx, {
@@ -69,7 +72,9 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: {
+                    legend: { display: false }
+                },
                 scales: {
                     x: { grid: { display: false } },
                     y: { beginAtZero: true, ticks: { precision: 0 } }
