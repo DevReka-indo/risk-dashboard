@@ -6,8 +6,8 @@ use App\Models\KategoriRisiko;
 use App\Models\LevelRisiko;
 use App\Models\TopMonitoringBulanan;
 use App\Models\TopRisiko;
-use Illuminate\Support\Collection;
 use App\Models\TopUnitKerja;
+use Illuminate\Support\Collection;
 
 class TopRiskDashboardService
 {
@@ -21,11 +21,12 @@ class TopRiskDashboardService
         if ($selectedMonth > 0) {
             $currentQuery->where('bulan', $selectedMonth);
         } else {
+            // PERBAIKAN 1: Ambil berdasarkan MAX(bulan) tiap risiko, bukan MAX(id_monitoring)
             $currentQuery->whereIn('id_monitoring', function ($subQuery) use ($selectedYear) {
-                $subQuery->selectRaw('MAX(id_monitoring)')
-                    ->from('top_monitoring_bulanan')
-                    ->where('tahun', $selectedYear)
-                    ->groupBy('id_risiko');
+                $subQuery->selectRaw('t1.id_monitoring')
+                    ->from('top_monitoring_bulanan as t1')
+                    ->where('t1.tahun', $selectedYear)
+                    ->whereRaw('t1.bulan = (SELECT MAX(t2.bulan) FROM top_monitoring_bulanan t2 WHERE t2.id_risiko = t1.id_risiko AND t2.tahun = ?)', [$selectedYear]);
             });
         }
         $currentMonitoring = $currentQuery->get();
@@ -39,10 +40,10 @@ class TopRiskDashboardService
             $previousQuery->where('bulan', $previousMonth);
         } else {
             $previousQuery->whereIn('id_monitoring', function ($subQuery) use ($previousYear) {
-                $subQuery->selectRaw('MAX(id_monitoring)')
-                    ->from('top_monitoring_bulanan')
-                    ->where('tahun', $previousYear)
-                    ->groupBy('id_risiko');
+                $subQuery->selectRaw('t1.id_monitoring')
+                    ->from('top_monitoring_bulanan as t1')
+                    ->where('t1.tahun', $previousYear)
+                    ->whereRaw('t1.bulan = (SELECT MAX(t2.bulan) FROM top_monitoring_bulanan t2 WHERE t2.id_risiko = t1.id_risiko AND t2.tahun = ?)', [$previousYear]);
             });
         }
         $previousMonitoring = $previousQuery->get();
@@ -72,7 +73,7 @@ class TopRiskDashboardService
             'level_distribution' => $this->buildLevelDistribution($currentMonitoring),
             'category_distribution' => $this->buildCategoryDistribution($currentMonitoring),
             'status_distribution' => $this->buildStatusDistribution($currentMonitoring),
-            'trend_risk' => $this->buildRiskTrendRows($currentMonitoring, $previousMonitoring),
+            'trend_risk' => $this->buildRiskTrendRows($currentMonitoring, $selectedMonth, $selectedYear),
             'unit_level_distribution' => $this->buildUnitLevelDistribution($currentMonitoring),
             'progress_distribution' => $this->buildProgressDistribution($currentMonitoring),
             'effectiveness_distribution' => $this->buildEffectivenessDistribution($currentMonitoring),
@@ -143,12 +144,12 @@ class TopRiskDashboardService
         ]);
     }
 
-    private function buildRiskTrendRows(Collection $currentMonitoring, Collection $previousMonitoring): Collection
+    private function buildRiskTrendRows(Collection $currentMonitoring, int $selectedMonth, int $selectedYear): Collection
     {
         return $currentMonitoring->sortByDesc('nilai')->values()
-            ->map(function (TopMonitoringBulanan $monitoring, int $index): array {
+            ->map(function (TopMonitoringBulanan $monitoring, int $index) use ($selectedMonth, $selectedYear): array {
                 $trendAnalysis = $this->resolveRiskTrendAnalysis(
-                    (int) $monitoring->id_risiko, (int) $monitoring->bulan, (int) $monitoring->tahun
+                    (int) $monitoring->id_risiko, $selectedMonth, $selectedYear
                 );
                 return [
                     'number' => $index + 1,
@@ -165,24 +166,38 @@ class TopRiskDashboardService
 
     private function resolveRiskTrendAnalysis(int $idRisiko, int $selectedMonth, int $selectedYear): array
     {
-        $selectedPeriod = sprintf('%04d-%02d-01', $selectedYear, $selectedMonth);
+        $query = TopMonitoringBulanan::query()->where('id_risiko', $idRisiko);
 
-        $monitoringValues = TopMonitoringBulanan::query()
-            ->where('id_risiko', $idRisiko)
-            ->whereRaw("STR_TO_DATE(CONCAT(tahun, '-', LPAD(bulan, 2, '0'), '-01'), '%Y-%m-%d') <= ?", [$selectedPeriod])
-            ->orderBy('tahun', 'asc')->orderBy('bulan', 'asc')
+        // PERBAIKAN 2: Handling pencarian riwayat trend yang aman untuk 'Semua Bulan' (selectedMonth = 0)
+        if ($selectedMonth > 0) {
+            $selectedPeriod = sprintf('%04d-%02d-01', $selectedYear, $selectedMonth);
+            $query->whereRaw("STR_TO_DATE(CONCAT(tahun, '-', LPAD(bulan, 2, '0'), '-01'), '%Y-%m-%d') <= ?", [$selectedPeriod]);
+        } else {
+            $query->where('tahun', '<=', $selectedYear);
+        }
+
+        $monitoringValues = $query->orderBy('tahun', 'asc')
+            ->orderBy('bulan', 'asc')
             ->get(['bulan', 'tahun', 'nilai'])
             ->map(function ($monitoring): array {
-                return ['label' => $this->shortMonthName((int) $monitoring->bulan).' '.$monitoring->tahun, 'value' => (int) $monitoring->nilai];
+                return [
+                    'label' => $this->shortMonthName((int) $monitoring->bulan).' '.$monitoring->tahun,
+                    'value' => (int) $monitoring->nilai
+                ];
             })->values();
 
         if ($monitoringValues->count() <= 1) {
-            return ['trend' => 'Belum ada pembanding', 'description' => 'Belum tersedia data bulan sebelumnya sebagai pembanding.', 'values' => $monitoringValues];
+            return [
+                'trend' => 'Belum ada pembanding',
+                'description' => 'Belum tersedia data bulan sebelumnya sebagai pembanding.',
+                'values' => $monitoringValues
+            ];
         }
 
         $firstValue = (int) $monitoringValues->first()['value'];
         $lastValue = (int) $monitoringValues->last()['value'];
-        $hasIncrease = false; $hasDecrease = false;
+        $hasIncrease = false;
+        $hasDecrease = false;
 
         for ($index = 1; $index < $monitoringValues->count(); $index++) {
             $prev = (int) $monitoringValues->get($index - 1)['value'];
